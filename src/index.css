@@ -9,22 +9,23 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    --foreground: 0 0% 3%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 0 0% 3%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 0 0% 3%;
 
     --primary: 217 91% 35%;
     --primary-foreground: 0 0% 100%;
 
     --primary-dark: 217 91% 25%;
     --primary-light: 217 91% 45%;
+    --primary-glow: 217 91% 60%;
 
-    --secondary: 0 0% 95%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
 
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
@@ -40,13 +41,17 @@ All colors MUST be HSL.
     --ring: 217 91% 35%;
 
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 35%), hsl(217 91% 25%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 35%) 0%, hsl(0 0% 10%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 35%) 0%, hsl(0 0% 3%) 100%);
+    --gradient-modern: linear-gradient(135deg, hsl(217 91% 35%) 0%, hsl(217 91% 60%) 50%, hsl(217 91% 35%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 97%) 100%);
 
-    --shadow-premium: 0 10px 40px -15px hsl(217 91% 35% / 0.3);
+    --shadow-premium: 0 20px 60px -15px hsl(217 91% 35% / 0.4);
+    --shadow-modern: 0 10px 40px -10px hsl(217 91% 35% / 0.3);
     --shadow-elegant: 0 4px 20px -5px hsl(0 0% 0% / 0.1);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.4);
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
