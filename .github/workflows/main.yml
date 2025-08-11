@@ -31,4 +31,3 @@ jobs:
           local-dir: dist/       
           server-dir: ./         
           state-name: .ftp-deploy-sync-state-lucas.json
-          dry-run: true          
