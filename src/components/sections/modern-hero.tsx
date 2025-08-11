@@ -63,7 +63,7 @@ export function ModernHero() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 px-10 py-6 text-xl backdrop-blur-sm group"
+                className="border-white/30 text-black hover:bg-white/10 px-10 py-6 text-xl backdrop-blur-sm group"
               >
                 <Play className="mr-3 h-6 w-6 group-hover:scale-110 transition-transform" />
                 Ver Como Funciona

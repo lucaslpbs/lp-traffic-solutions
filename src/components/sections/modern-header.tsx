@@ -50,7 +50,7 @@ export function Header() {
                 className={`transition-all hover:text-primary font-medium ${
                   isActive(item.path) 
                     ? 'text-primary' 
-                    : isScrolled ? 'text-foreground' : 'text-white'
+                    : isScrolled ? 'text-foreground' : 'text-blue-300'
                 }`}
               >
                 {item.label}
