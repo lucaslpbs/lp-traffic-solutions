@@ -19,11 +19,16 @@ jobs:
       - name: 🛠 Build project
         run: npm run build
 
-      - name: 📂 Deploy build folder to public_html root
+      - name: 📂 Prepare deploy folder without dist root
+        run: |
+          mkdir deploy-folder
+          cp -r dist/* deploy-folder/
+
+      - name: 📤 Deploy build folder content to public_html root
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.ftp_host }}
           username: ${{ secrets.ftp_user }}
           password: ${{ secrets.ftp_password }}
-          local-dir: dist/
+          local-dir: deploy-folder/
           server-dir: /
