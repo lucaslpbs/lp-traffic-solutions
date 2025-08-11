@@ -28,6 +28,6 @@ jobs:
           server: ${{ secrets.ftp_host }}
           username: ${{ secrets.ftp_user }}
           password: ${{ secrets.ftp_password }}
-          local-dir: ./
+          local-dir: ./dist/
           server-dir: ./  
           strip-components: 1
