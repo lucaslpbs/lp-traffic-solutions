@@ -94,7 +94,7 @@ export default function About() {
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative z-10 container mx-auto px-4 text-center">
           <Badge variant="outline" className="mb-6 border-primary-glow text-primary-glow bg-white/10 backdrop-blur-sm">
-            Sobre a MarketingPro
+            Sobre a Traffic Solutions
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
             A Agência que Faz 
