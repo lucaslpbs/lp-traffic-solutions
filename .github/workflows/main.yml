@@ -7,21 +7,22 @@ name: 🚀 Deploy website on push
 
 jobs:
   web-deploy:
+    name: 🎉 Deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
 
-      - run: npm install
-      - run: npm run build
+      - name: 📦 Install dependencies
+        run: npm install
 
-      - run: |
-          mkdir deploy-folder
-          cp -r dist/* deploy-folder/
+      - name: 🛠 Build project
+        run: npm run build
 
-      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: 📂 Deploy build folder
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.ftp_host }}
           username: ${{ secrets.ftp_user }}
           password: ${{ secrets.ftp_password }}
-          local-dir: deploy-folder/
-          server-dir: /
+          local-dir: dist/ 
