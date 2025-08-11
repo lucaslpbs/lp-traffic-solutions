@@ -20,7 +20,7 @@ jobs:
         run: npm run build
 
       - name: 📂 Show build output
-        run: ls -R
+        run: ls -R dist
 
       - name: 📂 Deploy build folder
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -28,5 +28,7 @@ jobs:
           server: ${{ secrets.ftp_host }}
           username: ${{ secrets.ftp_user }}
           password: ${{ secrets.ftp_password }}
-          local-dir: ./
-          server-dir: ./
+          local-dir: dist/       
+          server-dir: ./         
+          state-name: .ftp-deploy-sync-state-lucas.json
+          dry-run: true          
