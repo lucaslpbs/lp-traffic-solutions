@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import TrafficLogo from '../../assets/TrafficLogo.jpg';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -34,11 +35,11 @@ export function Header() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <div className={`text-2xl md:text-3xl font-bold transition-colors ${
-              isScrolled ? 'text-foreground' : 'text-white'
-            }`}>
-              Marketing<span className="text-primary">Pro</span>
-            </div>
+            <img
+              src={TrafficLogo}
+              alt="Traffic Solution Logo"
+              className="h-14 md:h-20 w:-auto transition-all shadow-lg hover:shadow-glow rounded-lg"
+            />
           </Link>
 
           {/* Desktop Navigation */}
