@@ -323,10 +323,10 @@ export default function Contact() {
                     <Shield className="h-8 w-8" />
                   </div>
                   <h3 className="text-xl font-bold mb-4">
-                    Garantia de 90 Dias
+                    Garantia de 30 Dias
                   </h3>
                   <p className="text-white/90">
-                    Se não ver resultados em 90 dias, devolvemos 100% do seu investimento.
+                    Transforme cliques em clientes em apenas 30 dias!
                   </p>
                 </CardContent>
               </Card>

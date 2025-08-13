@@ -307,36 +307,36 @@ export default function Cases() {
               Tão Confiantes que Oferecemos 
               <span className="text-primary block">Garantia de 90 Dias</span>
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Se em 90 dias você não ver resultados mensuráveis no seu negócio, 
-              devolvemos 100% do investimento. Essa é nossa confiança na metodologia.
-            </p>
-            
-            <div className="bg-gradient-card rounded-2xl p-8 shadow-modern">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl font-bold text-primary">90</span>
+              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                Nossa metodologia já transformou empresas de diferentes setores em até 90 dias. 
+                O próximo caso de sucesso pode ser o seu.
+              </p>
+
+              <div className="bg-gradient-card rounded-2xl p-8 shadow-modern">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold text-primary">90</span>
+                    </div>
+                    <h3 className="font-semibold mb-2">Dias para Resultados</h3>
+                    <p className="text-muted-foreground text-sm">Prazo médio para começar a ver crescimento real</p>
                   </div>
-                  <h3 className="font-semibold mb-2">Dias de Garantia</h3>
-                  <p className="text-muted-foreground text-sm">Período para ver resultados reais</p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl font-bold text-primary">100%</span>
+                  <div className="text-center">
+                    <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold text-primary">+120</span>
+                    </div>
+                    <h3 className="font-semibold mb-2">Empresas Impactadas</h3>
+                    <p className="text-muted-foreground text-sm">Negócios de diferentes setores já transformados</p>
                   </div>
-                  <h3 className="font-semibold mb-2">Dinheiro de Volta</h3>
-                  <p className="text-muted-foreground text-sm">Se não houver resultados</p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl font-bold text-primary">0</span>
+                  <div className="text-center">
+                    <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold text-primary">100%</span>
+                    </div>
+                    <h3 className="font-semibold mb-2">Metodologia Validada</h3>
+                    <p className="text-muted-foreground text-sm">Estratégias testadas e comprovadas no mercado</p>
                   </div>
-                  <h3 className="font-semibold mb-2">Risco para Você</h3>
-                  <p className="text-muted-foreground text-sm">Assumimos todo o risco</p>
                 </div>
               </div>
-            </div>
           </div>
         </div>
       </section>
