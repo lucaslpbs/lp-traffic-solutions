@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Play, TrendingUp, Users, Target, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import teamHero from "@/assets/team-hero.jpg";
+import imagemgraph from "@/assets/imagem-graph.jpg";
 
 export function ModernHero() {
   const stats = [
@@ -19,7 +19,7 @@ export function ModernHero() {
         <div className="absolute inset-0 bg-gradient-modern opacity-20 animate-pulse"></div>
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
-          style={{ backgroundImage: `url(${teamHero})` }}
+          style={{ backgroundImage: `url(${imagemgraph})` }}
         ></div>
         <div className="absolute inset-0 bg-black/50"></div>
       </div>
