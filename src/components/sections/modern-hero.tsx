@@ -7,8 +7,8 @@ import teamHero from "@/assets/team-hero.jpg";
 export function ModernHero() {
   const stats = [
     { icon: Target, number: "400%", label: "ROI Médio", color: "text-primary" },
-    { icon: TrendingUp, number: "R$ 80M+", label: "Gerados", color: "text-primary-glow" },
-    { icon: Users, number: "500+", label: "Clientes", color: "text-primary-light" },
+    { icon: TrendingUp, number: "R$ 10M+", label: "Gerados", color: "text-primary-glow" },
+    { icon: Users, number: "100+", label: "Clientes", color: "text-primary-light" },
     { icon: Zap, number: "24h", label: "Resposta", color: "text-primary" }
   ];
 
@@ -30,7 +30,7 @@ export function ModernHero() {
       
       <div className="relative z-20 container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 mt-20">
             <Badge variant="outline" className="mb-6 border-primary-glow text-primary-glow bg-white/10 backdrop-blur-sm px-6 py-2 text-lg">
               🚀 Marketing que Converte
             </Badge>
@@ -46,7 +46,7 @@ export function ModernHero() {
             <p className="text-xl md:text-2xl mb-10 text-white/90 max-w-4xl mx-auto leading-relaxed">
               Transformamos empresas em <span className="text-primary-glow font-bold">máquinas de vendas</span> com 
               estratégias de marketing digital que realmente funcionam. 
-              <span className="block mt-2 text-primary-light">Resultados em 30 dias ou seu dinheiro de volta!</span>
+              <span className="block mt-2 text-primary-light">Transforme cliques em clientes em apenas 30 dias!</span>
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">

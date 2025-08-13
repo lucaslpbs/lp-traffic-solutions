@@ -145,11 +145,11 @@ export default function About() {
               <h3 className="text-2xl font-bold mb-6 text-center">Nossos Números</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">500+</div>
+                  <div className="text-3xl font-bold text-primary mb-2">100+</div>
                   <div className="text-sm text-muted-foreground">Empresas Transformadas</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">R$ 80M+</div>
+                  <div className="text-3xl font-bold text-primary mb-2">R$ 10M+</div>
                   <div className="text-sm text-muted-foreground">Faturamento Gerado</div>
                 </div>
                 <div className="text-center">

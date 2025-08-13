@@ -10,12 +10,13 @@ export default function Home() {
     "Aumento de 300% nas vendas em 90 dias",
     "Redução de 50% no custo de aquisição",
     "Automação completa do funil de vendas",
-    "Relatórios em tempo real com IA"
+    "Relatórios Semanais"
+    //melhorar
   ];
 
   const quickStats = [
-    { number: "500+", label: "Empresas Transformadas" },
-    { number: "R$ 80M+", label: "Faturamento Gerado" },
+    { number: "100+", label: "Empresas Transformadas" },
+    { number: "R$ 10M+", label: "Faturamento Gerado" },
     { number: "4.9/5", label: "Avaliação dos Clientes" }
   ];
 
