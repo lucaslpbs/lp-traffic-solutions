@@ -361,7 +361,7 @@ export default function Contact() {
                 },
                 {
                   question: "Como funciona a garantia?",
-                  answer: "90 dias para ver resultados ou devolvemos 100% do investimento."
+                  answer: "Com apenas 30/90 dias, seus resultados não serão mais os mesmos. Dezenas de clientes já satisfeitos com a nossa estratégia."
                 }
               ].map((faq, index) => (
                 <Card key={index} className="shadow-elegant hover:shadow-modern transition-all duration-300">
