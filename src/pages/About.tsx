@@ -321,7 +321,7 @@ export default function About() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-xl backdrop-blur-sm"
+                className="border-white/30 text-black hover:bg-white/10 px-8 py-6 text-xl backdrop-blur-sm"
               >
                 Ver Cases de Sucesso
               </Button>
