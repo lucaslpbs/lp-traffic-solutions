@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Play, TrendingUp, Users, Target, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import imagemgraph from "@/assets/imagem-graph.jpg";
+import imagemgraph from "@/assets/image-graph-backgroud.jpg";
 
 export function ModernHero() {
   const stats = [
