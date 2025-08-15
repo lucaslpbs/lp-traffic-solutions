@@ -1,34 +1,56 @@
+import { ShieldCheck, User, Eye } from "lucide-react";
+
 export function PrivacyPolicy() {
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-6">Política de Privacidade</h1>
-      <p className="mb-4">
-        Sua privacidade é importante para nós. Esta política descreve como
-        coletamos, usamos e protegemos suas informações pessoais quando você
-        utiliza nosso site.
-      </p>
+    <div className="container mx-auto px-4 py-16">
+      {/* Cabeçalho */}
+      <div className="text-center mb-12">
+        <h1 className="text-5xl font-bold text-primary mb-4">Política de Privacidade</h1>
+        <p className="text-gray-700 text-lg max-w-2xl mx-auto">
+          Sua privacidade é nossa prioridade. Aqui explicamos como coletamos, usamos e protegemos seus dados ao utilizar nosso site.
+        </p>
+      </div>
 
-      <h2 className="text-xl font-semibold mt-6 mb-2">Coleta de Dados</h2>
-      <p className="mb-4">
-        Podemos coletar informações pessoais como nome, e-mail e telefone quando
-        você preenche formulários de contato ou utiliza nossos serviços.
-      </p>
+      {/* Seções */}
+      <div className="grid gap-8 md:grid-cols-3">
+        {/* Coleta de Dados */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border border-blue-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center mb-4">
+            <User className="h-6 w-6 text-primary mr-2" />
+            <h2 className="text-2xl font-semibold text-blue-800">Coleta de Dados</h2>
+          </div>
+          <p className="text-gray-700 leading-relaxed">
+            Coletamos informações como nome, e-mail e telefone quando você preenche formulários ou interage com nossos serviços.
+          </p>
+        </div>
 
-      <h2 className="text-xl font-semibold mt-6 mb-2">Uso das Informações</h2>
-      <p className="mb-4">
-        As informações coletadas são usadas apenas para comunicação, suporte e
-        melhoria de nossos serviços.
-      </p>
+        {/* Uso das Informações */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border border-blue-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center mb-4">
+            <Eye className="h-6 w-6 text-primary mr-2" />
+            <h2 className="text-2xl font-semibold text-blue-800">Uso das Informações</h2>
+          </div>
+          <p className="text-gray-700 leading-relaxed">
+            As informações coletadas são utilizadas apenas para comunicação, suporte e melhoria contínua dos nossos serviços.
+          </p>
+        </div>
 
-      <h2 className="text-xl font-semibold mt-6 mb-2">Proteção de Dados</h2>
-      <p className="mb-4">
-        Utilizamos medidas de segurança adequadas para proteger suas informações
-        pessoais contra acessos não autorizados.
-      </p>
+        {/* Proteção de Dados */}
+        <div className="bg-white shadow-lg rounded-lg p-6 border border-blue-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center mb-4">
+            <ShieldCheck className="h-6 w-6 text-primary mr-2" />
+            <h2 className="text-2xl font-semibold text-blue-800">Proteção de Dados</h2>
+          </div>
+          <p className="text-gray-700 leading-relaxed">
+            Utilizamos medidas de segurança robustas para proteger suas informações pessoais contra acessos não autorizados.
+          </p>
+        </div>
+      </div>
 
-      <p className="mt-8">
+      {/* Rodapé da política */}
+      <div className="mt-12 text-center text-gray-500">
         Última atualização: {new Date().toLocaleDateString("pt-BR")}
-      </p>
+      </div>
     </div>
   );
 }
