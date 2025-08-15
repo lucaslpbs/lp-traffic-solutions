@@ -29,7 +29,7 @@ export default function Services() {
         "Relatórios de performance em tempo real",
         "A/B testing contínuo de anúncios"
       ],
-      price: "A partir de R$ 2.500/mês",
+      price: "A partir de R$ 1.500/mês",
       popular: true
     },
     {
@@ -43,7 +43,7 @@ export default function Services() {
         "Link building estratégico",
         "Monitoramento de rankings"
       ],
-      price: "A partir de R$ 1.800/mês"
+      price: "A partir de R$ 1.500/mês"
     },
     {
       icon: Users,
@@ -69,7 +69,7 @@ export default function Services() {
         "Performance e velocidade otimizada",
         "Manutenção e suporte inclusos"
       ],
-      price: "A partir de R$ 3.500"
+      price: "A partir de R$ 2.000"
     },
     {
       icon: BarChart3,
@@ -95,7 +95,7 @@ export default function Services() {
         "Campanhas de influenciadores",
         "Relatórios de engagement"
       ],
-      price: "A partir de R$ 2.000/mês"
+      price: "A partir de R$ 2.300/mês"
     }
   ];
 
