@@ -93,7 +93,8 @@ export default function About() {
       <section className="py-20 bg-gradient-hero relative overflow-hidden">
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative z-10 container mx-auto px-4 text-center">
-          <Badge variant="outline" className="mb-6 border-primary-glow text-primary-glow bg-white/10 backdrop-blur-sm">
+          <Badge variant="outline" className="mb-6 border-primary-glow text-primary-glow bg-white/10 backdrop-blur-sm
+          px-6 py-2 text-lg">
             Sobre a Traffic Solutions
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
