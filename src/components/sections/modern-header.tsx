@@ -12,32 +12,47 @@ export function Header() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: '/', label: 'Início' },
-    { path: '/servicos', label: 'Serviços' },
-    { path: '/sobre', label: 'Sobre' },
-    { path: '/cases', label: 'Cases' },
-    { path: '/contato', label: 'Contato' }
+    { path: "/", label: "Início" },
+    { path: "/servicos", label: "Serviços" },
+    { path: "/sobre", label: "Sobre" },
+    { path: "/cases", label: "Cases" },
+    { path: "/contato", label: "Contato" },
   ];
 
+  const isHome = location.pathname === "/";
+
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-elegant' : 'bg-transparent'
-    }`}>
+    <header
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/95 backdrop-blur-sm shadow-elegant"
+          : "bg-transparent"
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <div className={`text-2xl md:text-3xl font-bold transition-colors ${
-              isScrolled ? 'text-foreground' : 'text-white'
-            }`}>
-              Traffic<span className="text-primary"> Solutions</span>
+            <div className="text-2xl md:text-3xl font-bold transition-colors">
+              <span
+                className={
+                  isHome
+                    ? "text-white"
+                    : isScrolled
+                    ? "text-foreground"
+                    : "text-foreground"
+                }
+              >
+                Traffic
+              </span>
+              <span className="text-primary"> Solutions</span>
             </div>
           </Link>
 
@@ -48,9 +63,11 @@ export function Header() {
                 key={item.path}
                 to={item.path}
                 className={`transition-all hover:text-primary font-medium ${
-                  isActive(item.path) 
-                    ? 'text-primary' 
-                    : isScrolled ? 'text-foreground' : 'text-blue-300'
+                  isActive(item.path)
+                    ? "text-primary"
+                    : isScrolled
+                    ? "text-foreground"
+                    : "text-blue-300"
                 }`}
               >
                 {item.label}
@@ -71,10 +88,14 @@ export function Header() {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`md:hidden p-2 transition-colors ${
-              isScrolled ? 'text-foreground' : 'text-white'
+              isScrolled ? "text-foreground" : "text-white"
             }`}
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
 
@@ -89,8 +110,8 @@ export function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`block w-full text-left px-4 py-2 transition-colors font-medium ${
                     isActive(item.path)
-                      ? 'text-primary bg-primary/10'
-                      : 'text-foreground hover:bg-primary/10 hover:text-primary'
+                      ? "text-primary bg-primary/10"
+                      : "text-foreground hover:bg-primary/10 hover:text-primary"
                   }`}
                 >
                   {item.label}
