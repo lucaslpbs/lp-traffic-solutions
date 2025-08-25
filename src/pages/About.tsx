@@ -29,10 +29,10 @@ export default function About() {
   ];
 
   const differentials = [
-    "Metodologia proprietária testada em 500+ empresas",
+    "Metodologia proprietária testada em 100+ empresas",
     "Time de especialistas certificados Google e Meta",
     "Acompanhamento semanal com relatórios detalhados",
-    "Garantia de resultados em 90 dias ou dinheiro de volta",
+    "Com apenas 30/90 dias, seus resultados não serão mais os mesmos. Dezenas de clientes já satisfeitos com a nossa estratégia.",
     "Suporte dedicado via WhatsApp em horário comercial",
     "Consultoria estratégica mensal inclusa sem custo adicional"
   ];
@@ -245,7 +245,7 @@ export default function About() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Por que Escolher a <span className="text-primary">MarketingPro?</span>
+                Por que Escolher a <span className="text-primary">TrafficSolutions?</span>
               </h2>
               <p className="text-xl text-muted-foreground">
                 Não somos apenas mais uma agência. Somos seus parceiros estratégicos no crescimento.

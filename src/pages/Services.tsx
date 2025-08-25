@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Target,
   Smartphone,
-  MessageSquare
+  MessageSquare,
+  Camera
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -31,6 +32,19 @@ export default function Services() {
       ],
       price: "A partir de R$ 1.500/mês",
       popular: true
+    },
+        {
+      icon: Smartphone,
+      title: "Tráfego Orgânico (SOCIAL MEDIA)",
+      description: "Gestão estratégica de redes sociais para engajamento e vendas",
+      features: [
+        "Estratégia de conteúdo",
+        "Criação de posts e stories",
+        "Gestão de comunidade",
+        "Campanhas de influenciadores",
+        "Relatórios de engajamento"
+      ],
+      price: "A partir de R$ 2.300/mês"
     },
     {
       icon: Search,
@@ -84,19 +98,48 @@ export default function Services() {
       ],
       price: "A partir de R$ 1.200/mês"
     },
-    {
-      icon: Smartphone,
-      title: "Social Media",
-      description: "Gestão estratégica de redes sociais para engajamento e vendas",
+        {
+      icon: Camera,
+      title: "Videomaker",
+      description: "Produção de vídeos profissionais para marcas e negócios. Conteúdos de alta qualidade para redes sociais, campanhas e anúncios",
       features: [
-        "Estratégia de conteúdo",
-        "Criação de posts e stories",
-        "Gestão de comunidade",
-        "Campanhas de influenciadores",
-        "Relatórios de engagement"
+        "Roteirização criativa",
+        "Captação e edição profissional de vídeos",
+        "Motion graphics e animações",
+        "Otimização de vídeos para anúncios e redes sociais",
+        "Pacote de reels e shorts mensais"
       ],
-      price: "A partir de R$ 2.300/mês"
-    }
+      price: "A partir de R$ 1.000/mês"
+    },
+        {
+      icon: Camera,
+      title: "Designer",
+      description: "Design visual estratégico para fortalecer sua marca. Criativos que geram impacto e aumentam conversões",
+      features: [
+        "Criação de artes para redes sociais",
+        "Identidade visual e branding",
+        "Layouts para anúncios e campanhas",
+        "Material gráfico digital e impresso",
+        "Ajustes e revisões inclusos"
+      ],
+      price: "A partir de R$ 1.000/mês"
+    },
+        {
+      icon: Camera,
+      title: "CRM",
+      description: "Mensagens automatizadas com inteligência artificial. Atendimento 24/7 para captar e nutrir leads via WhatsApp, Instagram e Facebook",
+      features: [
+        "Criação de artes para redes sociais",
+        "Identidade visual e branding",
+        "Layouts para anúncios e campanhas",
+        "Material gráfico digital e impresso",
+        "Ajustes e revisões inclusos"
+      ],
+      price: "A partir de R$ 1.000/mês"
+    },
+    
+    
+
   ];
 
   const packages = [
