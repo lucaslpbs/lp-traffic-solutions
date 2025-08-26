@@ -65,28 +65,28 @@ export default function About() {
 
   const team = [
     {
-      name: "Carlos Eduardo",
-      role: "CEO & Head de Estratégia",
-      experience: "10+ anos em marketing digital",
+      name: "Lucas Paulino",
+      role: "CEO & Head de estratégia",
+      experience: "1+ anos em marketing digital, 5+ anos em desenvolvimento de softwares",
       specialization: "Growth Marketing e Performance"
     },
     {
-      name: "Ana Paula",
+      name: "Taylane Maia",
       role: "Diretora de Tráfego Pago",
-      experience: "8+ anos em Google e Meta Ads",
-      specialization: "Otimização de Campanhas e ROI"
+      experience: "1+ anos em Google e Meta Ads",
+      specialization: "Otimização de Campanhas e ROAS"
     },
     {
-      name: "Roberto Silva",
-      role: "Especialista em SEO",
-      experience: "7+ anos em SEO e Conteúdo",
-      specialization: "Posicionamento Orgânico"
+      name: "Gabriel Paulino",
+      role: "Especialista em Sites",
+      experience: "2+ anos em desenvolvimento de softwares",
+      specialization: "Criação de sistemas e sites"
     },
     {
-      name: "Mariana Costa",
-      role: "Head de CRM & Automação",
-      experience: "6+ anos em Marketing Automation",
-      specialization: "Funis de Conversão"
+      name: "Kauã Silvano",
+      role: "Especialista em Designer",
+      experience: "5+ anos em designer para empresas",
+      specialization: "Criação de designers personalizados"
     }
   ];
 

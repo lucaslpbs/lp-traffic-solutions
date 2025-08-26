@@ -87,8 +87,8 @@ export default function Cases() {
 
   const metrics = [
     { number: "400", label: "ROI médio dos clientes", suffix: "%" },
-    { number: "R$ 80", label: "Milhões gerados", suffix: "M+" },
-    { number: "500", label: "Empresas transformadas", suffix: "+" },
+    { number: "R$ 10", label: "Milhões gerados", suffix: "M+" },
+    { number: "100", label: "Empresas transformadas", suffix: "+" },
     { number: "4.9", label: "Nota média dos clientes", suffix: "/5" }
   ];
 
