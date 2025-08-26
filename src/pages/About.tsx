@@ -3,8 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Award, TrendingUp, Users, Zap, Shield, Target, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import Certificado from "../assets/Certificado.jpg";
 
 export default function About() {
+  const [openModal, setOpenModal] = useState(false);
   const services = [
     {
       icon: TrendingUp,
@@ -131,7 +134,10 @@ export default function About() {
                 com foco obsessivo em ROI e crescimento sustentável.
               </p>
               
-              <div className="flex items-center gap-4 mb-6">
+              <button 
+                onClick={() => setOpenModal(true)} 
+                className="flex items-center gap-4 mb-6 hover:opacity-80 transition"
+              >
                 <div className="bg-primary/10 rounded-full p-3">
                   <Award className="h-6 w-6 text-primary" />
                 </div>
@@ -139,7 +145,7 @@ export default function About() {
                   <h4 className="font-semibold">Certificações Premium</h4>
                   <p className="text-muted-foreground">Google Partner Premier e Meta Business Partner</p>
                 </div>
-              </div>
+              </button>
             </div>
 
             <div className="bg-white rounded-2xl shadow-modern p-8">
@@ -238,6 +244,26 @@ export default function About() {
           </div>
         </div>
       </section>
+
+      {openModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setOpenModal(false)} // <-- fecha clicando no fundo
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-lg max-w-3xl w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()} // <-- impede fechar ao clicar na imagem
+          >
+            <button 
+              onClick={() => setOpenModal(false)} 
+              className="absolute top-3 right-3 text-black hover:text-red-600 text-xl font-bold"
+            >
+              ✕
+            </button>
+            <img src={Certificado} alt="Certificado" className="rounded-xl w-full h-auto" />
+          </div>
+        </div>
+      )}
 
       {/* Differentials */}
       <section className="py-20 bg-background">
