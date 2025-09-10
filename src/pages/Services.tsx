@@ -29,7 +29,7 @@ export default function Services() {
         "Relatórios de performance em tempo real",
         "A/B testing contínuo de anúncios"
       ],
-      price: "A partir de R$ 1.500/mês",
+      price: "",
       popular: true
     },
     {
@@ -43,7 +43,7 @@ export default function Services() {
         "Link building estratégico",
         "Monitoramento de rankings"
       ],
-      price: "A partir de R$ 1.500/mês"
+      price: ""
     },
     {
       icon: Users,
@@ -56,7 +56,7 @@ export default function Services() {
         "Integração com vendas",
         "Análise de funil completa"
       ],
-      price: "A partir de R$ 1.500/mês"
+      price: ""
     },
     {
       icon: Globe,
@@ -69,7 +69,7 @@ export default function Services() {
         "Performance e velocidade otimizada",
         "Manutenção e suporte inclusos"
       ],
-      price: "A partir de R$ 2.000"
+      price: ""
     },
     {
       icon: BarChart3,
@@ -82,7 +82,7 @@ export default function Services() {
         "Insights de comportamento",
         "Previsões e tendências"
       ],
-      price: "A partir de R$ 1.200/mês"
+      price: ""
     },
     {
       icon: Smartphone,
@@ -95,14 +95,14 @@ export default function Services() {
         "Campanhas de influenciadores",
         "Relatórios de engagement"
       ],
-      price: "A partir de R$ 2.300/mês"
+      price: ""
     }
   ];
 
   const packages = [
     {
       name: "Starter",
-      price: "R$ 3.500",
+      price: "Contrate",
       period: "/mês",
       description: "Ideal para pequenas empresas que querem começar",
       features: [
@@ -116,7 +116,7 @@ export default function Services() {
     },
     {
       name: "Growth",
-      price: "R$ 6.500",
+      price: "Contrate",
       period: "/mês",
       description: "Para empresas prontas para escalar rapidamente",
       features: [
@@ -131,7 +131,7 @@ export default function Services() {
     },
     {
       name: "Enterprise",
-      price: "R$ 12.000",
+      price: "Contrate",
       period: "/mês",
       description: "Solução completa para grandes empresas",
       features: [

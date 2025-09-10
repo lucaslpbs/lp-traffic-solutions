@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, MapPin, Send, CheckCircle, Clock, Shield, Zap } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Shield, Clock, Zap } from "lucide-react";
+import emailjs from "@emailjs/browser";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -27,22 +28,34 @@ export default function Contact() {
     setIsSubmitting(true);
 
     try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await emailjs.send(
+        "SEU_SERVICE_ID",   // substitua pelo seu
+        "SEU_TEMPLATE_ID",  // substitua pelo seu
+        {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          revenue: formData.revenue,
+          service: formData.service,
+          message: formData.message,
+        },
+        "SEU_PUBLIC_KEY"    // substitua pelo seu
+      );
+
       toast({
         title: "Solicitação enviada com sucesso!",
         description: "Nossa equipe entrará em contato em até 2 horas.",
       });
-      
-      setFormData({ 
-        name: '', 
-        email: '', 
-        phone: '', 
-        company: '', 
-        revenue: '', 
-        service: '', 
-        message: '' 
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        company: "",
+        revenue: "",
+        service: "",
+        message: ""
       });
     } catch (error) {
       toast({
