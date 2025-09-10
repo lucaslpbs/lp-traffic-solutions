@@ -3,8 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Award, TrendingUp, Users, Zap, Shield, Target, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import Certificado from "../assets/Certificado.jpg";
 
 export default function About() {
+  const [openModal, setOpenModal] = useState(false);
   const services = [
     {
       icon: TrendingUp,
@@ -29,10 +32,10 @@ export default function About() {
   ];
 
   const differentials = [
-    "Metodologia proprietária testada em 500+ empresas",
+    "Metodologia proprietária testada em 100+ empresas",
     "Time de especialistas certificados Google e Meta",
     "Acompanhamento semanal com relatórios detalhados",
-    "Garantia de resultados em 90 dias ou dinheiro de volta",
+    "Com apenas 30/90 dias, seus resultados não serão mais os mesmos. Dezenas de clientes já satisfeitos com a nossa estratégia.",
     "Suporte dedicado via WhatsApp em horário comercial",
     "Consultoria estratégica mensal inclusa sem custo adicional"
   ];
@@ -62,28 +65,28 @@ export default function About() {
 
   const team = [
     {
-      name: "Carlos Eduardo",
-      role: "CEO & Head de Estratégia",
-      experience: "10+ anos em marketing digital",
+      name: "Lucas Paulino",
+      role: "CEO & Head de estratégia",
+      experience: "1+ anos em marketing digital, 5+ anos em desenvolvimento de softwares",
       specialization: "Growth Marketing e Performance"
     },
     {
-      name: "Ana Paula",
+      name: "Taylane Maia",
       role: "Diretora de Tráfego Pago",
-      experience: "8+ anos em Google e Meta Ads",
-      specialization: "Otimização de Campanhas e ROI"
+      experience: "1+ anos em Google e Meta Ads",
+      specialization: "Otimização de Campanhas e ROAS"
     },
     {
-      name: "Roberto Silva",
-      role: "Especialista em SEO",
-      experience: "7+ anos em SEO e Conteúdo",
-      specialization: "Posicionamento Orgânico"
+      name: "Gabriel Paulino",
+      role: "Especialista em Sites",
+      experience: "2+ anos em desenvolvimento de softwares",
+      specialization: "Criação de sistemas e sites"
     },
     {
-      name: "Mariana Costa",
-      role: "Head de CRM & Automação",
-      experience: "6+ anos em Marketing Automation",
-      specialization: "Funis de Conversão"
+      name: "Kauã Silvano",
+      role: "Especialista em Designer",
+      experience: "5+ anos em designer para empresas",
+      specialization: "Criação de designers personalizados"
     }
   ];
 
@@ -131,7 +134,10 @@ export default function About() {
                 com foco obsessivo em ROI e crescimento sustentável.
               </p>
               
-              <div className="flex items-center gap-4 mb-6">
+              <button 
+                onClick={() => setOpenModal(true)} 
+                className="flex items-center gap-4 mb-6 hover:opacity-80 transition"
+              >
                 <div className="bg-primary/10 rounded-full p-3">
                   <Award className="h-6 w-6 text-primary" />
                 </div>
@@ -139,7 +145,7 @@ export default function About() {
                   <h4 className="font-semibold">Certificações Premium</h4>
                   <p className="text-muted-foreground">Google Partner Premier e Meta Business Partner</p>
                 </div>
-              </div>
+              </button>
             </div>
 
             <div className="bg-white rounded-2xl shadow-modern p-8">
@@ -239,13 +245,33 @@ export default function About() {
         </div>
       </section>
 
+      {openModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setOpenModal(false)} // <-- fecha clicando no fundo
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-lg max-w-3xl w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()} // <-- impede fechar ao clicar na imagem
+          >
+            <button 
+              onClick={() => setOpenModal(false)} 
+              className="absolute top-3 right-3 text-black hover:text-red-600 text-xl font-bold"
+            >
+              ✕
+            </button>
+            <img src={Certificado} alt="Certificado" className="rounded-xl w-full h-auto" />
+          </div>
+        </div>
+      )}
+
       {/* Differentials */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Por que Escolher a <span className="text-primary">MarketingPro?</span>
+                Por que Escolher a <span className="text-primary">TrafficSolutions?</span>
               </h2>
               <p className="text-xl text-muted-foreground">
                 Não somos apenas mais uma agência. Somos seus parceiros estratégicos no crescimento.

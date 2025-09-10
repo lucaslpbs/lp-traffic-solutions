@@ -292,7 +292,7 @@ export default function Contact() {
                       </div>
                       <div>
                         <div className="font-semibold">E-mail</div>
-                        <div className="text-muted-foreground">contato@marketingpro.com</div>
+                        <div className="text-muted-foreground">lucaspaulinobs@gmail.com</div>
                       </div>
                     </div>
 
@@ -312,7 +312,7 @@ export default function Contact() {
                       </div>
                       <div>
                         <div className="font-semibold">Escritório</div>
-                        <div className="text-muted-foreground">São Paulo, SP - Brasil</div>
+                        <div className="text-muted-foreground">R MONSENHOR BRUNO 1153, SALA 1423, CEP: 60.115-191, ALDEOTA, FORTALEZA, CE</div>
                       </div>
                     </div>
                   </div>

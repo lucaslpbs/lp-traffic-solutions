@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Target,
   Smartphone,
-  MessageSquare
+  MessageSquare,
+  Camera
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -31,6 +32,19 @@ export default function Services() {
       ],
       price: "",
       popular: true
+    },
+        {
+      icon: Smartphone,
+      title: "Tráfego Orgânico (SOCIAL MEDIA)",
+      description: "Gestão estratégica de redes sociais para engajamento e vendas",
+      features: [
+        "Estratégia de conteúdo",
+        "Criação de posts e stories",
+        "Gestão de comunidade",
+        "Campanhas de influenciadores",
+        "Relatórios de engajamento"
+      ],
+      price: "A partir de R$ 2.300/mês"
     },
     {
       icon: Search,
