@@ -44,7 +44,7 @@ export default function Services() {
         "Campanhas de influenciadores",
         "Relatórios de engajamento"
       ],
-      price: "A partir de R$ 2.300/mês"
+      price: ""
     },
     {
       icon: Search,
