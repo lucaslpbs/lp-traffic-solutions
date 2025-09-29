@@ -28,7 +28,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsSubmitting(true);
 
   try {
-    await fetch("https://app.n8n.io/webhook/formulario", { // URL do seu webhook
+    await fetch("http://localhost:5678/webhook-test/Formulário", { // URL do seu webhook
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData) // envia como objeto JSON
