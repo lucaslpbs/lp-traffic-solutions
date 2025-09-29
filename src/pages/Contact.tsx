@@ -23,50 +23,41 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    try {
-      await emailjs.send(
-        "SEU_SERVICE_ID",   // substitua pelo seu
-        "SEU_TEMPLATE_ID",  // substitua pelo seu
-        {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          company: formData.company,
-          revenue: formData.revenue,
-          service: formData.service,
-          message: formData.message,
-        },
-        "SEU_PUBLIC_KEY"    // substitua pelo seu
-      );
+  try {
+    await fetch("https://app.n8n.io/webhook/formulario", { // URL do seu webhook
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData) // envia como objeto JSON
+    });
 
-      toast({
-        title: "Solicitação enviada com sucesso!",
-        description: "Nossa equipe entrará em contato em até 2 horas.",
-      });
+    toast({
+      title: "Solicitação enviada com sucesso!",
+      description: "Nossa equipe entrará em contato em até 2 horas.",
+    });
 
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        company: "",
-        revenue: "",
-        service: "",
-        message: ""
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao enviar solicitação",
-        description: "Tente novamente ou entre em contato via WhatsApp.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      company: "",
+      revenue: "",
+      service: "",
+      message: ""
+    });
+  } catch (error) {
+    toast({
+      title: "Erro ao enviar solicitação",
+      description: "Tente novamente ou entre em contato via WhatsApp.",
+      variant: "destructive"
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
