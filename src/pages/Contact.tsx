@@ -28,10 +28,10 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsSubmitting(true);
 
   try {
-    await fetch("http://localhost:5678/webhook/Formulário", { // URL do seu webhook
+    await fetch("https://hook.us2.make.com/8u2yvyeal1konh0ys4uinj6az4x3mv2g", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData) // envia como objeto JSON
+      body: JSON.stringify(formData) // envia os dados do formulário
     });
 
     toast({
@@ -39,6 +39,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       description: "Nossa equipe entrará em contato em até 2 horas.",
     });
 
+    // limpa o formulário
     setFormData({
       name: "",
       email: "",
@@ -49,6 +50,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       message: ""
     });
   } catch (error) {
+    console.error("Erro ao enviar webhook:", error);
     toast({
       title: "Erro ao enviar solicitação",
       description: "Tente novamente ou entre em contato via WhatsApp.",
@@ -58,6 +60,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     setIsSubmitting(false);
   }
 };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
