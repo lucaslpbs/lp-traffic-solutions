@@ -172,7 +172,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder="(11) 99999-9999"
+                        placeholder="+55 (85) 98747-9260"
                         required
                         className="h-12"
                       />
@@ -296,7 +296,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       </div>
                       <div>
                         <div className="font-semibold">WhatsApp</div>
-                        <div className="text-muted-foreground">(11) 99999-9999</div>
+                        <div className="text-muted-foreground">85 98747-9260</div>
                       </div>
                     </div>
 
@@ -315,7 +315,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <Button
                       size="lg"
                       className="w-full bg-green-600 hover:bg-green-700 text-white shadow-modern"
-                      onClick={() => window.open('https://wa.me/5511999999999?text=Olá! Gostaria de saber mais sobre os serviços da MarketingPro.', '_blank')}
+                      onClick={() => window.open('https://wa.me/5585987479260?text=Ol%C3%A1%20tudo%20bem,%20vim%20pelo%20site%20e%20desejo%20saber%20mais%20informa%C3%A7%C3%B5es%20sobre%20o%20seu%20servi%C3%A7o!!', '_blank')}
                     >
                       <Phone className="mr-2 h-5 w-5" />
                       Falar no WhatsApp
