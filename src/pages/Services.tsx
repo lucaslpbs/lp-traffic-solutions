@@ -97,19 +97,6 @@ export default function Services() {
         "Previsões e tendências"
       ],
       price: ""
-    },
-    {
-      icon: Smartphone,
-      title: "Social Media",
-      description: "Gestão estratégica de redes sociais para engajamento e vendas",
-      features: [
-        "Estratégia de conteúdo",
-        "Criação de posts e stories",
-        "Gestão de comunidade",
-        "Campanhas de influenciadores",
-        "Relatórios de engagement"
-      ],
-      price: ""
     }
   ];
 

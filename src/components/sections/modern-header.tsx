@@ -28,33 +28,33 @@ export function Header() {
 
   const isHome = location.pathname === "/";
 
-  return (
-    <header
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/95 backdrop-blur-sm shadow-elegant"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <div className="text-2xl md:text-3xl font-bold transition-colors">
-              <span
-                className={
-                  isHome
-                    ? "text-white"
-                    : isScrolled
-                    ? "text-foreground"
-                    : "text-foreground"
-                }
-              >
-                Traffic
-              </span>
-              <span className="text-primary"> Solutions</span>
-            </div>
-          </Link>
+return (
+  <header
+    className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      isScrolled
+        ? "bg-white/95 backdrop-blur-sm shadow-elegant"
+        : "bg-transparent"
+    }`}
+  >
+    <div className="container mx-auto px-4">
+      <div className="flex items-center justify-between h-16 md:h-20">
+        {/* Logo */}
+        <Link to="/" className="flex items-center">
+          <div className="text-2xl md:text-3xl font-bold transition-colors">
+            <span
+              className={
+                isHome
+                  ? isScrolled
+                    ? "text-gray-900" // quando estiver na home e scrollado
+                    : "text-white"     // quando estiver no topo da home
+                  : "text-gray-900"   // quando estiver em outras páginas
+              }
+            >
+              Traffic
+            </span>
+            <span className="text-primary"> Solutions</span>
+          </div>
+        </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
