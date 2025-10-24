@@ -5,6 +5,9 @@ import { CheckCircle, Award, TrendingUp, Users, Zap, Shield, Target, ArrowRight 
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import Certificado from "../assets/Certificado.jpg";
+import { motion } from "framer-motion";
+import React from "react";
+import './shimmer.css';
 
 export default function About() {
   const [openModal, setOpenModal] = useState(false);
@@ -111,67 +114,116 @@ export default function About() {
         </div>
       </section>
 
-      {/* Mission & Story */}
-      <section className="py-20 bg-gradient-subtle">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <Badge variant="outline" className="mb-6 text-primary border-primary">
-                Nossa História
-              </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Nascemos da frustração com 
-                <span className="text-primary block">agências que não entregam</span>
-              </h2>
-              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Fundada em 2018 por especialistas com mais de 10 anos no mercado digital, 
-                a MarketingPro surgiu da necessidade de oferecer estratégias realmente eficazes 
-                para empreendedores sérios que querem resultados, não apenas relatórios bonitos.
-              </p>
-              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Cansamos de ver empresas queimando orçamento com campanhas mal estruturadas 
-                e decidimos criar uma abordagem diferente: marketing baseado em dados, 
-                com foco obsessivo em ROI e crescimento sustentável.
-              </p>
-              
-              <button 
-                onClick={() => setOpenModal(true)} 
-                className="flex items-center gap-4 mb-6 hover:opacity-80 transition"
-              >
-                <div className="bg-primary/10 rounded-full p-3">
-                  <Award className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">Certificações Premium</h4>
-                  <p className="text-muted-foreground">Google Partner Premier e Meta Business Partner</p>
-                </div>
-              </button>
-            </div>
+{/* Mission & Story */}
+<section className="py-20 bg-gradient-subtle">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <Badge variant="outline" className="mb-6 text-primary border-primary">
+              Nossa História
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Traffic <span className="text-primary block">Solutions</span>
+            </h2>
 
-            <div className="bg-white rounded-2xl shadow-modern p-8">
-              <h3 className="text-2xl font-bold mb-6 text-center">Nossos Números</h3>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">100+</div>
-                  <div className="text-sm text-muted-foreground">Empresas Transformadas</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">R$ 10M+</div>
-                  <div className="text-sm text-muted-foreground">Faturamento Gerado</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">400%</div>
-                  <div className="text-sm text-muted-foreground">ROI Médio dos Clientes</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">4.9/5</div>
-                  <div className="text-sm text-muted-foreground">Avaliação dos Clientes</div>
-                </div>
+            {/* Parágrafo 1 */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-lg leading-relaxed mb-6 text-muted-foreground"
+            >
+              Desde 2023, a{" "}
+              <strong className="shimmer font-bold">Traffic Solutions</strong>{" "}
+              vem transformando negócios com{" "}
+              <strong className="shimmer font-semibold">
+                estratégias de marketing reais
+              </strong>{" "}
+              que geram resultados. Somos especialistas em impulsionar marcas através de{" "}
+              <strong className="shimmer">automação inteligente</strong>,{" "}
+              <strong className="shimmer">gestão de tráfego pago</strong>,{" "}
+              <strong className="shimmer">design criativo</strong>,{" "}
+              <strong className="shimmer">CRM personalizado</strong>,{" "}
+              <strong className="shimmer">criação de sites profissionais</strong> e{" "}
+              <strong className="shimmer">produção de vídeos impactantes</strong>.
+            </motion.p>
+
+            {/* Parágrafo 2 */}
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="text-lg leading-relaxed mb-8 text-muted-foreground"
+            >
+              Aqui, cada detalhe é pensado para uma coisa:{" "}
+              <strong className="shimmer">fazer sua empresa crescer de verdade</strong>
+              . Nossa equipe é formada por profissionais apaixonados pelo que fazem —{" "}
+              <strong className="shimmer">
+                gente que estuda, testa e aprimora cada estratégia até alcançar o melhor desempenho possível
+              </strong>
+              .
+            </motion.p>
+
+            {/* Parágrafo 3 */}
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="text-lg leading-relaxed mb-8 text-muted-foreground"
+            >
+              E o diferencial?{" "}
+              <strong className="shimmer">atendimento próximo e personalizado</strong>. O próprio CEO acompanha de perto cada projeto, garantindo{" "}
+              <strong className="shimmer">relatórios transparentes</strong>,{" "}
+              <strong className="shimmer">retorno real</strong> e{" "}
+              <strong className="shimmer">atenção total em cada etapa</strong>. Na{" "}
+              <strong className="shimmer">Traffic Solutions</strong>, não acreditamos em sorte — acreditamos em{" "}
+              <strong className="shimmer">estratégia</strong>,{" "}
+              <strong className="shimmer">dados</strong> e{" "}
+              <strong className="shimmer">resultados</strong>. Se o seu objetivo é crescer de forma consistente e dominar o digital, você está no lugar certo.
+            </motion.p>
+
+            <button
+              onClick={() => setOpenModal(true)}
+              className="flex items-center gap-4 mb-6 hover:opacity-80 transition"
+            >
+              <div className="bg-primary/10 rounded-full p-3">
+                <Award className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-semibold">Certificações Premium</h4>
+                <p className="text-muted-foreground">Google Partner Premier e Meta Business Partner</p>
+              </div>
+            </button>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-modern p-8">
+            <h3 className="text-2xl font-bold mb-6 text-center">Nossos Números</h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-2">100+</div>
+                <div className="text-sm text-muted-foreground">Empresas Transformadas</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-2">R$ 10M+</div>
+                <div className="text-sm text-muted-foreground">Faturamento Gerado</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-2">400%</div>
+                <div className="text-sm text-muted-foreground">ROI Médio dos Clientes</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-2">4.9/5</div>
+                <div className="text-sm text-muted-foreground">Avaliação dos Clientes</div>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+
 
       {/* Services Grid */}
       <section className="py-20 bg-background">
