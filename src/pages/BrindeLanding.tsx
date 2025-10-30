@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { useToast } from "@/hooks/use-toast";
 import { 
   TrendingUp, 
@@ -42,6 +43,9 @@ export default function BrindeLanding() {
   "../public/Resultados .png",
 ];
  const [imagemAberta, setImagemAberta] = useState(null);
+
+
+ const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   // Bloquear indexação
@@ -108,22 +112,25 @@ export default function BrindeLanding() {
     }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validação básica
-    if (!formData.name || !formData.email || !formData.whatsapp || !formData.revenue) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSubmitting(true); // ⬅️ Ativa o estado de envio
 
+  // Validação básica
+  if (!formData.name || !formData.email || !formData.whatsapp || !formData.revenue) {
+    toast({
+      title: "Campos obrigatórios",
+      description: "Por favor, preencha todos os campos obrigatórios.",
+      variant: "destructive"
+    });
+    setIsSubmitting(false); // ⬅️ Libera o botão novamente
+    return;
+  }
+
+  try {
     // Aqui você pode integrar com o Kommo ou enviar email
     console.log("Dados do formulário:", formData);
-    
+
     toast({
       title: "Brinde garantido! 🎁",
       description: "Em breve entraremos em contato com você!",
@@ -139,7 +146,18 @@ export default function BrindeLanding() {
       challenge: "",
       instagram: ""
     });
-  };
+
+  } catch (error) {
+    console.error("Erro ao enviar:", error);
+    toast({
+      title: "Erro ao enviar",
+      description: "Ocorreu um problema ao enviar o formulário.",
+      variant: "destructive"
+    });
+  } finally {
+    setIsSubmitting(false); // ⬅️ Finaliza o carregamento
+  }
+};
 
   const scrollToServices = () => {
     document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
@@ -361,114 +379,155 @@ export default function BrindeLanding() {
               </p>
             </div>
 
-            {/* Formulário */}
-            <Card className="p-8 shadow-premium">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome completo *</Label>
-                    <Input
-                      id="name"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Seu nome completo"
-                      className="border-border focus:border-primary"
-                    />
-                  </div>
+{/* Formulário de Brinde */}
+<Card className="shadow-modern hover:shadow-glow transition-all duration-300">
+  <CardHeader>
+    <CardTitle className="text-2xl md:text-3xl text-center">
+      Ganhe seu Brinde Exclusivo 🎁
+    </CardTitle>
+    <p className="text-muted-foreground text-center">
+      Preencha o formulário e receba um presente especial da nossa equipe
+    </p>
+  </CardHeader>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Empresa</Label>
-                    <Input
-                      id="company"
-                      value={formData.company}
-                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      placeholder="Nome da sua empresa"
-                      className="border-border focus:border-primary"
-                    />
-                  </div>
+  <CardContent>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Inputs principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome completo *</Label>
+          <Input
+            id="name"
+            name="name"
+            required
+            value={formData.name}
+            onChange={(e) =>
+              setFormData({ ...formData, name: e.target.value })
+            }
+            placeholder="Seu nome completo"
+            className="h-12"
+          />
+        </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E-mail *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="seu@email.com"
-                      className="border-border focus:border-primary"
-                    />
-                  </div>
+        <div className="space-y-2">
+          <Label htmlFor="company">Empresa</Label>
+          <Input
+            id="company"
+            name="company"
+            value={formData.company}
+            onChange={(e) =>
+              setFormData({ ...formData, company: e.target.value })
+            }
+            placeholder="Nome da sua empresa"
+            className="h-12"
+          />
+        </div>
+      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp">WhatsApp *</Label>
-                    <Input
-                      id="whatsapp"
-                      type="tel"
-                      required
-                      value={formData.whatsapp}
-                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                      placeholder="(00) 00000-0000"
-                      className="border-border focus:border-primary"
-                    />
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">E-mail *</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            required
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+            placeholder="seu@email.com"
+            className="h-12"
+          />
+        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="revenue">Faturamento mensal *</Label>
-                  <Select
-                    required
-                    value={formData.revenue}
-                    onValueChange={(value) => setFormData({ ...formData, revenue: value })}
-                  >
-                    <SelectTrigger id="revenue" className="border-border">
-                      <SelectValue placeholder="Selecione uma opção" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0-10k">Até R$10.000</SelectItem>
-                      <SelectItem value="10k-50k">R$10.000 – R$50.000</SelectItem>
-                      <SelectItem value="50k-200k">R$50.000 – R$200.000</SelectItem>
-                      <SelectItem value="200k+">Acima de R$200.000</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+        <div className="space-y-2">
+          <Label htmlFor="whatsapp">WhatsApp *</Label>
+          <Input
+            id="whatsapp"
+            name="whatsapp"
+            type="tel"
+            required
+            value={formData.whatsapp}
+            onChange={(e) =>
+              setFormData({ ...formData, whatsapp: e.target.value })
+            }
+            placeholder="(00) 00000-0000"
+            className="h-12"
+          />
+        </div>
+      </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="challenge">Descreva o principal desafio da sua empresa</Label>
-                  <Textarea
-                    id="challenge"
-                    value={formData.challenge}
-                    onChange={(e) => setFormData({ ...formData, challenge: e.target.value })}
-                    placeholder="Ex: Preciso gerar mais leads qualificados..."
-                    className="min-h-[100px] border-border focus:border-primary"
-                  />
-                </div>
+      {/* Faturamento */}
+      <div className="space-y-2">
+        <Label htmlFor="revenue">Faturamento mensal *</Label>
+        <Select
+          required
+          value={formData.revenue}
+          onValueChange={(value) =>
+            setFormData({ ...formData, revenue: value })
+          }
+        >
+          <SelectTrigger className="h-12">
+            <SelectValue placeholder="Selecione uma opção" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0-10k">Até R$10.000</SelectItem>
+            <SelectItem value="10k-50k">R$10.000 – R$50.000</SelectItem>
+            <SelectItem value="50k-200k">R$50.000 – R$200.000</SelectItem>
+            <SelectItem value="200k+">Acima de R$200.000</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram (opcional)</Label>
-                  <Input
-                    id="instagram"
-                    value={formData.instagram}
-                    onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
-                    placeholder="@seuinstagram"
-                    className="border-border focus:border-primary"
-                  />
-                </div>
+      {/* Desafio */}
+      <div className="space-y-2">
+        <Label htmlFor="challenge">
+          Descreva o principal desafio da sua empresa
+        </Label>
+        <Textarea
+          id="challenge"
+          value={formData.challenge}
+          onChange={(e) =>
+            setFormData({ ...formData, challenge: e.target.value })
+          }
+          placeholder="Ex: Preciso gerar mais leads qualificados..."
+          rows={4}
+        />
+      </div>
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full bg-primary hover:bg-primary-dark text-white py-6 text-xl shadow-glow hover:scale-105 transition-all duration-300"
-                >
-                  Quero meu brinde 🎁
-                </Button>
+      {/* Instagram */}
+      <div className="space-y-2">
+        <Label htmlFor="instagram">Instagram (opcional)</Label>
+        <Input
+          id="instagram"
+          name="instagram"
+          value={formData.instagram}
+          onChange={(e) =>
+            setFormData({ ...formData, instagram: e.target.value })
+          }
+          placeholder="@seuinstagram"
+          className="h-12"
+        />
+      </div>
 
-                <p className="text-sm text-muted-foreground text-center">
-                  * Campos obrigatórios
-                </p>
-              </form>
-            </Card>
+      {/* Botão */}
+      <Button
+        type="submit"
+        size="lg"
+        disabled={isSubmitting}
+        className="w-full h-14 bg-primary hover:bg-primary-dark text-white text-lg shadow-modern hover:shadow-glow transition-all duration-300 hover:scale-105"
+      >
+        {isSubmitting ? "Enviando..." : "Quero meu brinde 🎁"}
+      </Button>
+
+      <p className="text-sm text-muted-foreground text-center">
+        * Campos obrigatórios. Seus dados estão seguros.
+      </p>
+    </form>
+  </CardContent>
+</Card>
+
           </div>
         </div>
       </section>
