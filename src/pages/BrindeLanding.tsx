@@ -18,7 +18,8 @@ import {
   Search,
   Gift,
   ArrowDown,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from "lucide-react";
 
 export default function BrindeLanding() {
@@ -32,6 +33,16 @@ export default function BrindeLanding() {
     challenge: "",
     instagram: ""
   });
+  const imagens = [
+  "../public/Resultados Ouse.png",
+  "../public/Resultados Luiza.png",
+  "../public/Resultados Luiza 2.png",
+  "../public/Resutados DVeras.png",
+  "../public/Resultados Ouse 2.png",
+  "../public/Resultados .png",
+];
+ const [imagemAberta, setImagemAberta] = useState(null);
+
 
   // Bloquear indexação
   useEffect(() => {
@@ -133,6 +144,12 @@ export default function BrindeLanding() {
   const scrollToServices = () => {
     document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
   };
+  const scrollToResults = () => {
+    document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+  };
+    const scrollToBrinde = () => {
+    document.getElementById('brinde')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen">
@@ -152,18 +169,19 @@ export default function BrindeLanding() {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 text-white leading-tight">
               Parabéns! Você acaba de ganhar um{" "}
               <span className="text-transparent bg-gradient-to-r from-primary-glow to-primary-light bg-clip-text">
-                brinde exclusivo 🎁
+                brinde exclusivo 
               </span>
+              🎁
             </h1>
 
             <p className="text-xl md:text-2xl mb-4 text-white/90 leading-relaxed">
-              mas só descobre no final...
+              Resgate agora!
             </p>
 
             <p className="text-lg md:text-xl mb-12 text-white/80 max-w-3xl mx-auto">
-              Enquanto isso, conheça os serviços que estão{" "}
-              <span className="text-primary-glow font-bold">revolucionando o marketing digital</span>{" "}
-              de empresas em todo o Brasil.
+              Condições válidas{" "}
+              <span className="text-primary-glow font-bold">para os serviços abaixo.</span>{" "}
+              Não perca essa oportunidade única de impulsionar seu negócio!
             </p>
 
             <Button
@@ -227,10 +245,18 @@ export default function BrindeLanding() {
             })}
           </div>
         </div>
+         <Button
+              size="lg"
+              onClick={scrollToResults}
+              className="bg-primary hover:bg-primary-dark text-white px-12 py-6 text-xl shadow-glow transform hover:scale-105 transition-all duration-300 group mt-12 mx-auto flex"
+            >
+              Alguns Resultados
+              <ArrowDown className="ml-3 h-3 w-6 group-hover:translate-y-1 transition-transform" />
+          </Button>
       </section>
 
       {/* Seção 3: Resultados */}
-      <section className="py-20 md:py-32 bg-gray-900">
+      <section id="results" className="py-20 md:py-32 bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 border-primary-glow text-primary-glow bg-white/10 backdrop-blur-sm px-6 py-2">
@@ -245,31 +271,64 @@ export default function BrindeLanding() {
           </div>
 
           {/* Galeria de resultados - imagens placeholder */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div
-                key={item}
-                className="relative aspect-video bg-gradient-to-br from-primary/20 to-primary-dark/20 rounded-xl overflow-hidden group hover:scale-105 transition-transform duration-300"
-              >
-                <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-black/20">
-                  <div className="text-center text-white">
-                    <TrendingUp className="h-12 w-12 mx-auto mb-2 text-primary-glow" />
-                    <p className="text-sm font-semibold">Resultado #{item}</p>
-                    <p className="text-xs text-white/70">Print do Gerenciador</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+  {imagens.map((src, index) => (
+    <div
+      key={index}
+      className="relative aspect-[4/3] rounded-2xl overflow-hidden group hover:scale-[1.03] transition-transform duration-300 cursor-pointer shadow-lg"
+      onClick={() => setImagemAberta(src)}
+    >
+      <img
+        src={src}
+        alt={`Resultado ${index + 1}`}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+      />
 
-          <p className="text-center text-white/60 mt-8 text-sm">
-            * Imagens ilustrativas - prints reais serão adicionados em breve
-          </p>
+      {/* Overlay leve, visível o tempo todo */}
+      <div className="absolute inset-0 flex items-end justify-between p-4 bg-gradient-to-t from-black/50 via-transparent to-transparent">
+        <div className="text-white drop-shadow-lg">
+          <TrendingUp className="h-6 w-6 mb-1 text-primary-glow" />
+          <p className="text-sm font-semibold">Resultado #{index + 1}</p>
+          <p className="text-xs text-white/80">Clique para ampliar</p>
         </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+      {/* MODAL DE IMAGEM */}
+      {imagemAberta && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setImagemAberta(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white hover:text-primary transition"
+            onClick={() => setImagemAberta(null)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <img
+            src={imagemAberta}
+            alt="Imagem ampliada"
+            className="max-w-full max-h-[90vh] rounded-lg shadow-2xl"
+          />
+        </div>
+      )}
+        </div>
+        <Button
+              size="lg"
+              onClick={scrollToBrinde}
+              className="bg-primary hover:bg-primary-dark text-white px-12 py-6 text-xl shadow-glow transform hover:scale-105 transition-all duration-300 group mt-12 mx-auto flex"
+            >
+              Nosso brinde 🎁
+              <ArrowDown className="ml-3 h-3 w-6 group-hover:translate-y-1 transition-transform" />
+          </Button>
       </section>
 
       {/* Seção 4: O Brinde */}
-      <section className="py-20 md:py-32 bg-gradient-to-br from-white via-primary/5 to-white">
+      <section id="brinde" className="py-20 md:py-32 bg-gradient-to-br from-white via-primary/5 to-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
