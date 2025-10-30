@@ -12,6 +12,7 @@ import Cases from "./pages/Cases";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
+import BrindeLanding from "./pages/BrindeLanding";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/cases" element={<Cases />} />
               <Route path="/contato" element={<Contact />} />
               <Route path="/privacidade" element={<PrivacyPolicy />} />
+              <Route path="/brinde-exclusivo" element={<BrindeLanding />} />
               {/* rota 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
