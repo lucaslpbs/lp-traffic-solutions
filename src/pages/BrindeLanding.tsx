@@ -116,29 +116,22 @@ const imagens = [Img1, Img2, Img3, Img4, Img5, Img6];
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
-  setIsSubmitting(true); // ⬅️ Ativa o estado de envio
-
-  // Validação básica
-  if (!formData.name || !formData.email || !formData.whatsapp || !formData.revenue) {
-    toast({
-      title: "Campos obrigatórios",
-      description: "Por favor, preencha todos os campos obrigatórios.",
-      variant: "destructive"
-    });
-    setIsSubmitting(false); // ⬅️ Libera o botão novamente
-    return;
-  }
+  setIsSubmitting(true);
 
   try {
-    // Aqui você pode integrar com o Kommo ou enviar email
-    console.log("Dados do formulário:", formData);
+    // Envia os dados para o Make (mesmo webhook que você já usa)
+    await fetch("https://hook.us2.make.com/8u2yvyeal1konh0ys4uinj6az4x3mv2g", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData), // envia todos os dados do formulário
+    });
 
     toast({
       title: "Brinde garantido! 🎁",
       description: "Em breve entraremos em contato com você!",
     });
 
-    // Limpar formulário
+    // Limpa o formulário após envio
     setFormData({
       name: "",
       company: "",
@@ -146,20 +139,20 @@ const handleSubmit = async (e: React.FormEvent) => {
       whatsapp: "",
       revenue: "",
       challenge: "",
-      instagram: ""
+      instagram: "",
     });
-
   } catch (error) {
-    console.error("Erro ao enviar:", error);
+    console.error("Erro ao enviar webhook:", error);
     toast({
-      title: "Erro ao enviar",
-      description: "Ocorreu um problema ao enviar o formulário.",
-      variant: "destructive"
+      title: "Erro ao enviar formulário",
+      description: "Tente novamente ou entre em contato via WhatsApp.",
+      variant: "destructive",
     });
   } finally {
-    setIsSubmitting(false); // ⬅️ Finaliza o carregamento
+    setIsSubmitting(false);
   }
 };
+
 
   const scrollToServices = () => {
     document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
