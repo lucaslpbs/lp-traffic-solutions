@@ -6,6 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Img1 from "../assets/Resultados .png";
+import Img2 from "../assets/Resultados Luiza 2.png";
+import Img3 from "../assets/Resultados Luiza.png";
+import Img4 from "../assets/Resultados Ouse 2.png";
+import Img5 from "../assets/Resultados Ouse.png";
+import Img6 from "../assets/Resutados DVeras.png";
+
 
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -34,14 +41,9 @@ export default function BrindeLanding() {
     challenge: "",
     instagram: ""
   });
-  const imagens = [
-  "../public/Resultados Ouse.png",
-  "../public/Resultados Luiza.png",
-  "../public/Resultados Luiza 2.png",
-  "../public/Resutados DVeras.png",
-  "../public/Resultados Ouse 2.png",
-  "../public/Resultados .png",
-];
+
+const imagens = [Img1, Img2, Img3, Img4, Img5, Img6];
+
  const [imagemAberta, setImagemAberta] = useState(null);
 
 
@@ -365,7 +367,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-center gap-3">
                     <CheckCircle2 className="h-6 w-6" />
-                    <span className="text-lg">Consultoria GRATUITA de análise do seu perfil</span>
+                    <span className="text-lg">Consultoria GRATUITA de análise das suas REDES SOCIAIS</span>
                   </div>
                   <div className="flex items-center justify-center gap-3">
                     <CheckCircle2 className="h-6 w-6" />
