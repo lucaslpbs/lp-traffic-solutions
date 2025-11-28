@@ -14,6 +14,12 @@ export function Footer() {
         >
           Política de Privacidade
         </Link>
+        <Link
+          to="/termos"
+          className="hover:text-primary underline mt-2 md:mt-0"
+        >
+          Termos e condições
+        </Link>
       </div>
     </footer>
   );
