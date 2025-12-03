@@ -64,6 +64,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				neon: {
+					pink: 'hsl(var(--neon-pink))',
+					'pink-glow': 'hsl(var(--neon-pink-glow))',
+					red: 'hsl(var(--neon-red))',
+					purple: 'hsl(var(--neon-purple))'
 				}
 			},
 			backgroundImage: {
@@ -77,7 +83,8 @@ export default {
 				'premium': 'var(--shadow-premium)',
 				'modern': 'var(--shadow-modern)',
 				'elegant': 'var(--shadow-elegant)',
-				'glow': 'var(--shadow-glow)'
+				'glow': 'var(--shadow-glow)',
+				'neon': 'var(--shadow-neon)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
