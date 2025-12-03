@@ -1,14 +1,29 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /brinde-exclusivo
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /brinde-exclusivo
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /brinde-exclusivo
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /brinde-exclusivo
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /brinde-exclusivo

@@ -14,13 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          clicks: number
+          client_id: string
+          cost_per_message: number
+          cpm_real: number
+          created_at: string
+          ctr_real: number
+          date: string
+          id: string
+          impressions: number
+          instagram_followers: number
+          instagram_visits: number
+          messages_started: number
+          value_spent: number
+        }
+        Insert: {
+          clicks?: number
+          client_id: string
+          cost_per_message?: number
+          cpm_real?: number
+          created_at?: string
+          ctr_real?: number
+          date: string
+          id?: string
+          impressions?: number
+          instagram_followers?: number
+          instagram_visits?: number
+          messages_started?: number
+          value_spent?: number
+        }
+        Update: {
+          clicks?: number
+          client_id?: string
+          cost_per_message?: number
+          cpm_real?: number
+          created_at?: string
+          ctr_real?: number
+          date?: string
+          id?: string
+          impressions?: number
+          instagram_followers?: number
+          instagram_visits?: number
+          messages_started?: number
+          value_spent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users_clients: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      user_has_client_access: {
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      user_is_admin: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
