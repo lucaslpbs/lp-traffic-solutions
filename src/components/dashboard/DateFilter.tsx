@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Filter } from 'lucide-react';
+import { CalendarIcon, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -24,65 +23,71 @@ export const DateFilter = ({
   endDate,
   onStartDateChange,
   onEndDateChange,
-  onFilter,
+  onFilter
 }: DateFilterProps) => {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-[200px] justify-start text-left font-normal bg-background/50 border-border hover:bg-muted",
-              !startDate && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Data Inicial"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
-          <Calendar
-            mode="single"
-            selected={startDate}
-            onSelect={onStartDateChange}
-            initialFocus
-            className="pointer-events-auto"
-            locale={ptBR}
-          />
-        </PopoverContent>
-      </Popover>
+    <div className="flex flex-col sm:flex-row gap-3 items-end">
+      <div className="flex flex-col gap-1">
+        <span className="text-xs text-gray-400 font-medium">Data Inicial</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-[160px] justify-start text-left font-normal bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white",
+                !startDate && "text-gray-500"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-[#1a1a1a] border-white/20" align="start">
+            <Calendar
+              mode="single"
+              selected={startDate}
+              onSelect={onStartDateChange}
+              initialFocus
+              locale={ptBR}
+              className="pointer-events-auto bg-[#1a1a1a] text-white"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
 
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-[200px] justify-start text-left font-normal bg-background/50 border-border hover:bg-muted",
-              !endDate && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Data Final"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
-          <Calendar
-            mode="single"
-            selected={endDate}
-            onSelect={onEndDateChange}
-            initialFocus
-            className="pointer-events-auto"
-            locale={ptBR}
-          />
-        </PopoverContent>
-      </Popover>
+      <div className="flex flex-col gap-1">
+        <span className="text-xs text-gray-400 font-medium">Data Final</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-[160px] justify-start text-left font-normal bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white",
+                !endDate && "text-gray-500"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-[#1a1a1a] border-white/20" align="start">
+            <Calendar
+              mode="single"
+              selected={endDate}
+              onSelect={onEndDateChange}
+              initialFocus
+              locale={ptBR}
+              className="pointer-events-auto bg-[#1a1a1a] text-white"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
 
       <Button 
         onClick={onFilter}
-        className="bg-primary hover:bg-primary-dark text-primary-foreground neon-glow"
+        className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white shadow-lg shadow-blue-500/25"
       >
-        <Filter className="mr-2 h-4 w-4" />
+        <Search className="h-4 w-4 mr-2" />
         Filtrar
       </Button>
     </div>

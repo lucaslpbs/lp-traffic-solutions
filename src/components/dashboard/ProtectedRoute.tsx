@@ -12,10 +12,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (loading) {
     return (
-      <div className="dashboard-theme min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-muted-foreground">Carregando...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-[#3b82f6] mx-auto" />
+          <p className="mt-4 text-gray-400">Carregando...</p>
         </div>
       </div>
     );

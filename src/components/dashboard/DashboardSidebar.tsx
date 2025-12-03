@@ -53,12 +53,12 @@ export const DashboardSidebar = () => {
   return (
     <aside 
       className={cn(
-        "h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
+        "h-screen bg-[#0a0a0a] border-r border-white/10 flex flex-col transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
+      <div className="p-4 border-b border-white/10 flex items-center justify-between">
         {!collapsed && (
           <img 
             src="/TFLOGO.png" 
@@ -70,7 +70,7 @@ export const DashboardSidebar = () => {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="text-sidebar-foreground hover:bg-sidebar-accent"
+          className="text-gray-400 hover:text-white hover:bg-white/10"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
@@ -83,8 +83,8 @@ export const DashboardSidebar = () => {
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
             isActive('/dashboard')
-              ? "bg-sidebar-primary text-sidebar-primary-foreground neon-glow"
-              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
           )}
         >
           <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
@@ -94,7 +94,7 @@ export const DashboardSidebar = () => {
         {/* Clients Section */}
         {!collapsed && (
           <div className="mt-6 mb-2 px-3">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Clientes
             </span>
           </div>
@@ -102,7 +102,7 @@ export const DashboardSidebar = () => {
 
         {loading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
           </div>
         ) : (
           <div className="space-y-1">
@@ -113,8 +113,8 @@ export const DashboardSidebar = () => {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                   isActive(`/dashboard/${client.id}`)
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground neon-glow"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:neon-border"
+                    ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white"
                 )}
               >
                 {client.logo_url ? (
@@ -136,7 +136,7 @@ export const DashboardSidebar = () => {
 
         {clients.length === 0 && !loading && (
           <p className={cn(
-            "text-muted-foreground text-sm px-3 py-2",
+            "text-gray-500 text-sm px-3 py-2",
             collapsed && "hidden"
           )}>
             Nenhum cliente vinculado
@@ -145,12 +145,12 @@ export const DashboardSidebar = () => {
       </nav>
 
       {/* Footer */}
-      <div className="p-2 border-t border-sidebar-border">
+      <div className="p-2 border-t border-white/10">
         <Button
           variant="ghost"
           onClick={handleSignOut}
           className={cn(
-            "w-full justify-start text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive",
+            "w-full justify-start text-gray-400 hover:bg-red-500/10 hover:text-red-400",
             collapsed && "justify-center"
           )}
         >

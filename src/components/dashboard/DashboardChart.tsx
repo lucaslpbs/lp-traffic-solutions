@@ -33,7 +33,7 @@ export const DashboardChart = ({
   title,
   data,
   dataKey,
-  color = 'hsl(330, 100%, 60%)',
+  color = '#3b82f6',
   type = 'area',
   prefix = '',
   suffix = '',
@@ -44,9 +44,9 @@ export const DashboardChart = ({
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="glass-card rounded-lg p-3 neon-border">
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-sm font-bold text-foreground">
+        <div className="bg-[#1a1a1a] border border-white/20 rounded-lg p-3 shadow-xl">
+          <p className="text-xs text-gray-400">{label}</p>
+          <p className="text-sm font-bold text-white">
             {formatValue(payload[0].value)}
           </p>
         </div>
@@ -56,8 +56,8 @@ export const DashboardChart = ({
   };
 
   return (
-    <div className={cn("glass-card rounded-xl p-5 neon-border", className)}>
-      <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
+    <div className={cn("bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-white/10", className)}>
+      <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           {type === 'area' ? (
@@ -68,15 +68,15 @@ export const DashboardChart = ({
                   <stop offset="95%" stopColor={color} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
                 dataKey="date" 
-                stroke="hsl(0, 0%, 50%)" 
-                tick={{ fill: 'hsl(0, 0%, 65%)', fontSize: 12 }}
+                stroke="rgba(255,255,255,0.3)" 
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
               />
               <YAxis 
-                stroke="hsl(0, 0%, 50%)" 
-                tick={{ fill: 'hsl(0, 0%, 65%)', fontSize: 12 }}
+                stroke="rgba(255,255,255,0.3)" 
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
                 tickFormatter={(value) => value.toLocaleString('pt-BR')}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -90,15 +90,15 @@ export const DashboardChart = ({
             </AreaChart>
           ) : type === 'bar' ? (
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
                 dataKey="date" 
-                stroke="hsl(0, 0%, 50%)" 
-                tick={{ fill: 'hsl(0, 0%, 65%)', fontSize: 12 }}
+                stroke="rgba(255,255,255,0.3)" 
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
               />
               <YAxis 
-                stroke="hsl(0, 0%, 50%)" 
-                tick={{ fill: 'hsl(0, 0%, 65%)', fontSize: 12 }}
+                stroke="rgba(255,255,255,0.3)" 
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
                 tickFormatter={(value) => value.toLocaleString('pt-BR')}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -106,15 +106,15 @@ export const DashboardChart = ({
             </BarChart>
           ) : (
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
                 dataKey="date" 
-                stroke="hsl(0, 0%, 50%)" 
-                tick={{ fill: 'hsl(0, 0%, 65%)', fontSize: 12 }}
+                stroke="rgba(255,255,255,0.3)" 
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
               />
               <YAxis 
-                stroke="hsl(0, 0%, 50%)" 
-                tick={{ fill: 'hsl(0, 0%, 65%)', fontSize: 12 }}
+                stroke="rgba(255,255,255,0.3)" 
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
                 tickFormatter={(value) => value.toLocaleString('pt-BR')}
               />
               <Tooltip content={<CustomTooltip />} />
