@@ -55,63 +55,63 @@ export default function Login() {
   };
 
   return (
-    <div className="dashboard-theme min-h-screen bg-background flex items-center justify-center p-4">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background gradient effects - matching site style */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#1e40af]/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[300px] bg-[#1e3a8a]/15 rounded-full blur-[100px]" />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md z-10">
         {/* Logo */}
         <div className="text-center mb-8">
           <img 
             src="/TFLOGO.png" 
             alt="Traffic Solutions" 
-            className="h-16 mx-auto mb-4"
+            className="h-16 mx-auto mb-6"
           />
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-3xl font-bold text-white">
             Área do Cliente
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-gray-400 mt-2">
             Acesse seu painel de resultados
           </p>
         </div>
 
-        {/* Login Card */}
-        <div className="glass-card rounded-2xl p-8 neon-border">
+        {/* Login Card - glass effect matching site */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground">
+              <Label htmlFor="email" className="text-white font-medium">
                 E-mail
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 bg-background/50 border-border focus:border-primary focus:ring-primary"
+                  className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#3b82f6] focus:ring-[#3b82f6]/20 h-12"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground">
+              <Label htmlFor="password" className="text-white font-medium">
                 Senha
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 bg-background/50 border-border focus:border-primary focus:ring-primary"
+                  className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-[#3b82f6] focus:ring-[#3b82f6]/20 h-12"
                   required
                 />
               </div>
@@ -120,7 +120,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary hover:bg-primary-dark text-primary-foreground font-semibold py-6 neon-glow transition-all duration-300 hover:scale-[1.02]"
+              className="w-full bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white font-semibold h-12 text-base shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40 hover:scale-[1.02]"
             >
               {isLoading ? (
                 <>
@@ -134,7 +134,7 @@ export default function Login() {
           </form>
         </div>
 
-        <p className="text-center text-muted-foreground text-sm mt-6">
+        <p className="text-center text-gray-500 text-sm mt-6">
           Acesso restrito a clientes Traffic Solutions
         </p>
       </div>
