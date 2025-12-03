@@ -124,7 +124,7 @@ export default function ClientReport() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
       </div>
     );
   }
@@ -132,8 +132,8 @@ export default function ClientReport() {
   if (!client) {
     return (
       <div className="p-8 text-center">
-        <p className="text-muted-foreground">Cliente não encontrado</p>
-        <Button onClick={() => navigate('/dashboard')} className="mt-4">
+        <p className="text-gray-400">Cliente não encontrado</p>
+        <Button onClick={() => navigate('/dashboard')} className="mt-4 bg-gradient-to-r from-[#1e40af] to-[#3b82f6]">
           Voltar ao Dashboard
         </Button>
       </div>
@@ -149,7 +149,7 @@ export default function ClientReport() {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/dashboard')}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-gray-400 hover:text-white hover:bg-white/10"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -160,15 +160,15 @@ export default function ClientReport() {
               className="h-14 w-14 rounded-xl object-cover"
             />
           ) : (
-            <div className="h-14 w-14 rounded-xl bg-primary/20 flex items-center justify-center">
-              <Users className="h-7 w-7 text-primary" />
+            <div className="h-14 w-14 rounded-xl bg-[#3b82f6]/20 flex items-center justify-center">
+              <Users className="h-7 w-7 text-[#3b82f6]" />
             </div>
           )}
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+            <h1 className="text-2xl lg:text-3xl font-bold text-white">
               {client.name}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-gray-400">
               Relatório de Desempenho
             </p>
           </div>
@@ -184,10 +184,10 @@ export default function ClientReport() {
       </div>
 
       {reports.length === 0 ? (
-        <div className="glass-card rounded-xl p-8 text-center neon-border">
-          <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground">Nenhum dado encontrado</h3>
-          <p className="text-muted-foreground mt-2">
+        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-8 text-center border border-white/10">
+          <TrendingUp className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-white">Nenhum dado encontrado</h3>
+          <p className="text-gray-400 mt-2">
             Não há relatórios disponíveis para o período selecionado.
           </p>
         </div>
@@ -249,7 +249,7 @@ export default function ClientReport() {
               title="Valor Gasto por Dia"
               data={chartData}
               dataKey="value_spent"
-              color="hsl(330, 100%, 60%)"
+              color="#3b82f6"
               type="area"
               prefix="R$ "
             />
@@ -257,7 +257,7 @@ export default function ClientReport() {
               title="Conversas Iniciadas"
               data={chartData}
               dataKey="messages_started"
-              color="hsl(200, 100%, 60%)"
+              color="#22c55e"
               type="bar"
             />
           </div>
@@ -267,7 +267,7 @@ export default function ClientReport() {
               title="Custo por Mensagem"
               data={chartData}
               dataKey="cost_per_message"
-              color="hsl(45, 100%, 60%)"
+              color="#f59e0b"
               type="line"
               prefix="R$ "
             />
@@ -275,7 +275,7 @@ export default function ClientReport() {
               title="CPM Real"
               data={chartData}
               dataKey="cpm_real"
-              color="hsl(280, 100%, 60%)"
+              color="#8b5cf6"
               type="area"
               prefix="R$ "
             />
