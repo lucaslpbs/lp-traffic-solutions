@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { format, subDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { 
   DollarSign, 
   MessageSquare, 
@@ -19,8 +18,7 @@ import { KPICard } from '@/components/dashboard/KPICard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import html2pdf from 'html2pdf.js';
 
 interface ReportData {
   nome_campanha: string;
@@ -52,27 +50,49 @@ interface ReportData {
   cpm: number;
 }
 
-// Helper to parse date in DD/MM/YYYY format
-const parseDateString = (dateStr: string): Date => {
-  const parts = dateStr.split('/');
-  if (parts.length === 3) {
-    return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+// Helper to parse date string for sorting (DD/MM/YYYY or DD-MM-YYYY)
+const parseDateForSort = (dateStr: string): number => {
+  // Handle DD/MM/YYYY format
+  const slashParts = dateStr.split('/');
+  if (slashParts.length === 3) {
+    const day = parseInt(slashParts[0], 10);
+    const month = parseInt(slashParts[1], 10);
+    const year = parseInt(slashParts[2], 10);
+    // Create a comparable number: YYYYMMDD
+    const fullYear = year < 100 ? 2000 + year : year;
+    return fullYear * 10000 + month * 100 + day;
   }
-  // Try DD-MM-YYYY format
+  // Handle DD-MM-YYYY format
   const dashParts = dateStr.split('-');
-  if (dashParts.length === 3 && dashParts[0].length === 2) {
-    return new Date(parseInt(dashParts[2]), parseInt(dashParts[1]) - 1, parseInt(dashParts[0]));
+  if (dashParts.length === 3 && dashParts[0].length <= 2) {
+    const day = parseInt(dashParts[0], 10);
+    const month = parseInt(dashParts[1], 10);
+    const year = parseInt(dashParts[2], 10);
+    const fullYear = year < 100 ? 2000 + year : year;
+    return fullYear * 10000 + month * 100 + day;
   }
-  return new Date(dateStr);
+  return 0;
 };
 
-// Format date to DD/MM/YY
+// Format date to DD/MM/YY (keep original day/month, just shorten year)
 const formatDateBR = (dateStr: string): string => {
-  const date = parseDateString(dateStr);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear()).slice(-2);
-  return `${day}/${month}/${year}`;
+  // Handle DD/MM/YYYY -> DD/MM/YY
+  const slashParts = dateStr.split('/');
+  if (slashParts.length === 3) {
+    const day = slashParts[0].padStart(2, '0');
+    const month = slashParts[1].padStart(2, '0');
+    const year = slashParts[2].length === 4 ? slashParts[2].slice(-2) : slashParts[2];
+    return `${day}/${month}/${year}`;
+  }
+  // Handle DD-MM-YYYY -> DD/MM/YY
+  const dashParts = dateStr.split('-');
+  if (dashParts.length === 3 && dashParts[0].length <= 2) {
+    const day = dashParts[0].padStart(2, '0');
+    const month = dashParts[1].padStart(2, '0');
+    const year = dashParts[2].length === 4 ? dashParts[2].slice(-2) : dashParts[2];
+    return `${day}/${month}/${year}`;
+  }
+  return dateStr;
 };
 
 export default function ClientReport() {
@@ -143,43 +163,21 @@ export default function ClientReport() {
     try {
       toast.info('Gerando PDF...');
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 5;
-      
-      // Capture entire report content as screenshot
-      const canvas = await html2canvas(reportContainer, {
-        backgroundColor: '#0a0a0a',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        windowWidth: reportContainer.scrollWidth,
-        windowHeight: reportContainer.scrollHeight,
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = pageWidth - (margin * 2);
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Split into multiple pages if needed
-      let heightLeft = imgHeight;
-      let position = 0;
-      const contentHeight = pageHeight - (margin * 2);
-      
-      // First page
-      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight, undefined, 'FAST', 0);
-      heightLeft -= contentHeight;
-      
-      // Additional pages
-      while (heightLeft > 0) {
-        position -= contentHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position + margin, imgWidth, imgHeight, undefined, 'FAST', 0);
-        heightLeft -= contentHeight;
-      }
+      const opt = {
+        margin: 5,
+        filename: `relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#0a0a0a'
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
 
-      pdf.save(`relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`);
+      await html2pdf().set(opt).from(reportContainer).save();
+      
       toast.success('PDF gerado com sucesso!');
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
@@ -228,9 +226,7 @@ export default function ClientReport() {
 
   // Sort by date in ascending order
   const dailyData = Object.values(aggregatedByDay).sort((a: any, b: any) => {
-    const dateA = parseDateString(a.dia);
-    const dateB = parseDateString(b.dia);
-    return dateA.getTime() - dateB.getTime();
+    return parseDateForSort(a.dia) - parseDateForSort(b.dia);
   });
 
   // Calculate KPIs
