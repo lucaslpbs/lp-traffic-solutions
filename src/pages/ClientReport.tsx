@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { format, subDays, parseISO } from 'date-fns';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
   DollarSign, 
@@ -12,40 +11,54 @@ import {
   Users,
   Instagram,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  Video
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
+import { toast } from 'sonner';
 
-interface Client {
-  id: string;
-  name: string;
-  logo_url: string | null;
-}
-
-interface Report {
-  id: string;
-  date: string;
-  value_spent: number;
-  messages_started: number;
-  cost_per_message: number;
-  impressions: number;
-  clicks: number;
-  cpm_real: number;
-  ctr_real: number;
-  instagram_visits: number;
-  instagram_followers: number;
+interface ReportData {
+  nome_campanha: string;
+  dia: string;
+  nome_conjunto_anuncios: string;
+  alcance: number;
+  impressoes: number;
+  frequencia: number;
+  valor_usado_brl: number;
+  compras: number;
+  custo_por_compra: number;
+  valor_conversao_compra: number;
+  cliques_link: number;
+  cpc_clique_link: number;
+  cliques_todos: number;
+  cpc_todos: number;
+  conversas_mensagem_iniciadas: number;
+  custo_por_conversa_mensagem_iniciada: number;
+  reproducoes_video_3s: number;
+  reproducoes_25: number;
+  reproducoes_50: number;
+  reproducoes_75: number;
+  reproducoes_95: number;
+  reproducoes_100: number;
+  visitas_perfil_instagram: number;
+  seguidores_instagram: number;
+  custo_por_seguidor_instagram: number;
+  ctr: number;
+  cpm: number;
 }
 
 export default function ClientReport() {
   const { clientId } = useParams<{ clientId: string }>();
+  const [searchParams] = useSearchParams();
+  const clientName = searchParams.get('nome') || 'Cliente';
   const navigate = useNavigate();
-  const [client, setClient] = useState<Client | null>(null);
-  const [reports, setReports] = useState<Report[]>([]);
+  
+  const [reports, setReports] = useState<ReportData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
+  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
   const fetchData = async () => {
@@ -53,38 +66,35 @@ export default function ClientReport() {
 
     setLoading(true);
 
-    // Fetch client
-    const { data: clientData } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('id', clientId)
-      .maybeSingle();
+    try {
+      const dataInicial = startDate ? format(startDate, 'dd/MM/yyyy') : format(subDays(new Date(), 7), 'dd/MM/yyyy');
+      const dataFinal = endDate ? format(endDate, 'dd/MM/yyyy') : format(new Date(), 'dd/MM/yyyy');
 
-    if (clientData) {
-      setClient(clientData);
+      const response = await fetch('https://n8n.trafficsolutions.cloud/webhook/relatorio-meta-insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data_inicial: dataInicial,
+          data_final: dataFinal,
+          nome_cliente: clientName,
+          account_id: clientId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao buscar relatório');
+      }
+
+      const result = await response.json();
+      setReports(Array.isArray(result) ? result : result.data || []);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+      toast.error('Erro ao carregar relatório');
+    } finally {
+      setLoading(false);
     }
-
-    // Fetch reports with date filter
-    let query = supabase
-      .from('reports')
-      .select('*')
-      .eq('client_id', clientId)
-      .order('date', { ascending: true });
-
-    if (startDate) {
-      query = query.gte('date', format(startDate, 'yyyy-MM-dd'));
-    }
-    if (endDate) {
-      query = query.lte('date', format(endDate, 'yyyy-MM-dd'));
-    }
-
-    const { data: reportsData } = await query;
-
-    if (reportsData) {
-      setReports(reportsData);
-    }
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -95,47 +105,76 @@ export default function ClientReport() {
     fetchData();
   };
 
+  // Aggregate data by day
+  const aggregatedByDay = reports.reduce((acc, r) => {
+    const day = r.dia;
+    if (!acc[day]) {
+      acc[day] = {
+        dia: day,
+        valor_usado_brl: 0,
+        impressoes: 0,
+        alcance: 0,
+        cliques_todos: 0,
+        cliques_link: 0,
+        conversas_mensagem_iniciadas: 0,
+        visitas_perfil_instagram: 0,
+        reproducoes_video_3s: 0,
+        compras: 0,
+        valor_conversao_compra: 0,
+      };
+    }
+    acc[day].valor_usado_brl += r.valor_usado_brl || 0;
+    acc[day].impressoes += r.impressoes || 0;
+    acc[day].alcance += r.alcance || 0;
+    acc[day].cliques_todos += r.cliques_todos || 0;
+    acc[day].cliques_link += r.cliques_link || 0;
+    acc[day].conversas_mensagem_iniciadas += r.conversas_mensagem_iniciadas || 0;
+    acc[day].visitas_perfil_instagram += r.visitas_perfil_instagram || 0;
+    acc[day].reproducoes_video_3s += r.reproducoes_video_3s || 0;
+    acc[day].compras += r.compras || 0;
+    acc[day].valor_conversao_compra += r.valor_conversao_compra || 0;
+    return acc;
+  }, {} as Record<string, any>);
+
+  const dailyData = Object.values(aggregatedByDay).sort((a: any, b: any) => {
+    const dateA = a.dia.split('-').reverse().join('-');
+    const dateB = b.dia.split('-').reverse().join('-');
+    return dateA.localeCompare(dateB);
+  });
+
   // Calculate KPIs
-  const totalSpent = reports.reduce((sum, r) => sum + Number(r.value_spent), 0);
-  const totalMessages = reports.reduce((sum, r) => sum + r.messages_started, 0);
-  const totalImpressions = reports.reduce((sum, r) => sum + r.impressions, 0);
-  const totalClicks = reports.reduce((sum, r) => sum + r.clicks, 0);
-  const totalVisits = reports.reduce((sum, r) => sum + r.instagram_visits, 0);
-  const totalFollowers = reports.reduce((sum, r) => sum + r.instagram_followers, 0);
-  const avgCPM = reports.length > 0 
-    ? reports.reduce((sum, r) => sum + Number(r.cpm_real), 0) / reports.length 
-    : 0;
-  const avgCTR = reports.length > 0 
-    ? reports.reduce((sum, r) => sum + Number(r.ctr_real), 0) / reports.length 
-    : 0;
+  const totalSpent = reports.reduce((sum, r) => sum + (r.valor_usado_brl || 0), 0);
+  const totalMessages = reports.reduce((sum, r) => sum + (r.conversas_mensagem_iniciadas || 0), 0);
+  const totalImpressions = reports.reduce((sum, r) => sum + (r.impressoes || 0), 0);
+  const totalReach = reports.reduce((sum, r) => sum + (r.alcance || 0), 0);
+  const totalClicks = reports.reduce((sum, r) => sum + (r.cliques_todos || 0), 0);
+  const totalLinkClicks = reports.reduce((sum, r) => sum + (r.cliques_link || 0), 0);
+  const totalVisits = reports.reduce((sum, r) => sum + (r.visitas_perfil_instagram || 0), 0);
+  const totalVideoViews = reports.reduce((sum, r) => sum + (r.reproducoes_video_3s || 0), 0);
+  const totalPurchases = reports.reduce((sum, r) => sum + (r.compras || 0), 0);
+  const totalPurchaseValue = reports.reduce((sum, r) => sum + (r.valor_conversao_compra || 0), 0);
+  
+  const avgCPM = totalImpressions > 0 ? (totalSpent / totalImpressions) * 1000 : 0;
+  const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+  const costPerMessage = totalMessages > 0 ? totalSpent / totalMessages : 0;
+  const costPerClick = totalClicks > 0 ? totalSpent / totalClicks : 0;
 
   // Format chart data
-  const chartData = reports.map(r => ({
-    date: format(parseISO(r.date), 'dd/MM', { locale: ptBR }),
-    value_spent: Number(r.value_spent),
-    messages_started: r.messages_started,
-    cost_per_message: Number(r.cost_per_message),
-    impressions: r.impressions,
-    clicks: r.clicks,
-    cpm_real: Number(r.cpm_real),
-    ctr_real: Number(r.ctr_real),
+  const chartData = dailyData.map((d: any) => ({
+    date: d.dia,
+    valor_usado_brl: d.valor_usado_brl,
+    conversas_mensagem_iniciadas: d.conversas_mensagem_iniciadas,
+    impressoes: d.impressoes,
+    cliques_todos: d.cliques_todos,
+    cliques_link: d.cliques_link,
+    visitas_perfil_instagram: d.visitas_perfil_instagram,
+    reproducoes_video_3s: d.reproducoes_video_3s,
   }));
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
-      </div>
-    );
-  }
-
-  if (!client) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-gray-400">Cliente não encontrado</p>
-        <Button onClick={() => navigate('/dashboard')} className="mt-4 bg-gradient-to-r from-[#1e40af] to-[#3b82f6]">
-          Voltar ao Dashboard
-        </Button>
       </div>
     );
   }
@@ -153,23 +192,15 @@ export default function ClientReport() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          {client.logo_url ? (
-            <img
-              src={client.logo_url}
-              alt={client.name}
-              className="h-14 w-14 rounded-xl object-cover"
-            />
-          ) : (
-            <div className="h-14 w-14 rounded-xl bg-[#3b82f6]/20 flex items-center justify-center">
-              <Users className="h-7 w-7 text-[#3b82f6]" />
-            </div>
-          )}
+          <div className="h-14 w-14 rounded-xl bg-[#3b82f6]/20 flex items-center justify-center">
+            <Users className="h-7 w-7 text-[#3b82f6]" />
+          </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold text-white">
-              {client.name}
+              {clientName}
             </h1>
             <p className="text-gray-400">
-              Relatório de Desempenho
+              Relatório de Desempenho • ID: {clientId}
             </p>
           </div>
         </div>
@@ -193,8 +224,8 @@ export default function ClientReport() {
         </div>
       ) : (
         <>
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* KPI Cards - Row 1 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <KPICard
               title="Valor Total Gasto"
               value={totalSpent.toFixed(2)}
@@ -205,6 +236,31 @@ export default function ClientReport() {
               title="Total de Conversas"
               value={totalMessages}
               icon={MessageSquare}
+            />
+            <KPICard
+              title="Custo por Conversa"
+              value={costPerMessage.toFixed(2)}
+              icon={MessageSquare}
+              prefix="R$ "
+            />
+            <KPICard
+              title="Total de Compras"
+              value={totalPurchases}
+              icon={TrendingUp}
+            />
+          </div>
+
+          {/* KPI Cards - Row 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <KPICard
+              title="Impressões"
+              value={totalImpressions.toLocaleString('pt-BR')}
+              icon={Eye}
+            />
+            <KPICard
+              title="Alcance"
+              value={totalReach.toLocaleString('pt-BR')}
+              icon={Users}
             />
             <KPICard
               title="CPM Médio"
@@ -220,26 +276,27 @@ export default function ClientReport() {
             />
           </div>
 
+          {/* KPI Cards - Row 3 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <KPICard
-              title="Total de Impressões"
-              value={totalImpressions}
-              icon={Eye}
+              title="Cliques Totais"
+              value={totalClicks.toLocaleString('pt-BR')}
+              icon={MousePointer}
             />
             <KPICard
-              title="Total de Cliques"
-              value={totalClicks}
+              title="Cliques no Link"
+              value={totalLinkClicks.toLocaleString('pt-BR')}
               icon={MousePointer}
             />
             <KPICard
               title="Visitas Instagram"
-              value={totalVisits}
+              value={totalVisits.toLocaleString('pt-BR')}
               icon={Instagram}
             />
             <KPICard
-              title="Novos Seguidores"
-              value={totalFollowers}
-              icon={Users}
+              title="Visualizações 3s"
+              value={totalVideoViews.toLocaleString('pt-BR')}
+              icon={Video}
             />
           </div>
 
@@ -248,7 +305,7 @@ export default function ClientReport() {
             <DashboardChart
               title="Valor Gasto por Dia"
               data={chartData}
-              dataKey="value_spent"
+              dataKey="valor_usado_brl"
               color="#3b82f6"
               type="area"
               prefix="R$ "
@@ -256,28 +313,43 @@ export default function ClientReport() {
             <DashboardChart
               title="Conversas Iniciadas"
               data={chartData}
-              dataKey="messages_started"
+              dataKey="conversas_mensagem_iniciadas"
               color="#22c55e"
+              type="bar"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <DashboardChart
+              title="Impressões por Dia"
+              data={chartData}
+              dataKey="impressoes"
+              color="#f59e0b"
+              type="line"
+            />
+            <DashboardChart
+              title="Cliques por Dia"
+              data={chartData}
+              dataKey="cliques_todos"
+              color="#8b5cf6"
               type="bar"
             />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DashboardChart
-              title="Custo por Mensagem"
+              title="Visitas ao Instagram"
               data={chartData}
-              dataKey="cost_per_message"
-              color="#f59e0b"
-              type="line"
-              prefix="R$ "
+              dataKey="visitas_perfil_instagram"
+              color="#ec4899"
+              type="area"
             />
             <DashboardChart
-              title="CPM Real"
+              title="Visualizações de Vídeo (3s)"
               data={chartData}
-              dataKey="cpm_real"
-              color="#8b5cf6"
-              type="area"
-              prefix="R$ "
+              dataKey="reproducoes_video_3s"
+              color="#06b6d4"
+              type="bar"
             />
           </div>
         </>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { 
@@ -13,14 +12,15 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface Client {
-  id: string;
-  name: string;
-  logo_url: string | null;
+interface N8NClient {
+  id_conta: string;
+  nome: string;
+  campanhas_ativas: number;
+  picture_url: string;
 }
 
 export const DashboardSidebar = () => {
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<N8NClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const { signOut } = useAuth();
@@ -29,15 +29,23 @@ export const DashboardSidebar = () => {
 
   useEffect(() => {
     const fetchClients = async () => {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, name, logo_url')
-        .order('name');
+      try {
+        const response = await fetch('https://n8n.trafficsolutions.cloud/webhook/bm-clientes-ativos', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-      if (!error && data) {
-        setClients(data);
+        if (response.ok) {
+          const result = await response.json();
+          setClients(result.clientes || []);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchClients();
@@ -48,7 +56,7 @@ export const DashboardSidebar = () => {
     navigate('/login');
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname.startsWith(path);
 
   return (
     <aside 
@@ -82,7 +90,7 @@ export const DashboardSidebar = () => {
           to="/dashboard"
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-            isActive('/dashboard')
+            location.pathname === '/dashboard'
               ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
               : "text-gray-400 hover:bg-white/5 hover:text-white"
           )}
@@ -108,26 +116,26 @@ export const DashboardSidebar = () => {
           <div className="space-y-1">
             {clients.map((client) => (
               <Link
-                key={client.id}
-                to={`/dashboard/${client.id}`}
+                key={client.id_conta}
+                to={`/dashboard/${client.id_conta}?nome=${encodeURIComponent(client.nome)}`}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                  isActive(`/dashboard/${client.id}`)
+                  isActive(`/dashboard/${client.id_conta}`)
                     ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
                     : "text-gray-400 hover:bg-white/5 hover:text-white"
                 )}
               >
-                {client.logo_url ? (
+                {client.picture_url ? (
                   <img 
-                    src={client.logo_url} 
-                    alt={client.name}
+                    src={client.picture_url} 
+                    alt={client.nome}
                     className="h-5 w-5 rounded object-cover flex-shrink-0"
                   />
                 ) : (
                   <Building2 className="h-5 w-5 flex-shrink-0" />
                 )}
                 {!collapsed && (
-                  <span className="font-medium truncate">{client.name}</span>
+                  <span className="font-medium truncate">{client.nome}</span>
                 )}
               </Link>
             ))}
