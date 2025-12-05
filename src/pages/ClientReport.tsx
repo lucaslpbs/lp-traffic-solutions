@@ -117,10 +117,12 @@ export default function ClientReport() {
         cliques_todos: 0,
         cliques_link: 0,
         conversas_mensagem_iniciadas: 0,
+        custo_por_conversa_total: 0,
         visitas_perfil_instagram: 0,
         reproducoes_video_3s: 0,
         compras: 0,
         valor_conversao_compra: 0,
+        count_conversas: 0,
       };
     }
     acc[day].valor_usado_brl += r.valor_usado_brl || 0;
@@ -129,6 +131,10 @@ export default function ClientReport() {
     acc[day].cliques_todos += r.cliques_todos || 0;
     acc[day].cliques_link += r.cliques_link || 0;
     acc[day].conversas_mensagem_iniciadas += r.conversas_mensagem_iniciadas || 0;
+    if (r.custo_por_conversa_mensagem_iniciada > 0) {
+      acc[day].custo_por_conversa_total += r.custo_por_conversa_mensagem_iniciada;
+      acc[day].count_conversas += 1;
+    }
     acc[day].visitas_perfil_instagram += r.visitas_perfil_instagram || 0;
     acc[day].reproducoes_video_3s += r.reproducoes_video_3s || 0;
     acc[day].compras += r.compras || 0;
@@ -164,6 +170,7 @@ export default function ClientReport() {
     date: d.dia,
     valor_usado_brl: d.valor_usado_brl,
     conversas_mensagem_iniciadas: d.conversas_mensagem_iniciadas,
+    custo_por_conversa: d.count_conversas > 0 ? d.custo_por_conversa_total / d.count_conversas : 0,
     impressoes: d.impressoes,
     cliques_todos: d.cliques_todos,
     cliques_link: d.cliques_link,
@@ -315,7 +322,13 @@ export default function ClientReport() {
               data={chartData}
               dataKey="conversas_mensagem_iniciadas"
               color="#22c55e"
-              type="bar"
+              type="composed"
+              secondaryLine={{
+                dataKey: 'custo_por_conversa',
+                color: '#f59e0b',
+                prefix: 'R$ ',
+                label: 'Custo/Conversa'
+              }}
             />
           </div>
 
