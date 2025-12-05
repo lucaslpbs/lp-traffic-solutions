@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -66,12 +66,20 @@ const parseDateString = (dateStr: string): Date => {
   return new Date(dateStr);
 };
 
+// Format date to DD/MM/YY
+const formatDateBR = (dateStr: string): string => {
+  const date = parseDateString(dateStr);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = String(date.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+};
+
 export default function ClientReport() {
   const { clientId } = useParams<{ clientId: string }>();
   const [searchParams] = useSearchParams();
   const clientName = searchParams.get('nome') || 'Cliente';
   const navigate = useNavigate();
-  const chartsContainerRef = useRef<HTMLDivElement>(null);
   
   const [reports, setReports] = useState<ReportData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,7 +132,8 @@ export default function ClientReport() {
   };
 
   const handleGeneratePDF = async (showLabels: boolean) => {
-    if (!chartsContainerRef.current) return;
+    const reportContainer = document.getElementById('report-content');
+    if (!reportContainer) return;
 
     setShowLabelsForPDF(showLabels);
     
@@ -137,60 +146,37 @@ export default function ClientReport() {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
+      const margin = 5;
       
-      // Title
-      pdf.setFontSize(18);
-      pdf.setTextColor(59, 130, 246);
-      pdf.text(`Relatório - ${clientName}`, margin, 20);
+      // Capture entire report content as screenshot
+      const canvas = await html2canvas(reportContainer, {
+        backgroundColor: '#0a0a0a',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: reportContainer.scrollWidth,
+        windowHeight: reportContainer.scrollHeight,
+      });
       
-      // Date range
-      pdf.setFontSize(10);
-      pdf.setTextColor(100);
-      const dateRange = `Período: ${startDate ? format(startDate, 'dd/MM/yyyy') : ''} - ${endDate ? format(endDate, 'dd/MM/yyyy') : ''}`;
-      pdf.text(dateRange, margin, 28);
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = pageWidth - (margin * 2);
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // KPIs Section
-      pdf.setFontSize(12);
-      pdf.setTextColor(0);
-      pdf.text('Métricas Principais:', margin, 40);
+      // Split into multiple pages if needed
+      let heightLeft = imgHeight;
+      let position = 0;
+      const contentHeight = pageHeight - (margin * 2);
       
-      pdf.setFontSize(9);
-      const kpiY = 48;
-      pdf.text(`Valor Total Gasto: R$ ${totalSpent.toFixed(2)}`, margin, kpiY);
-      pdf.text(`Total de Conversas: ${totalMessages}`, margin + 60, kpiY);
-      pdf.text(`Custo por Conversa: R$ ${costPerMessage.toFixed(2)}`, margin + 120, kpiY);
-      pdf.text(`Total de Compras: ${totalPurchases}`, margin, kpiY + 6);
-      pdf.text(`Impressões: ${totalImpressions.toLocaleString('pt-BR')}`, margin + 60, kpiY + 6);
-      pdf.text(`Alcance: ${totalReach.toLocaleString('pt-BR')}`, margin + 120, kpiY + 6);
-      pdf.text(`CPM Médio: R$ ${avgCPM.toFixed(2)}`, margin, kpiY + 12);
-      pdf.text(`CTR Médio: ${avgCTR.toFixed(2)}%`, margin + 60, kpiY + 12);
-      pdf.text(`Cliques Totais: ${totalClicks.toLocaleString('pt-BR')}`, margin + 120, kpiY + 12);
-
-      // Capture charts
-      const charts = chartsContainerRef.current.querySelectorAll('.chart-container');
-      let currentY = 75;
-
-      for (let i = 0; i < charts.length; i++) {
-        const chart = charts[i] as HTMLElement;
-        
-        const canvas = await html2canvas(chart, {
-          backgroundColor: '#1a1a1a',
-          scale: 2,
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = pageWidth - (margin * 2);
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        // Check if we need a new page
-        if (currentY + imgHeight > pageHeight - margin) {
-          pdf.addPage();
-          currentY = margin;
-        }
-        
-        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
-        currentY += imgHeight + 10;
+      // First page
+      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight, undefined, 'FAST', 0);
+      heightLeft -= contentHeight;
+      
+      // Additional pages
+      while (heightLeft > 0) {
+        position -= contentHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position + margin, imgWidth, imgHeight, undefined, 'FAST', 0);
+        heightLeft -= contentHeight;
       }
 
       pdf.save(`relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`);
@@ -264,9 +250,9 @@ export default function ClientReport() {
   const costPerMessage = totalMessages > 0 ? totalSpent / totalMessages : 0;
   const costPerClick = totalClicks > 0 ? totalSpent / totalClicks : 0;
 
-  // Format chart data
+  // Format chart data with Brazilian date format
   const chartData = dailyData.map((d: any) => ({
-    date: d.dia,
+    date: formatDateBR(d.dia),
     valor_usado_brl: d.valor_usado_brl,
     conversas_mensagem_iniciadas: d.conversas_mensagem_iniciadas,
     custo_por_conversa: d.count_conversas > 0 ? d.custo_por_conversa_total / d.count_conversas : 0,
@@ -330,7 +316,15 @@ export default function ClientReport() {
           </p>
         </div>
       ) : (
-        <>
+        <div id="report-content" className="bg-[#0a0a0a]">
+          {/* Header for PDF */}
+          <div className="mb-6 pb-4 border-b border-white/10">
+            <h2 className="text-2xl font-bold text-white mb-1">{clientName}</h2>
+            <p className="text-gray-400 text-sm">
+              Período: {startDate ? format(startDate, 'dd/MM/yyyy') : ''} - {endDate ? format(endDate, 'dd/MM/yyyy') : ''}
+            </p>
+          </div>
+          
           {/* KPI Cards - Row 1 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <KPICard
@@ -408,7 +402,7 @@ export default function ClientReport() {
           </div>
 
           {/* Charts */}
-          <div ref={chartsContainerRef}>
+          <div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <div className="chart-container">
                 <DashboardChart
@@ -485,7 +479,7 @@ export default function ClientReport() {
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
