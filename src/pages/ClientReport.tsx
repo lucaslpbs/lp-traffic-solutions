@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -19,6 +19,8 @@ import { KPICard } from '@/components/dashboard/KPICard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface ReportData {
   nome_campanha: string;
@@ -50,16 +52,32 @@ interface ReportData {
   cpm: number;
 }
 
+// Helper to parse date in DD/MM/YYYY format
+const parseDateString = (dateStr: string): Date => {
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+  }
+  // Try DD-MM-YYYY format
+  const dashParts = dateStr.split('-');
+  if (dashParts.length === 3 && dashParts[0].length === 2) {
+    return new Date(parseInt(dashParts[2]), parseInt(dashParts[1]) - 1, parseInt(dashParts[0]));
+  }
+  return new Date(dateStr);
+};
+
 export default function ClientReport() {
   const { clientId } = useParams<{ clientId: string }>();
   const [searchParams] = useSearchParams();
   const clientName = searchParams.get('nome') || 'Cliente';
   const navigate = useNavigate();
+  const chartsContainerRef = useRef<HTMLDivElement>(null);
   
   const [reports, setReports] = useState<ReportData[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const [showLabelsForPDF, setShowLabelsForPDF] = useState(false);
 
   const fetchData = async () => {
     if (!clientId) return;
@@ -105,6 +123,86 @@ export default function ClientReport() {
     fetchData();
   };
 
+  const handleGeneratePDF = async (showLabels: boolean) => {
+    if (!chartsContainerRef.current) return;
+
+    setShowLabelsForPDF(showLabels);
+    
+    // Wait for state to update and re-render
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      toast.info('Gerando PDF...');
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      
+      // Title
+      pdf.setFontSize(18);
+      pdf.setTextColor(59, 130, 246);
+      pdf.text(`Relatório - ${clientName}`, margin, 20);
+      
+      // Date range
+      pdf.setFontSize(10);
+      pdf.setTextColor(100);
+      const dateRange = `Período: ${startDate ? format(startDate, 'dd/MM/yyyy') : ''} - ${endDate ? format(endDate, 'dd/MM/yyyy') : ''}`;
+      pdf.text(dateRange, margin, 28);
+      
+      // KPIs Section
+      pdf.setFontSize(12);
+      pdf.setTextColor(0);
+      pdf.text('Métricas Principais:', margin, 40);
+      
+      pdf.setFontSize(9);
+      const kpiY = 48;
+      pdf.text(`Valor Total Gasto: R$ ${totalSpent.toFixed(2)}`, margin, kpiY);
+      pdf.text(`Total de Conversas: ${totalMessages}`, margin + 60, kpiY);
+      pdf.text(`Custo por Conversa: R$ ${costPerMessage.toFixed(2)}`, margin + 120, kpiY);
+      pdf.text(`Total de Compras: ${totalPurchases}`, margin, kpiY + 6);
+      pdf.text(`Impressões: ${totalImpressions.toLocaleString('pt-BR')}`, margin + 60, kpiY + 6);
+      pdf.text(`Alcance: ${totalReach.toLocaleString('pt-BR')}`, margin + 120, kpiY + 6);
+      pdf.text(`CPM Médio: R$ ${avgCPM.toFixed(2)}`, margin, kpiY + 12);
+      pdf.text(`CTR Médio: ${avgCTR.toFixed(2)}%`, margin + 60, kpiY + 12);
+      pdf.text(`Cliques Totais: ${totalClicks.toLocaleString('pt-BR')}`, margin + 120, kpiY + 12);
+
+      // Capture charts
+      const charts = chartsContainerRef.current.querySelectorAll('.chart-container');
+      let currentY = 75;
+
+      for (let i = 0; i < charts.length; i++) {
+        const chart = charts[i] as HTMLElement;
+        
+        const canvas = await html2canvas(chart, {
+          backgroundColor: '#1a1a1a',
+          scale: 2,
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Check if we need a new page
+        if (currentY + imgHeight > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+        }
+        
+        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 10;
+      }
+
+      pdf.save(`relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`);
+      toast.success('PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    } finally {
+      setShowLabelsForPDF(false);
+    }
+  };
+
   // Aggregate data by day
   const aggregatedByDay = reports.reduce((acc, r) => {
     const day = r.dia;
@@ -142,10 +240,11 @@ export default function ClientReport() {
     return acc;
   }, {} as Record<string, any>);
 
+  // Sort by date in ascending order
   const dailyData = Object.values(aggregatedByDay).sort((a: any, b: any) => {
-    const dateA = a.dia.split('-').reverse().join('-');
-    const dateB = b.dia.split('-').reverse().join('-');
-    return dateA.localeCompare(dateB);
+    const dateA = parseDateString(a.dia);
+    const dateB = parseDateString(b.dia);
+    return dateA.getTime() - dateB.getTime();
   });
 
   // Calculate KPIs
@@ -218,6 +317,7 @@ export default function ClientReport() {
           onStartDateChange={setStartDate}
           onEndDateChange={setEndDate}
           onFilter={handleFilter}
+          onGeneratePDF={handleGeneratePDF}
         />
       </div>
 
@@ -308,62 +408,82 @@ export default function ClientReport() {
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <DashboardChart
-              title="Valor Gasto por Dia"
-              data={chartData}
-              dataKey="valor_usado_brl"
-              color="#3b82f6"
-              type="area"
-              prefix="R$ "
-            />
-            <DashboardChart
-              title="Conversas Iniciadas"
-              data={chartData}
-              dataKey="conversas_mensagem_iniciadas"
-              color="#22c55e"
-              type="composed"
-              secondaryLine={{
-                dataKey: 'custo_por_conversa',
-                color: '#f59e0b',
-                prefix: 'R$ ',
-                label: 'Custo/Conversa'
-              }}
-            />
-          </div>
+          <div ref={chartsContainerRef}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div className="chart-container">
+                <DashboardChart
+                  title="Valor Gasto por Dia"
+                  data={chartData}
+                  dataKey="valor_usado_brl"
+                  color="#3b82f6"
+                  type="area"
+                  prefix="R$ "
+                  forceShowLabels={showLabelsForPDF}
+                />
+              </div>
+              <div className="chart-container">
+                <DashboardChart
+                  title="Conversas Iniciadas"
+                  data={chartData}
+                  dataKey="conversas_mensagem_iniciadas"
+                  color="#22c55e"
+                  type="composed"
+                  secondaryLine={{
+                    dataKey: 'custo_por_conversa',
+                    color: '#f59e0b',
+                    prefix: 'R$ ',
+                    label: 'Custo/Conversa'
+                  }}
+                  forceShowLabels={showLabelsForPDF}
+                />
+              </div>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <DashboardChart
-              title="Impressões por Dia"
-              data={chartData}
-              dataKey="impressoes"
-              color="#f59e0b"
-              type="line"
-            />
-            <DashboardChart
-              title="Cliques por Dia"
-              data={chartData}
-              dataKey="cliques_todos"
-              color="#8b5cf6"
-              type="bar"
-            />
-          </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div className="chart-container">
+                <DashboardChart
+                  title="Impressões por Dia"
+                  data={chartData}
+                  dataKey="impressoes"
+                  color="#f59e0b"
+                  type="line"
+                  forceShowLabels={showLabelsForPDF}
+                />
+              </div>
+              <div className="chart-container">
+                <DashboardChart
+                  title="Cliques por Dia"
+                  data={chartData}
+                  dataKey="cliques_todos"
+                  color="#8b5cf6"
+                  type="bar"
+                  forceShowLabels={showLabelsForPDF}
+                />
+              </div>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DashboardChart
-              title="Visitas ao Instagram"
-              data={chartData}
-              dataKey="visitas_perfil_instagram"
-              color="#ec4899"
-              type="area"
-            />
-            <DashboardChart
-              title="Visualizações de Vídeo (3s)"
-              data={chartData}
-              dataKey="reproducoes_video_3s"
-              color="#06b6d4"
-              type="bar"
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="chart-container">
+                <DashboardChart
+                  title="Visitas ao Instagram"
+                  data={chartData}
+                  dataKey="visitas_perfil_instagram"
+                  color="#ec4899"
+                  type="area"
+                  forceShowLabels={showLabelsForPDF}
+                />
+              </div>
+              <div className="chart-container">
+                <DashboardChart
+                  title="Visualizações de Vídeo (3s)"
+                  data={chartData}
+                  dataKey="reproducoes_video_3s"
+                  color="#06b6d4"
+                  type="bar"
+                  forceShowLabels={showLabelsForPDF}
+                />
+              </div>
+            </div>
           </div>
         </>
       )}

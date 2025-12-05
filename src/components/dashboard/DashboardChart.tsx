@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -40,6 +40,7 @@ interface DashboardChartProps {
   suffix?: string;
   className?: string;
   secondaryLine?: SecondaryLine;
+  forceShowLabels?: boolean;
 }
 
 export const DashboardChart = ({
@@ -51,9 +52,13 @@ export const DashboardChart = ({
   prefix = '',
   suffix = '',
   className,
-  secondaryLine
+  secondaryLine,
+  forceShowLabels = false
 }: DashboardChartProps) => {
   const [showLabels, setShowLabels] = useState(false);
+  
+  // Use forceShowLabels when set (for PDF generation)
+  const effectiveShowLabels = forceShowLabels || showLabels;
   
   const formatValue = (value: number) => `${prefix}${value.toLocaleString('pt-BR')}${suffix}`;
   const formatSecondaryValue = (value: number) => 
@@ -75,16 +80,6 @@ export const DashboardChart = ({
       );
     }
     return null;
-  };
-
-  const renderLabel = (props: any, isSecondary = false) => {
-    if (!showLabels) return null;
-    const { x, y, value } = props;
-    return (
-      <text x={x} y={y - 10} fill={isSecondary ? secondaryLine?.color : color} fontSize={10} textAnchor="middle">
-        {isSecondary ? formatSecondaryValue(value) : formatValue(value)}
-      </text>
-    );
   };
 
   return (
@@ -138,7 +133,7 @@ export const DashboardChart = ({
                 radius={[4, 4, 0, 0]}
                 name="Conversas"
               >
-                {showLabels && (
+                {effectiveShowLabels && (
                   <LabelList dataKey={dataKey} position="top" fill={color} fontSize={10} formatter={(v: number) => v.toLocaleString('pt-BR')} />
                 )}
               </Bar>
@@ -153,7 +148,7 @@ export const DashboardChart = ({
                   activeDot={{ r: 6, stroke: secondaryLine.color, strokeWidth: 2 }}
                   name={secondaryLine.label || 'Custo/Conversa'}
                 >
-                  {showLabels && (
+                  {effectiveShowLabels && (
                     <LabelList 
                       dataKey={secondaryLine.dataKey} 
                       position="top" 
@@ -192,7 +187,7 @@ export const DashboardChart = ({
                 strokeWidth={2}
                 fill={`url(#gradient-${dataKey})`}
               >
-                {showLabels && (
+                {effectiveShowLabels && (
                   <LabelList dataKey={dataKey} position="top" fill={color} fontSize={10} formatter={(v: number) => formatValue(v)} />
                 )}
               </Area>
@@ -212,7 +207,7 @@ export const DashboardChart = ({
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey={dataKey} fill={color} radius={[4, 4, 0, 0]}>
-                {showLabels && (
+                {effectiveShowLabels && (
                   <LabelList dataKey={dataKey} position="top" fill={color} fontSize={10} formatter={(v: number) => formatValue(v)} />
                 )}
               </Bar>
@@ -239,7 +234,7 @@ export const DashboardChart = ({
                 dot={{ fill: color, strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: color, strokeWidth: 2 }}
               >
-                {showLabels && (
+                {effectiveShowLabels && (
                   <LabelList dataKey={dataKey} position="top" fill={color} fontSize={10} formatter={(v: number) => formatValue(v)} />
                 )}
               </Line>
