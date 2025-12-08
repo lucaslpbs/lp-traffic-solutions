@@ -19,6 +19,7 @@ import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
+import { color } from 'framer-motion';
 
 interface ReportData {
   nome_campanha: string;
@@ -161,30 +162,36 @@ export default function ClientReport() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
-      toast.info('Gerando PDF...');
-      
-      const opt = {
-        margin: 5,
-        filename: `relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#0a0a0a'
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
+  setShowLabelsForPDF(true);
+  toast.info('Gerando PDF...');
 
-      await html2pdf().set(opt).from(reportContainer).save();
-      
-      toast.success('PDF gerado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast.error('Erro ao gerar PDF');
-    } finally {
-      setShowLabelsForPDF(false);
-    }
+  const opt = {
+    margin: 1,
+    background: '#0a0a0a',
+    filename: `relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { 
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#0a0a0a'
+    },
+    jsPDF: { 
+      unit: 'mm',
+      format: [309, 432], // Tabloid
+      orientation: 'portrait' as const // <<< necessário para o TS aceitar
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  await html2pdf().set(opt).from(reportContainer).save();
+  toast.success('PDF gerado com sucesso!');
+
+} catch (error: any) {
+  console.error('Erro ao gerar PDF:', error?.message ?? error);
+  toast.error('Falha ao gerar PDF. Tente novamente.');
+} finally {
+  setShowLabelsForPDF(false);
+}
   };
 
   // Aggregate data by day
@@ -213,10 +220,7 @@ export default function ClientReport() {
     acc[day].cliques_todos += r.cliques_todos || 0;
     acc[day].cliques_link += r.cliques_link || 0;
     acc[day].conversas_mensagem_iniciadas += r.conversas_mensagem_iniciadas || 0;
-    if (r.custo_por_conversa_mensagem_iniciada > 0) {
-      acc[day].custo_por_conversa_total += r.custo_por_conversa_mensagem_iniciada;
-      acc[day].count_conversas += 1;
-    }
+
     acc[day].visitas_perfil_instagram += r.visitas_perfil_instagram || 0;
     acc[day].reproducoes_video_3s += r.reproducoes_video_3s || 0;
     acc[day].compras += r.compras || 0;
@@ -251,7 +255,9 @@ export default function ClientReport() {
     date: formatDateBR(d.dia),
     valor_usado_brl: d.valor_usado_brl,
     conversas_mensagem_iniciadas: d.conversas_mensagem_iniciadas,
-    custo_por_conversa: d.count_conversas > 0 ? d.custo_por_conversa_total / d.count_conversas : 0,
+      custo_por_conversa: d.conversas_mensagem_iniciadas > 0 
+      ? d.valor_usado_brl / d.conversas_mensagem_iniciadas
+      : 0,
     impressoes: d.impressoes,
     cliques_todos: d.cliques_todos,
     cliques_link: d.cliques_link,
