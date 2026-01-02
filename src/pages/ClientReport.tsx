@@ -11,9 +11,7 @@ import {
   Instagram,
   Loader2,
   ArrowLeft,
-  Video,
-  Sun,
-  Moon
+  Video
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KPICard } from '@/components/dashboard/KPICard';
@@ -108,11 +106,6 @@ export default function ClientReport() {
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const [showLabelsForPDF, setShowLabelsForPDF] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
-
-  const toggleTheme = () => {
-    setIsDarkTheme(!isDarkTheme);
-  };
 
   const fetchData = async () => {
     if (!clientId) return;
@@ -168,36 +161,30 @@ export default function ClientReport() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
-  setShowLabelsForPDF(true);
-  toast.info('Gerando PDF...');
+      toast.info('Gerando PDF...');
+      
+      const opt = {
+        margin: 5,
+        filename: `relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#0a0a0a'
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
 
-  const opt = {
-    margin: 1,
-    background: '#0a0a0a',
-    filename: `relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`,
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { 
-      scale: 1,
-      useCORS: true,
-      backgroundColor: '#0a0a0a'
-    },
-    jsPDF: { 
-      unit: 'mm',
-      format: [309, 432], // Tabloid
-      orientation: 'portrait' as const // <<< necessário para o TS aceitar
-    },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-  };
-
-  await html2pdf().set(opt).from(reportContainer).save();
-  toast.success('PDF gerado com sucesso!');
-
-} catch (error: any) {
-  console.error('Erro ao gerar PDF:', error?.message ?? error);
-  toast.error('Falha ao gerar PDF. Tente novamente.');
-} finally {
-  setShowLabelsForPDF(false);
-}
+      await html2pdf().set(opt).from(reportContainer).save();
+      
+      toast.success('PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    } finally {
+      setShowLabelsForPDF(false);
+    }
   };
 
   // Aggregate data by day
@@ -226,7 +213,10 @@ export default function ClientReport() {
     acc[day].cliques_todos += r.cliques_todos || 0;
     acc[day].cliques_link += r.cliques_link || 0;
     acc[day].conversas_mensagem_iniciadas += r.conversas_mensagem_iniciadas || 0;
-
+    if (r.custo_por_conversa_mensagem_iniciada > 0) {
+      acc[day].custo_por_conversa_total += r.custo_por_conversa_mensagem_iniciada;
+      acc[day].count_conversas += 1;
+    }
     acc[day].visitas_perfil_instagram += r.visitas_perfil_instagram || 0;
     acc[day].reproducoes_video_3s += r.reproducoes_video_3s || 0;
     acc[day].compras += r.compras || 0;
@@ -261,9 +251,7 @@ export default function ClientReport() {
     date: formatDateBR(d.dia),
     valor_usado_brl: d.valor_usado_brl,
     conversas_mensagem_iniciadas: d.conversas_mensagem_iniciadas,
-      custo_por_conversa: d.conversas_mensagem_iniciadas > 0 
-      ? d.valor_usado_brl / d.conversas_mensagem_iniciadas
-      : 0,
+    custo_por_conversa: d.count_conversas > 0 ? d.custo_por_conversa_total / d.count_conversas : 0,
     impressoes: d.impressoes,
     cliques_todos: d.cliques_todos,
     cliques_link: d.cliques_link,
@@ -280,7 +268,7 @@ export default function ClientReport() {
   }
 
   return (
-    <div className={`p-6 lg:p-8 min-h-screen transition-colors duration-300 ${isDarkTheme ? 'bg-black' : 'bg-gray-100'}`}>
+    <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -288,7 +276,7 @@ export default function ClientReport() {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/dashboard')}
-            className={isDarkTheme ? "text-gray-400 hover:text-white hover:bg-white/10" : "text-gray-600 hover:text-black hover:bg-black/10"}
+            className="text-gray-400 hover:text-white hover:bg-white/10"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -296,53 +284,39 @@ export default function ClientReport() {
             <Users className="h-7 w-7 text-[#3b82f6]" />
           </div>
           <div>
-            <h1 className={`text-2xl lg:text-3xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className="text-2xl lg:text-3xl font-bold text-white">
               {clientName}
             </h1>
-            <p className={isDarkTheme ? "text-gray-400" : "text-gray-600"}>
+            <p className="text-gray-400">
               Relatório de Desempenho • ID: {clientId}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleTheme}
-            className={isDarkTheme 
-              ? "border-white/20 text-gray-400 hover:text-white hover:bg-white/10" 
-              : "border-gray-300 text-gray-600 hover:text-black hover:bg-black/5"
-            }
-            title={isDarkTheme ? "Mudar para tema claro" : "Mudar para tema escuro"}
-          >
-            {isDarkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-          <DateFilter
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            onFilter={handleFilter}
-            onGeneratePDF={handleGeneratePDF}
-          />
-        </div>
+        <DateFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onFilter={handleFilter}
+          onGeneratePDF={handleGeneratePDF}
+        />
       </div>
 
       {reports.length === 0 ? (
-        <div className={`backdrop-blur-xl rounded-xl p-8 text-center border ${isDarkTheme ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-8 text-center border border-white/10">
           <TrendingUp className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <h3 className={`text-lg font-medium ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>Nenhum dado encontrado</h3>
-          <p className={isDarkTheme ? "text-gray-400" : "text-gray-600"} >
+          <h3 className="text-lg font-medium text-white">Nenhum dado encontrado</h3>
+          <p className="text-gray-400 mt-2">
             Não há relatórios disponíveis para o período selecionado.
           </p>
         </div>
       ) : (
-        <div id="report-content" className={`p-4 rounded-xl ${isDarkTheme ? 'bg-[#0a0a0a]' : 'bg-white'}`}>
+        <div id="report-content" className="bg-[#0a0a0a]">
           {/* Header for PDF */}
-          <div className={`mb-6 pb-4 border-b ${isDarkTheme ? 'border-white/10' : 'border-gray-200'}`}>
-            <h2 className={`text-2xl font-bold mb-1 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>{clientName}</h2>
-            <p className={`text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className="mb-6 pb-4 border-b border-white/10">
+            <h2 className="text-2xl font-bold text-white mb-1">{clientName}</h2>
+            <p className="text-gray-400 text-sm">
               Período: {startDate ? format(startDate, 'dd/MM/yyyy') : ''} - {endDate ? format(endDate, 'dd/MM/yyyy') : ''}
             </p>
           </div>

@@ -91,7 +91,7 @@ export const DashboardSidebar = () => {
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
             location.pathname === '/dashboard'
-              ? "bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/30"
+              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
               : "text-gray-400 hover:bg-white/5 hover:text-white"
           )}
         >
@@ -121,7 +121,7 @@ export const DashboardSidebar = () => {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                   isActive(`/dashboard/${client.id_conta}`)
-                    ? "bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/30"
+                    ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
                     : "text-gray-400 hover:bg-white/5 hover:text-white"
                 )}
               >
