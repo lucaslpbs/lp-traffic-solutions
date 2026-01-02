@@ -11,7 +11,9 @@ import {
   Instagram,
   Loader2,
   ArrowLeft,
-  Video
+  Video,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KPICard } from '@/components/dashboard/KPICard';
@@ -19,7 +21,6 @@ import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
-import { color } from 'framer-motion';
 
 interface ReportData {
   nome_campanha: string;
@@ -107,6 +108,11 @@ export default function ClientReport() {
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const [showLabelsForPDF, setShowLabelsForPDF] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+
+  const toggleTheme = () => {
+    setIsDarkTheme(!isDarkTheme);
+  };
 
   const fetchData = async () => {
     if (!clientId) return;
@@ -274,7 +280,7 @@ export default function ClientReport() {
   }
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className={`p-6 lg:p-8 min-h-screen transition-colors duration-300 ${isDarkTheme ? 'bg-black' : 'bg-gray-100'}`}>
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -282,7 +288,7 @@ export default function ClientReport() {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/dashboard')}
-            className="text-gray-400 hover:text-white hover:bg-white/10"
+            className={isDarkTheme ? "text-gray-400 hover:text-white hover:bg-white/10" : "text-gray-600 hover:text-black hover:bg-black/10"}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -290,39 +296,53 @@ export default function ClientReport() {
             <Users className="h-7 w-7 text-[#3b82f6]" />
           </div>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white">
+            <h1 className={`text-2xl lg:text-3xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
               {clientName}
             </h1>
-            <p className="text-gray-400">
+            <p className={isDarkTheme ? "text-gray-400" : "text-gray-600"}>
               Relatório de Desempenho • ID: {clientId}
             </p>
           </div>
         </div>
 
-        <DateFilter
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onFilter={handleFilter}
-          onGeneratePDF={handleGeneratePDF}
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className={isDarkTheme 
+              ? "border-white/20 text-gray-400 hover:text-white hover:bg-white/10" 
+              : "border-gray-300 text-gray-600 hover:text-black hover:bg-black/5"
+            }
+            title={isDarkTheme ? "Mudar para tema claro" : "Mudar para tema escuro"}
+          >
+            {isDarkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+          <DateFilter
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onFilter={handleFilter}
+            onGeneratePDF={handleGeneratePDF}
+          />
+        </div>
       </div>
 
       {reports.length === 0 ? (
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-8 text-center border border-white/10">
+        <div className={`backdrop-blur-xl rounded-xl p-8 text-center border ${isDarkTheme ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
           <TrendingUp className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white">Nenhum dado encontrado</h3>
-          <p className="text-gray-400 mt-2">
+          <h3 className={`text-lg font-medium ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>Nenhum dado encontrado</h3>
+          <p className={isDarkTheme ? "text-gray-400" : "text-gray-600"} >
             Não há relatórios disponíveis para o período selecionado.
           </p>
         </div>
       ) : (
-        <div id="report-content" className="bg-[#0a0a0a]">
+        <div id="report-content" className={`p-4 rounded-xl ${isDarkTheme ? 'bg-[#0a0a0a]' : 'bg-white'}`}>
           {/* Header for PDF */}
-          <div className="mb-6 pb-4 border-b border-white/10">
-            <h2 className="text-2xl font-bold text-white mb-1">{clientName}</h2>
-            <p className="text-gray-400 text-sm">
+          <div className={`mb-6 pb-4 border-b ${isDarkTheme ? 'border-white/10' : 'border-gray-200'}`}>
+            <h2 className={`text-2xl font-bold mb-1 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>{clientName}</h2>
+            <p className={`text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
               Período: {startDate ? format(startDate, 'dd/MM/yyyy') : ''} - {endDate ? format(endDate, 'dd/MM/yyyy') : ''}
             </p>
           </div>

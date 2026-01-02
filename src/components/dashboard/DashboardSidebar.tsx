@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { 
@@ -9,9 +8,7 @@ import {
   LogOut, 
   ChevronLeft,
   ChevronRight,
-  Loader2,
-  Sun,
-  Moon
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -27,13 +24,8 @@ export const DashboardSidebar = () => {
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const { signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -69,12 +61,12 @@ export const DashboardSidebar = () => {
   return (
     <aside 
       className={cn(
-        "h-screen bg-card border-r border-border flex flex-col transition-all duration-300",
+        "h-screen bg-[#0a0a0a] border-r border-white/10 flex flex-col transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="p-4 border-b border-white/10 flex items-center justify-between">
         {!collapsed && (
           <img 
             src="/TFLOGO.png" 
@@ -86,7 +78,7 @@ export const DashboardSidebar = () => {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="text-muted-foreground hover:text-foreground hover:bg-accent"
+          className="text-gray-400 hover:text-white hover:bg-white/10"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
@@ -99,8 +91,8 @@ export const DashboardSidebar = () => {
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
             location.pathname === '/dashboard'
-              ? "bg-primary text-primary-foreground shadow-lg"
-              : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              ? "bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/30"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
           )}
         >
           <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
@@ -110,7 +102,7 @@ export const DashboardSidebar = () => {
         {/* Clients Section */}
         {!collapsed && (
           <div className="mt-6 mb-2 px-3">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Clientes
             </span>
           </div>
@@ -118,7 +110,7 @@ export const DashboardSidebar = () => {
 
         {loading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
           </div>
         ) : (
           <div className="space-y-1">
@@ -129,8 +121,8 @@ export const DashboardSidebar = () => {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                   isActive(`/dashboard/${client.id_conta}`)
-                    ? "bg-primary text-primary-foreground shadow-lg"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    ? "bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/30"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white"
                 )}
               >
                 {client.picture_url ? (
@@ -152,7 +144,7 @@ export const DashboardSidebar = () => {
 
         {clients.length === 0 && !loading && (
           <p className={cn(
-            "text-muted-foreground text-sm px-3 py-2",
+            "text-gray-500 text-sm px-3 py-2",
             collapsed && "hidden"
           )}>
             Nenhum cliente vinculado
@@ -161,27 +153,12 @@ export const DashboardSidebar = () => {
       </nav>
 
       {/* Footer */}
-      <div className="p-2 border-t border-border/50 space-y-1">
-        <Button
-          variant="ghost"
-          onClick={toggleTheme}
-          className={cn(
-            "w-full justify-start text-muted-foreground hover:bg-primary/10 hover:text-primary",
-            collapsed && "justify-center"
-          )}
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-          {!collapsed && <span className="ml-3">{theme === 'dark' ? 'Tema Claro' : 'Tema Escuro'}</span>}
-        </Button>
+      <div className="p-2 border-t border-white/10">
         <Button
           variant="ghost"
           onClick={handleSignOut}
           className={cn(
-            "w-full justify-start text-muted-foreground hover:bg-red-500/10 hover:text-red-400",
+            "w-full justify-start text-gray-400 hover:bg-red-500/10 hover:text-red-400",
             collapsed && "justify-center"
           )}
         >
