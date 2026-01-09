@@ -247,11 +247,14 @@ export default function ClientReport() {
   const costPerClick = totalClicks > 0 ? totalSpent / totalClicks : 0;
 
   // Format chart data with Brazilian date format
+  // custo_por_conversa = valor total gasto no dia / quantidade de conversas do dia
   const chartData = dailyData.map((d: any) => ({
     date: formatDateBR(d.dia),
     valor_usado_brl: d.valor_usado_brl,
     conversas_mensagem_iniciadas: d.conversas_mensagem_iniciadas,
-    custo_por_conversa: d.count_conversas > 0 ? d.custo_por_conversa_total / d.count_conversas : 0,
+    custo_por_conversa: d.conversas_mensagem_iniciadas > 0 
+      ? d.valor_usado_brl / d.conversas_mensagem_iniciadas 
+      : 0,
     impressoes: d.impressoes,
     cliques_todos: d.cliques_todos,
     cliques_link: d.cliques_link,
