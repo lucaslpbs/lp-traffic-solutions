@@ -11,11 +11,12 @@ import { Plus, Trash2 } from 'lucide-react';
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  clientName: string;
   metrics: MetricConfig[];
   onSave: (metrics: MetricConfig[]) => void;
 }
 
-export const MetricSettingsModal = ({ open, onOpenChange, metrics, onSave }: Props) => {
+export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, onSave }: Props) => {
   const [draft, setDraft] = useState<MetricConfig[]>(metrics);
 
   const update = (idx: number, patch: Partial<MetricConfig>) => {
@@ -46,7 +47,10 @@ export const MetricSettingsModal = ({ open, onOpenChange, metrics, onSave }: Pro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl bg-[#1a1d24] border-white/10 text-white max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white text-lg">Configurar Métricas</DialogTitle>
+          <DialogTitle className="text-white text-lg">
+            Métricas — <span className="text-blue-400">{clientName}</span>
+          </DialogTitle>
+          <p className="text-xs text-gray-500 mt-1">Configurações exclusivas para este cliente.</p>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">

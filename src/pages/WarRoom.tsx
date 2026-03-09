@@ -6,27 +6,34 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { WarRoomTable } from '@/components/war-room/WarRoomTable';
 import { MetricSettingsModal } from '@/components/war-room/MetricSettingsModal';
-import { MetricConfig, DEFAULT_METRICS, MOCK_DATA, countAlerts } from '@/types/war-room';
+import {
+  MetricConfig, MOCK_DATA, countAlerts,
+  loadClientMetrics, saveClientMetrics,
+} from '@/types/war-room';
 
-const STORAGE_KEY = 'war-room-metrics';
+/** Map of clientId → MetricConfig[] */
+type ClientMetricsMap = Record<string, MetricConfig[]>;
 
-const loadMetrics = (): MetricConfig[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return DEFAULT_METRICS;
+const loadAllClientMetrics = (): ClientMetricsMap => {
+  const map: ClientMetricsMap = {};
+  for (const client of MOCK_DATA) {
+    map[client.id] = loadClientMetrics(client.id);
+  }
+  return map;
 };
 
 const WarRoom = () => {
-  const [metrics, setMetrics] = useState<MetricConfig[]>(loadMetrics);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [clientMetricsMap, setClientMetricsMap] = useState<ClientMetricsMap>(loadAllClientMetrics);
+  const [settingsClientId, setSettingsClientId] = useState<string | null>(null);
   const [clientFilter, setClientFilter] = useState('all');
   const [alertsOnly, setAlertsOnly] = useState(false);
 
+  // Persist whenever map changes
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(metrics));
-  }, [metrics]);
+    for (const [id, metrics] of Object.entries(clientMetricsMap)) {
+      saveClientMetrics(id, metrics);
+    }
+  }, [clientMetricsMap]);
 
   const filteredData = useMemo(() => {
     if (clientFilter === 'all') return MOCK_DATA;
@@ -36,20 +43,28 @@ const WarRoom = () => {
   const globalCounts = useMemo(() => {
     const totals = { critical: 0, warning: 0, healthy: 0 };
     for (const node of MOCK_DATA) {
+      const metrics = clientMetricsMap[node.id] ?? [];
       const c = countAlerts(node, metrics);
       totals.critical += c.critical;
       totals.warning += c.warning;
       totals.healthy += c.healthy;
     }
     return totals;
-  }, [metrics]);
+  }, [clientMetricsMap]);
+
+  const handleSaveMetrics = (clientId: string, metrics: MetricConfig[]) => {
+    setClientMetricsMap(prev => ({ ...prev, [clientId]: metrics }));
+  };
+
+  const openSettings = (clientId: string) => setSettingsClientId(clientId);
 
   const exportCSV = () => {
-    const activeMetrics = metrics.filter(m => m.active);
-    const headers = ['Cliente', 'Campanha', 'Conjunto', 'Anúncio', ...activeMetrics.map(m => m.name)];
     const rows: string[][] = [];
+    const allMetricIds = ['cpm', 'ctr', 'cpc', 'roas'];
+    const headers = ['Cliente', 'Campanha', 'Conjunto', 'Anúncio', ...allMetricIds.map(id => id.toUpperCase())];
 
     for (const client of filteredData) {
+      const activeMetrics = (clientMetricsMap[client.id] ?? []).filter(m => m.active);
       for (const camp of client.children || []) {
         for (const adset of camp.children || []) {
           for (const ad of adset.children || []) {
@@ -71,6 +86,8 @@ const WarRoom = () => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const settingsClient = settingsClientId ? MOCK_DATA.find(c => c.id === settingsClientId) : null;
 
   return (
     <div className="p-6 space-y-6 min-h-screen bg-[#0d0f14]">
@@ -100,9 +117,6 @@ const WarRoom = () => {
           <Button variant="outline" size="sm" onClick={exportCSV} className="border-white/10 text-gray-300 hover:bg-white/5 bg-transparent">
             <Download className="h-4 w-4 mr-1.5" /> Exportar CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} className="border-white/10 text-gray-300 hover:bg-white/5 bg-transparent">
-            <Settings2 className="h-4 w-4 mr-1.5" /> Configurar Métricas
-          </Button>
         </div>
       </div>
 
@@ -129,10 +143,25 @@ const WarRoom = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <WarRoomTable data={filteredData} metrics={metrics} alertsOnly={alertsOnly} />
+      {/* Table — per client with its own metrics */}
+      <WarRoomTable
+        data={filteredData}
+        clientMetricsMap={clientMetricsMap}
+        alertsOnly={alertsOnly}
+        onOpenClientSettings={openSettings}
+      />
 
-      <MetricSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} metrics={metrics} onSave={setMetrics} />
+      {/* Settings modal — opens for a specific client */}
+      {settingsClient && (
+        <MetricSettingsModal
+          key={settingsClient.id}
+          open={!!settingsClientId}
+          onOpenChange={open => { if (!open) setSettingsClientId(null); }}
+          clientName={settingsClient.name}
+          metrics={clientMetricsMap[settingsClient.id] ?? []}
+          onSave={metrics => handleSaveMetrics(settingsClient.id, metrics)}
+        />
+      )}
     </div>
   );
 };
