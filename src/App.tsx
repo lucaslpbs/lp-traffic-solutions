@@ -67,6 +67,7 @@ const AppRoutes = () => {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="guerra" element={<WarRoom />} />
           <Route path=":clientId" element={<ClientReport />} />
         </Route>
         

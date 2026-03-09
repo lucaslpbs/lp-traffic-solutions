@@ -100,6 +100,19 @@ export const DashboardSidebar = () => {
           {!collapsed && <span className="font-medium">Dashboard</span>}
         </Link>
 
+        <Link
+          to="/dashboard/guerra"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
+            location.pathname === '/dashboard/guerra'
+              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          <Crosshair className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Quarto de Guerra</span>}
+        </Link>
+
         {/* Clients Section */}
         {!collapsed && (
           <div className="mt-6 mb-2 px-3">
