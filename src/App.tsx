@@ -20,6 +20,7 @@ import BrindeLanding from "./pages/BrindeLanding";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClientReport from "./pages/ClientReport";
+import WarRoom from "./pages/WarRoom";
 
 const queryClient = new QueryClient();
 
