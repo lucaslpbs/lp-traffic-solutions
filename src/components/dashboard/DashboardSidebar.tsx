@@ -8,7 +8,8 @@ import {
   LogOut, 
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Loader2,
+  Crosshair
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
