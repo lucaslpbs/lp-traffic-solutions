@@ -99,7 +99,7 @@ const WarRoom = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Quarto de Guerra</h1>
-            <div className="flex items-center gap-3 text-xs mt-1">
+            <div className="flex items-center gap-3 text-xs mt-1 text-white">
               <span className="flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-red-500 inline-block" /> {globalCounts.critical} críticos
               </span>
