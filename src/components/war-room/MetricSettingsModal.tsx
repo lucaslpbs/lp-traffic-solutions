@@ -5,18 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MetricConfig } from '@/types/war-room';
+import { MetricConfig, saveClientMetrics } from '@/types/war-room';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  clientId: string;
   clientName: string;
   metrics: MetricConfig[];
   onSave: (metrics: MetricConfig[]) => void;
 }
 
-export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, onSave }: Props) => {
+export const MetricSettingsModal = ({ open, onOpenChange, clientId, clientName, metrics, onSave }: Props) => {
   const [draft, setDraft] = useState<MetricConfig[]>(metrics);
 
   const update = (idx: number, patch: Partial<MetricConfig>) => {
@@ -26,7 +27,7 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
   const addMetric = () => {
     setDraft(d => [...d, {
       id: `metric-${Date.now()}`,
-      name: '',
+      label: '',
       unit: 'número',
       goal: 0,
       direction: 'lower',
@@ -40,6 +41,13 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
 
   const handleSave = () => {
     onSave(draft);
+    saveClientMetrics(clientId, draft);
+    // POST in background — non-blocking
+    fetch('https://n8n.trafficsolutions.cloud/webhook/save-metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId, metrics: draft }),
+    }).catch(() => {});
     onOpenChange(false);
   };
 
@@ -59,8 +67,8 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
                   <Input
-                    value={m.name}
-                    onChange={e => update(idx, { name: e.target.value })}
+                    value={m.label}
+                    onChange={e => update(idx, { label: e.target.value })}
                     placeholder="Nome da métrica"
                     className="bg-[#0d0f14] border-white/10 text-white w-32"
                   />
@@ -71,6 +79,7 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
                     <SelectContent className="bg-[#1a1d24] border-white/10">
                       <SelectItem value="R$">R$</SelectItem>
                       <SelectItem value="%">%</SelectItem>
+                      <SelectItem value="x">x</SelectItem>
                       <SelectItem value="número">número</SelectItem>
                     </SelectContent>
                   </Select>

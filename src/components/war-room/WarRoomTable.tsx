@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronRight, AlertTriangle, CheckCircle2, Settings2 } from 'lucide-react';
+import { ChevronRight, AlertTriangle, CheckCircle2, Settings2, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ interface Props {
   clientMetricsMap: Record<string, MetricConfig[]>;
   alertsOnly: boolean;
   onOpenClientSettings: (clientId: string) => void;
+  previousMetricsMap?: Record<string, Record<string, number | null>>;
 }
 
 const INDENT = 24;
@@ -29,6 +30,18 @@ const CELL_BG: Record<AlertStatus, string> = {
   warning: 'bg-yellow-500/15 text-yellow-400',
   healthy: 'bg-green-500/15 text-green-400',
   none: 'text-gray-600',
+};
+
+const OBJECTIVE_STYLE: Record<string, string> = {
+  OUTCOME_ENGAGEMENT: 'bg-blue-500/20 text-blue-400',
+  OUTCOME_TRAFFIC: 'bg-green-500/20 text-green-400',
+  OUTCOME_SALES: 'bg-orange-500/20 text-orange-400',
+};
+
+const OBJECTIVE_LABEL: Record<string, string> = {
+  OUTCOME_ENGAGEMENT: 'Engajamento',
+  OUTCOME_TRAFFIC: 'Tráfego',
+  OUTCOME_SALES: 'Vendas',
 };
 
 function StatusIcon({ status }: { status: AlertStatus }) {
@@ -52,6 +65,41 @@ function AlertBadges({ counts }: { counts: { critical: number; warning: number; 
   );
 }
 
+function VariationBadge({ current, previous, config }: {
+  current: number | null;
+  previous: number | null;
+  config: MetricConfig;
+}) {
+  if (current === null || previous === null || previous === 0) return null;
+  const pct = ((current - previous) / Math.abs(previous)) * 100;
+  if (Math.abs(pct) < 0.1) return null;
+  const isUp = pct > 0;
+  const isGood = config.direction === 'lower' ? !isUp : isUp;
+  return (
+    <span className={cn('text-[10px] font-mono ml-1 flex-shrink-0', isGood ? 'text-green-400' : 'text-red-400')}>
+      {isUp ? '▲' : '▼'}{Math.abs(pct).toFixed(1)}%
+    </span>
+  );
+}
+
+function AdThumbnail({ node }: { node: AdNode }) {
+  if (node.type !== 'ad') return null;
+  if (node.creative?.thumbnailUrl) {
+    return (
+      <img
+        src={node.creative.thumbnailUrl}
+        alt=""
+        className="h-8 w-8 rounded object-cover flex-shrink-0"
+      />
+    );
+  }
+  return (
+    <div className="h-8 w-8 rounded bg-white/5 flex items-center justify-center flex-shrink-0">
+      <Image className="h-4 w-4 text-gray-600" />
+    </div>
+  );
+}
+
 function getNodeWorstStatus(node: AdNode, metrics: MetricConfig[]): AlertStatus {
   if (node.type === 'ad') {
     const active = metrics.filter(m => m.active);
@@ -67,18 +115,17 @@ function shouldShow(node: AdNode, metrics: MetricConfig[], alertsOnly: boolean):
   return status === 'critical' || status === 'warning';
 }
 
-// Row for campaign / adset / ad levels (uses parent-passed metrics)
 const Row = ({
-  node, depth, metrics, alertsOnly, allMetricIds,
+  node, depth, metrics, alertsOnly, allMetricIds, previousMetricsMap,
 }: {
   node: AdNode;
   depth: number;
   metrics: MetricConfig[];
   alertsOnly: boolean;
   allMetricIds: string[];
+  previousMetricsMap?: Record<string, Record<string, number | null>>;
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const activeMetrics = useMemo(() => metrics.filter(m => m.active), [metrics]);
   const hasChildren = node.children && node.children.length > 0;
   const counts = useMemo(() => countAlerts(node, metrics), [node, metrics]);
   const worstStatus = useMemo(() => getNodeWorstStatus(node, metrics), [node, metrics]);
@@ -86,9 +133,7 @@ const Row = ({
   if (!shouldShow(node, metrics, alertsOnly)) return null;
 
   const visibleChildren = node.children?.filter(c => shouldShow(c, metrics, alertsOnly));
-
-  // Show metrics for ALL levels (not just ad), using averaged values stored in node.metrics
-  const showMetrics = true;
+  const prevMetrics = node.type === 'ad' ? (previousMetricsMap?.[node.id] ?? null) : null;
 
   return (
     <>
@@ -110,8 +155,18 @@ const Row = ({
             {hasChildren ? (
               <ChevronRight className={cn('h-4 w-4 text-gray-500 transition-transform duration-200 flex-shrink-0', expanded && 'rotate-90')} />
             ) : (
-              <span className="w-4" />
+              <span className="w-4 flex-shrink-0" />
             )}
+
+            {node.type === 'ad' && <AdThumbnail node={node} />}
+
+            {node.type === 'ad' && node.status && (
+              <span className={cn(
+                'h-2 w-2 rounded-full inline-block flex-shrink-0',
+                node.status === 'ACTIVE' ? 'bg-green-500' : 'bg-gray-600'
+              )} />
+            )}
+
             <span className={cn(
               'font-medium truncate max-w-[240px]',
               node.type === 'campaign' ? 'text-gray-300 text-xs' :
@@ -120,6 +175,16 @@ const Row = ({
             )}>
               {node.name}
             </span>
+
+            {node.type === 'campaign' && node.objective && (
+              <span className={cn(
+                'text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0',
+                OBJECTIVE_STYLE[node.objective] ?? 'bg-gray-500/20 text-gray-400'
+              )}>
+                {OBJECTIVE_LABEL[node.objective] ?? node.objective}
+              </span>
+            )}
+
             {hasChildren && <AlertBadges counts={counts} />}
           </div>
         </td>
@@ -129,11 +194,21 @@ const Row = ({
           <StatusIcon status={worstStatus} />
         </td>
 
-        {/* Metrics — shown at all levels, using averaged values */}
+        {/* Metrics */}
         {allMetricIds.map(mid => {
-          const metricCfg = activeMetrics.find(m => m.id === mid);
+          const metricCfg = metrics.find(m => m.id === mid);
           if (!metricCfg) return <td key={mid} className="py-2.5 px-3" />;
           const val = node.metrics[mid] ?? null;
+          const prevVal = prevMetrics?.[mid] ?? null;
+          if (!metricCfg.active) {
+            return (
+              <td key={mid} className="py-2.5 px-3">
+                <span className="text-xs font-mono px-2 py-1 rounded text-gray-600">
+                  {formatMetricValue(val, metricCfg)}
+                </span>
+              </td>
+            );
+          }
           const status = getMetricStatus(val, metricCfg);
           const tooltip = getMetricTooltip(val, metricCfg);
           return (
@@ -141,10 +216,13 @@ const Row = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className={cn(
-                    'text-xs font-mono px-2 py-1 rounded',
+                    'text-xs font-mono px-2 py-1 rounded inline-flex items-center gap-0.5',
                     node.type === 'ad' ? CELL_BG[status] : `${CELL_BG[status]} opacity-70`
                   )}>
                     {formatMetricValue(val, metricCfg)}
+                    {node.type === 'ad' && (
+                      <VariationBadge current={val} previous={prevVal} config={metricCfg} />
+                    )}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="bg-[#1a1d24] border-white/10 text-gray-200 text-xs">
@@ -157,24 +235,31 @@ const Row = ({
       </tr>
 
       {expanded && visibleChildren?.map(child => (
-        <Row key={child.id} node={child} depth={depth + 1} metrics={metrics} alertsOnly={alertsOnly} allMetricIds={allMetricIds} />
+        <Row
+          key={child.id}
+          node={child}
+          depth={depth + 1}
+          metrics={metrics}
+          alertsOnly={alertsOnly}
+          allMetricIds={allMetricIds}
+          previousMetricsMap={previousMetricsMap}
+        />
       ))}
     </>
   );
 };
 
-// Client-level row (has its own metrics config)
 const ClientRow = ({
-  node, metrics, alertsOnly, allMetricIds, onOpenSettings,
+  node, metrics, alertsOnly, allMetricIds, onOpenSettings, previousMetricsMap,
 }: {
   node: AdNode;
   metrics: MetricConfig[];
   alertsOnly: boolean;
   allMetricIds: string[];
   onOpenSettings: () => void;
+  previousMetricsMap?: Record<string, Record<string, number | null>>;
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const activeMetrics = useMemo(() => metrics.filter(m => m.active), [metrics]);
   const counts = useMemo(() => countAlerts(node, metrics), [node, metrics]);
   const worstStatus = useMemo(() => getNodeWorstStatus(node, metrics), [node, metrics]);
 
@@ -188,7 +273,6 @@ const ClientRow = ({
         className="border-b border-white/10 bg-[#1f2330] hover:bg-[#242840] transition-colors cursor-pointer"
         onClick={() => setExpanded(!expanded)}
       >
-        {/* Name */}
         <td className="py-3 pr-3 whitespace-nowrap sticky left-0 z-10 bg-[#1f2330]" style={{ paddingLeft: 12 }}>
           <div className="flex items-center gap-2">
             <ChevronRight className={cn('h-4 w-4 text-gray-400 transition-transform duration-200 flex-shrink-0', expanded && 'rotate-90')} />
@@ -206,16 +290,23 @@ const ClientRow = ({
           </div>
         </td>
 
-        {/* Status */}
         <td className="py-3 px-3">
           <StatusIcon status={worstStatus} />
         </td>
 
-        {/* Client-level averaged metrics */}
         {allMetricIds.map(mid => {
-          const metricCfg = activeMetrics.find(m => m.id === mid);
+          const metricCfg = metrics.find(m => m.id === mid);
           if (!metricCfg) return <td key={mid} className="py-3 px-3" />;
           const val = node.metrics[mid] ?? null;
+          if (!metricCfg.active) {
+            return (
+              <td key={mid} className="py-3 px-3">
+                <span className="text-xs font-mono px-2 py-1 rounded text-gray-700">
+                  {formatMetricValue(val, metricCfg)}
+                </span>
+              </td>
+            );
+          }
           const status = getMetricStatus(val, metricCfg);
           const tooltip = getMetricTooltip(val, metricCfg);
           return (
@@ -243,21 +334,21 @@ const ClientRow = ({
           metrics={metrics}
           alertsOnly={alertsOnly}
           allMetricIds={allMetricIds}
+          previousMetricsMap={previousMetricsMap}
         />
       ))}
     </>
   );
 };
 
-export const WarRoomTable = ({ data, clientMetricsMap, alertsOnly, onOpenClientSettings }: Props) => {
-  // Build union of all active metric ids across all clients for column headers
+export const WarRoomTable = ({ data, clientMetricsMap, alertsOnly, onOpenClientSettings, previousMetricsMap }: Props) => {
   const allMetricIds = useMemo(() => {
     const seen = new Set<string>();
     const ids: string[] = [];
     for (const client of data) {
       const metrics = clientMetricsMap[client.id] ?? [];
       for (const m of metrics) {
-        if (m.active && !seen.has(m.id)) {
+        if (!seen.has(m.id)) {
           seen.add(m.id);
           ids.push(m.id);
         }
@@ -266,13 +357,12 @@ export const WarRoomTable = ({ data, clientMetricsMap, alertsOnly, onOpenClientS
     return ids;
   }, [data, clientMetricsMap]);
 
-  // Build a map of metricId → name for the header (use first client that has it)
-  const metricNameMap = useMemo(() => {
+  const metricLabelMap = useMemo(() => {
     const map: Record<string, string> = {};
     for (const client of data) {
       const metrics = clientMetricsMap[client.id] ?? [];
       for (const m of metrics) {
-        if (!map[m.id]) map[m.id] = m.name;
+        if (!map[m.id]) map[m.id] = m.label;
       }
     }
     return map;
@@ -285,11 +375,14 @@ export const WarRoomTable = ({ data, clientMetricsMap, alertsOnly, onOpenClientS
           <tr className="border-b border-white/10 bg-[#0d0f14]">
             <th className="text-left py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky left-0 z-10 bg-[#0d0f14] min-w-[300px]">Nome</th>
             <th className="py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">Status</th>
-            {allMetricIds.map(id => (
-              <th key={id} className="py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center min-w-[100px]">
-                {metricNameMap[id] ?? id}
-              </th>
-            ))}
+            {allMetricIds.map(id => {
+              const isActive = data.some(c => (clientMetricsMap[c.id] ?? []).find(m => m.id === id)?.active);
+              return (
+                <th key={id} className={`py-3 px-3 text-xs font-semibold uppercase tracking-wider text-center min-w-[100px] ${isActive ? 'text-gray-500' : 'text-gray-700'}`}>
+                  {metricLabelMap[id] ?? id}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -301,6 +394,7 @@ export const WarRoomTable = ({ data, clientMetricsMap, alertsOnly, onOpenClientS
               alertsOnly={alertsOnly}
               allMetricIds={allMetricIds}
               onOpenSettings={() => onOpenClientSettings(client.id)}
+              previousMetricsMap={previousMetricsMap}
             />
           ))}
         </tbody>
