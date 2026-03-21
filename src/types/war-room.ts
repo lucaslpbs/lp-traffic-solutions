@@ -17,6 +17,7 @@ export interface AdNode {
   type: 'client' | 'campaign' | 'adset' | 'ad';
   status?: string;
   objective?: string;
+  tipo?: string;
   creative?: { imageUrl: string | null; thumbnailUrl: string | null };
   metrics: Record<string, number | null>;
   children?: AdNode[];
@@ -29,6 +30,15 @@ export interface DateRange {
   customStart?: string;
   customEnd?: string;
 }
+
+export const TIPO_KEYS = ['engajamento', 'trafego', 'vendas', 'reconhecimento'] as const;
+
+export const TIPO_LABELS: Record<string, string> = {
+  engajamento: 'Engajamento',
+  trafego: 'Tráfego',
+  vendas: 'Vendas',
+  reconhecimento: 'Reconhecimento',
+};
 
 export const METRIC_META: Record<string, Omit<MetricConfig, 'id' | 'active'>> = {
   spend:          { label: 'Gasto',             unit: 'R$',     direction: 'lower',  goal: 500,  yellowMargin: 20, redMargin: 40 },
@@ -89,35 +99,6 @@ export function buildMetricsFromIds(ids: string[], overrides: MetricConfig[]): M
   });
 }
 
-// --- Storage ---
-
-const GLOBAL_STORAGE_KEY = 'war-room-metrics-global';
-const STORAGE_KEY_PREFIX = 'war-room-metrics-';
-
-export function loadGlobalMetrics(): MetricConfig[] | null {
-  try {
-    const raw = localStorage.getItem(GLOBAL_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
-}
-
-export function saveGlobalMetrics(metrics: MetricConfig[]) {
-  localStorage.setItem(GLOBAL_STORAGE_KEY, JSON.stringify(metrics));
-}
-
-export function loadClientMetrics(clientId: string): MetricConfig[] | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_PREFIX + clientId);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
-}
-
-export function saveClientMetrics(clientId: string, metrics: MetricConfig[]) {
-  localStorage.setItem(STORAGE_KEY_PREFIX + clientId, JSON.stringify(metrics));
-}
-
 // --- Date helpers ---
 
 function fmt(d: Date): string {
@@ -137,10 +118,14 @@ export function getPreviousPeriod(range: DateRange): { start: string; end: strin
   if (range.preset === 'custom' && range.customStart && range.customEnd) {
     currentStart = new Date(range.customStart);
     currentEnd = new Date(range.customEnd);
-  } else {
-    currentEnd = new Date(today);
+  } else if (range.preset === 'today') {
     currentStart = new Date(today);
-    const days = range.preset === 'today' ? 0 : range.preset === 'last_7d' ? 6 : range.preset === 'last_15d' ? 14 : 29;
+    currentEnd = new Date(today);
+  } else {
+    const days = range.preset === 'last_7d' ? 7 : range.preset === 'last_15d' ? 15 : 30;
+    currentEnd = new Date(today);
+    currentEnd.setDate(today.getDate() - 1);
+    currentStart = new Date(today);
     currentStart.setDate(today.getDate() - days);
   }
 
@@ -158,11 +143,15 @@ export function getCurrentPeriodDates(range: DateRange): { start: string; end: s
   if (range.preset === 'custom' && range.customStart && range.customEnd) {
     return { start: range.customStart, end: range.customEnd };
   }
-  const end = fmt(today);
+  if (range.preset === 'today') {
+    return { start: fmt(today), end: fmt(today) };
+  }
+  const days = range.preset === 'last_7d' ? 7 : range.preset === 'last_15d' ? 15 : 30;
+  const end = new Date(today);
+  end.setDate(today.getDate() - 1);
   const start = new Date(today);
-  const days = range.preset === 'today' ? 0 : range.preset === 'last_7d' ? 6 : range.preset === 'last_15d' ? 14 : 29;
   start.setDate(today.getDate() - days);
-  return { start: fmt(start), end };
+  return { start: fmt(start), end: fmt(end) };
 }
 
 export function buildWarRoomUrl(dateStart: string, dateEnd: string): string {

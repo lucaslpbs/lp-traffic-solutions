@@ -11,9 +11,8 @@ import { MetricsSelectorDropdown } from '@/components/war-room/MetricsSelectorDr
 import {
   AdNode, MetricConfig, DateRange,
   countAlerts, detectAvailableMetrics, buildMetricsFromIds,
-  loadGlobalMetrics, saveGlobalMetrics, loadClientMetrics, saveClientMetrics,
   getPreviousPeriod, getCurrentPeriodDates, buildWarRoomUrl, fmtDateBR,
-  MOCK_DATA, DEFAULT_METRICS,
+  MOCK_DATA, DEFAULT_METRICS, TIPO_KEYS,
 } from '@/types/war-room';
 
 type ClientMetricsMap = Record<string, MetricConfig[]>;
@@ -37,6 +36,8 @@ const WarRoom = () => {
   // Metrics config
   const [globalMetrics, setGlobalMetrics] = useState<MetricConfig[]>([]);
   const [clientMetricsMap, setClientMetricsMap] = useState<ClientMetricsMap>({});
+  // Per-client, per-objective overrides: clientId -> objective -> MetricConfig[]
+  const [clientObjectiveMetrics, setClientObjectiveMetrics] = useState<Record<string, Record<string, MetricConfig[]>>>({});
 
   // UI
   const [dateRange, setDateRange] = useState<DateRange>({ preset: 'last_7d' });
@@ -95,44 +96,41 @@ const WarRoom = () => {
       setPreviousData(prevData);
 
       if (initMetrics) {
-        // Build metrics config: API → localStorage global → METRIC_META defaults
+        // Load all metrics from API only (no localStorage)
         let apiMetrics: Record<string, MetricConfig[]> = {};
         if (metricsRes?.ok) {
           try { apiMetrics = await metricsRes.json(); } catch {}
         }
 
         const availableIds = detectAvailableMetrics(currentData);
-        const localGlobal = loadGlobalMetrics();
-
-        // Build global metrics: merge all overrides (API has priority over localStorage)
-        const allApiOverrides: MetricConfig[] = Object.values(apiMetrics).flat();
-        const mergedOverrides = [...(localGlobal ?? [])];
-        for (const m of allApiOverrides) {
-          if (!mergedOverrides.find(o => o.id === m.id)) mergedOverrides.push(m);
-          else {
-            const idx = mergedOverrides.findIndex(o => o.id === m.id);
-            mergedOverrides[idx] = m; // API wins
-          }
-        }
+        const globalOverrides = apiMetrics['global'] ?? [];
 
         const newGlobal = availableIds.length > 0
-          ? buildMetricsFromIds(availableIds, mergedOverrides)
-          : (localGlobal ?? DEFAULT_METRICS);
+          ? buildMetricsFromIds(availableIds, globalOverrides)
+          : (globalOverrides.length > 0 ? globalOverrides : DEFAULT_METRICS);
         setGlobalMetrics(newGlobal);
 
-        // Build per-client overrides from API response
+        // Per-client overrides from API response
         const newClientMap: ClientMetricsMap = {};
+        const newClientObjMetrics: Record<string, Record<string, MetricConfig[]>> = {};
         for (const client of currentData) {
-          const clientLocal = loadClientMetrics(client.id);
           const clientApi = apiMetrics[client.id];
-          const overrides = clientApi ?? clientLocal ?? null;
-          if (overrides) {
+          if (clientApi) {
             newClientMap[client.id] = availableIds.length > 0
-              ? buildMetricsFromIds(availableIds, overrides)
-              : overrides;
+              ? buildMetricsFromIds(availableIds, clientApi)
+              : clientApi;
+          }
+          // Per-client, per-tipo overrides (key: clientId__tipo)
+          for (const tipoKey of TIPO_KEYS) {
+            const apiKey = `${client.id}__${tipoKey}`;
+            if (apiMetrics[apiKey]) {
+              if (!newClientObjMetrics[client.id]) newClientObjMetrics[client.id] = {};
+              newClientObjMetrics[client.id][tipoKey] = apiMetrics[apiKey];
+            }
           }
         }
         setClientMetricsMap(newClientMap);
+        setClientObjectiveMetrics(newClientObjMetrics);
         metricsInitialized.current = true;
       }
     } catch (e: unknown) {
@@ -209,17 +207,33 @@ const WarRoom = () => {
 
   const handleGlobalMetricsChange = (metrics: MetricConfig[]) => {
     setGlobalMetrics(metrics);
-    saveGlobalMetrics(metrics);
-  };
-
-  const handleSaveClientMetrics = (clientId: string, metrics: MetricConfig[]) => {
-    setClientMetricsMap(prev => ({ ...prev, [clientId]: metrics }));
-    saveClientMetrics(clientId, metrics);
     fetch(`${API_BASE}/save-metrics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId, metrics }),
+      body: JSON.stringify({ clientId: 'global', metrics }),
     }).catch(() => {});
+  };
+
+  const handleSaveClientMetrics = (
+    clientId: string,
+    general: MetricConfig[],
+    objectives: Record<string, MetricConfig[]>,
+  ) => {
+    setClientMetricsMap(prev => ({ ...prev, [clientId]: general }));
+    fetch(`${API_BASE}/save-metrics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId, metrics: general }),
+    }).catch(() => {});
+
+    setClientObjectiveMetrics(prev => ({ ...prev, [clientId]: objectives }));
+    for (const [tipo, metrics] of Object.entries(objectives)) {
+      fetch(`${API_BASE}/save-metrics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId: `${clientId}__${tipo}`, metrics }),
+      }).catch(() => {});
+    }
   };
 
   const exportCSV = () => {
@@ -404,6 +418,7 @@ const WarRoom = () => {
         <WarRoomTable
           data={filteredData}
           clientMetricsMap={effectiveMetricsMap}
+          clientObjectiveMap={clientObjectiveMetrics}
           alertsOnly={alertsOnly}
           onOpenClientSettings={id => setSettingsClientId(id)}
           previousMetricsMap={previousMetricsMap}
@@ -416,10 +431,10 @@ const WarRoom = () => {
           key={settingsClient.id}
           open={!!settingsClientId}
           onOpenChange={open => { if (!open) setSettingsClientId(null); }}
-          clientId={settingsClient.id}
           clientName={settingsClient.name}
           metrics={effectiveMetricsMap[settingsClient.id] ?? globalMetrics}
-          onSave={metrics => handleSaveClientMetrics(settingsClient.id, metrics)}
+          objectiveMetrics={clientObjectiveMetrics[settingsClient.id] ?? {}}
+          onSave={(general, objectives) => handleSaveClientMetrics(settingsClient.id, general, objectives)}
         />
       )}
     </div>

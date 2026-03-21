@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { ChevronRight, AlertTriangle, CheckCircle2, Settings2, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -12,6 +12,8 @@ import {
 interface Props {
   data: AdNode[];
   clientMetricsMap: Record<string, MetricConfig[]>;
+  // per-client, per-objective overrides: clientId -> objective -> MetricConfig[]
+  clientObjectiveMap: Record<string, Record<string, MetricConfig[]>>;
   alertsOnly: boolean;
   onOpenClientSettings: (clientId: string) => void;
   previousMetricsMap?: Record<string, Record<string, number | null>>;
@@ -25,6 +27,14 @@ const LEVEL_BG: Record<string, string> = {
   ad: 'bg-transparent',
 };
 
+// Solid background for sticky Name column (must not be transparent)
+const NAME_STICKY_BG: Record<string, string> = {
+  client: '#1f2330',
+  campaign: '#161922',
+  adset: '#12141b',
+  ad: '#0d0f14',
+};
+
 const CELL_BG: Record<AlertStatus, string> = {
   critical: 'bg-red-500/15 text-red-400',
   warning: 'bg-yellow-500/15 text-yellow-400',
@@ -36,12 +46,28 @@ const OBJECTIVE_STYLE: Record<string, string> = {
   OUTCOME_ENGAGEMENT: 'bg-blue-500/20 text-blue-400',
   OUTCOME_TRAFFIC: 'bg-green-500/20 text-green-400',
   OUTCOME_SALES: 'bg-orange-500/20 text-orange-400',
+  OUTCOME_AWARENESS: 'bg-purple-500/20 text-purple-400',
 };
 
 const OBJECTIVE_LABEL: Record<string, string> = {
   OUTCOME_ENGAGEMENT: 'Engajamento',
   OUTCOME_TRAFFIC: 'Tráfego',
   OUTCOME_SALES: 'Vendas',
+  OUTCOME_AWARENESS: 'Reconhecimento',
+};
+
+const TIPO_STYLE: Record<string, string> = {
+  engajamento: 'bg-blue-500/20 text-blue-400',
+  trafego: 'bg-green-500/20 text-green-400',
+  vendas: 'bg-orange-500/20 text-orange-400',
+  reconhecimento: 'bg-purple-500/20 text-purple-400',
+};
+
+const TIPO_LABEL: Record<string, string> = {
+  engajamento: 'Engajamento',
+  trafego: 'Tráfego',
+  vendas: 'Vendas',
+  reconhecimento: 'Reconhecimento',
 };
 
 function StatusIcon({ status }: { status: AlertStatus }) {
@@ -145,7 +171,7 @@ const Row = ({
         onClick={() => hasChildren && setExpanded(!expanded)}
       >
         {/* Name */}
-        <td className="py-2.5 pr-3 whitespace-nowrap sticky left-0 z-10" style={{ paddingLeft: depth * INDENT + 12, background: 'inherit' }}>
+        <td className="py-2.5 pr-3 sticky left-0 z-20" style={{ paddingLeft: depth * INDENT + 12, background: NAME_STICKY_BG[node.type] }}>
           <div className="flex items-center gap-2">
             {depth > 0 && (
               <div className="flex items-center" style={{ width: 16 }}>
@@ -168,7 +194,7 @@ const Row = ({
             )}
 
             <span className={cn(
-              'font-medium truncate max-w-[240px]',
+              'font-medium break-words max-w-[280px]',
               node.type === 'campaign' ? 'text-gray-300 text-xs' :
               node.type === 'adset' ? 'text-gray-400 text-xs' :
               'text-gray-300 text-xs'
@@ -176,12 +202,16 @@ const Row = ({
               {node.name}
             </span>
 
-            {node.type === 'campaign' && node.objective && (
+            {node.type === 'campaign' && (node.tipo || node.objective) && (
               <span className={cn(
                 'text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0',
-                OBJECTIVE_STYLE[node.objective] ?? 'bg-gray-500/20 text-gray-400'
+                node.tipo
+                  ? (TIPO_STYLE[node.tipo] ?? 'bg-gray-500/20 text-gray-400')
+                  : (OBJECTIVE_STYLE[node.objective!] ?? 'bg-gray-500/20 text-gray-400')
               )}>
-                {OBJECTIVE_LABEL[node.objective] ?? node.objective}
+                {node.tipo
+                  ? (TIPO_LABEL[node.tipo] ?? node.tipo)
+                  : (OBJECTIVE_LABEL[node.objective!] ?? node.objective)}
               </span>
             )}
 
@@ -203,7 +233,7 @@ const Row = ({
           if (!metricCfg.active) {
             return (
               <td key={mid} className="py-2.5 px-3">
-                <span className="text-xs font-mono px-2 py-1 rounded text-gray-600">
+                <span className="text-xs font-mono px-2 py-1 rounded bg-white text-gray-900">
                   {formatMetricValue(val, metricCfg)}
                 </span>
               </td>
@@ -250,7 +280,7 @@ const Row = ({
 };
 
 const ClientRow = ({
-  node, metrics, alertsOnly, allMetricIds, onOpenSettings, previousMetricsMap,
+  node, metrics, alertsOnly, allMetricIds, onOpenSettings, previousMetricsMap, objectiveMetrics,
 }: {
   node: AdNode;
   metrics: MetricConfig[];
@@ -258,14 +288,48 @@ const ClientRow = ({
   allMetricIds: string[];
   onOpenSettings: () => void;
   previousMetricsMap?: Record<string, Record<string, number | null>>;
+  objectiveMetrics: Record<string, MetricConfig[]>;
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const counts = useMemo(() => countAlerts(node, metrics), [node, metrics]);
-  const worstStatus = useMemo(() => getNodeWorstStatus(node, metrics), [node, metrics]);
+
+  // Map Facebook objective → tipo key (fallback when campaign.tipo not set)
+  const OBJECTIVE_TO_TIPO: Record<string, string> = {
+    OUTCOME_ENGAGEMENT: 'engajamento',
+    OUTCOME_TRAFFIC: 'trafego',
+    OUTCOME_SALES: 'vendas',
+    OUTCOME_AWARENESS: 'reconhecimento',
+  };
+
+  // Resolve metrics per campaign: prefer campaign.tipo, fallback to derived from objective
+  const campaignMetrics = (campaign: AdNode): MetricConfig[] => {
+    const tipo = campaign.tipo ?? (campaign.objective ? OBJECTIVE_TO_TIPO[campaign.objective] : undefined);
+    return (tipo && objectiveMetrics[tipo]) || metrics;
+  };
+
+  const counts = useMemo(() => {
+    const totals = { critical: 0, warning: 0, healthy: 0 };
+    for (const campaign of node.children ?? []) {
+      const c = countAlerts(campaign, campaignMetrics(campaign));
+      totals.critical += c.critical;
+      totals.warning += c.warning;
+      totals.healthy += c.healthy;
+    }
+    return totals;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node, metrics, objectiveMetrics]);
+
+  const worstStatus = useMemo(() =>
+    getWorstStatus((node.children ?? []).map(c => getNodeWorstStatus(c, campaignMetrics(c))))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  , [node, metrics, objectiveMetrics]);
 
   if (alertsOnly && worstStatus !== 'critical' && worstStatus !== 'warning') return null;
 
-  const visibleChildren = node.children?.filter(c => shouldShow(c, metrics, alertsOnly));
+  const visibleChildren = node.children?.filter(campaign => {
+    if (!alertsOnly) return true;
+    const status = getNodeWorstStatus(campaign, campaignMetrics(campaign));
+    return status === 'critical' || status === 'warning';
+  });
 
   return (
     <>
@@ -273,10 +337,10 @@ const ClientRow = ({
         className="border-b border-white/10 bg-[#1f2330] hover:bg-[#242840] transition-colors cursor-pointer"
         onClick={() => setExpanded(!expanded)}
       >
-        <td className="py-3 pr-3 whitespace-nowrap sticky left-0 z-10 bg-[#1f2330]" style={{ paddingLeft: 12 }}>
+        <td className="py-3 pr-3 sticky left-0 z-20" style={{ paddingLeft: 12, background: NAME_STICKY_BG.client }}>
           <div className="flex items-center gap-2">
             <ChevronRight className={cn('h-4 w-4 text-gray-400 transition-transform duration-200 flex-shrink-0', expanded && 'rotate-90')} />
-            <span className="font-semibold text-white text-sm truncate max-w-[200px]">{node.name}</span>
+            <span className="font-semibold text-white text-sm break-words max-w-[280px]">{node.name}</span>
             <AlertBadges counts={counts} />
             <Button
               variant="ghost"
@@ -301,7 +365,7 @@ const ClientRow = ({
           if (!metricCfg.active) {
             return (
               <td key={mid} className="py-3 px-3">
-                <span className="text-xs font-mono px-2 py-1 rounded text-gray-700">
+                <span className="text-xs font-mono px-2 py-1 rounded bg-white text-gray-900">
                   {formatMetricValue(val, metricCfg)}
                 </span>
               </td>
@@ -331,7 +395,7 @@ const ClientRow = ({
           key={child.id}
           node={child}
           depth={1}
-          metrics={metrics}
+          metrics={campaignMetrics(child)}
           alertsOnly={alertsOnly}
           allMetricIds={allMetricIds}
           previousMetricsMap={previousMetricsMap}
@@ -341,42 +405,77 @@ const ClientRow = ({
   );
 };
 
-export const WarRoomTable = ({ data, clientMetricsMap, alertsOnly, onOpenClientSettings, previousMetricsMap }: Props) => {
+const NAME_COL_STORAGE_KEY = 'war-room-name-col-width';
+
+export const WarRoomTable = ({ data, clientMetricsMap, clientObjectiveMap, alertsOnly, onOpenClientSettings, previousMetricsMap }: Props) => {
+  const [nameColWidth, setNameColWidth] = useState(() => {
+    const stored = localStorage.getItem(NAME_COL_STORAGE_KEY);
+    return stored ? parseInt(stored, 10) : 300;
+  });
+  const resizeRef = useRef<{ startX: number; startW: number } | null>(null);
+
+  const onResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    resizeRef.current = { startX: e.clientX, startW: nameColWidth };
+    const onMove = (ev: MouseEvent) => {
+      if (!resizeRef.current) return;
+      const next = Math.max(160, resizeRef.current.startW + (ev.clientX - resizeRef.current.startX));
+      setNameColWidth(next);
+    };
+    const onUp = () => {
+      setNameColWidth(prev => {
+        localStorage.setItem(NAME_COL_STORAGE_KEY, String(prev));
+        return prev;
+      });
+      resizeRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   const allMetricIds = useMemo(() => {
     const seen = new Set<string>();
     const ids: string[] = [];
+    const add = (m: MetricConfig) => { if (!seen.has(m.id)) { seen.add(m.id); ids.push(m.id); } };
     for (const client of data) {
-      const metrics = clientMetricsMap[client.id] ?? [];
-      for (const m of metrics) {
-        if (!seen.has(m.id)) {
-          seen.add(m.id);
-          ids.push(m.id);
-        }
-      }
+      (clientMetricsMap[client.id] ?? []).forEach(add);
+      Object.values(clientObjectiveMap[client.id] ?? {}).forEach((ms: MetricConfig[]) => ms.forEach(add));
     }
     return ids;
-  }, [data, clientMetricsMap]);
+  }, [data, clientMetricsMap, clientObjectiveMap]);
 
   const metricLabelMap = useMemo(() => {
     const map: Record<string, string> = {};
+    const add = (m: MetricConfig) => { if (!map[m.id]) map[m.id] = m.label; };
     for (const client of data) {
-      const metrics = clientMetricsMap[client.id] ?? [];
-      for (const m of metrics) {
-        if (!map[m.id]) map[m.id] = m.label;
-      }
+      (clientMetricsMap[client.id] ?? []).forEach(add);
+      Object.values(clientObjectiveMap[client.id] ?? {}).forEach((ms: MetricConfig[]) => ms.forEach(add));
     }
     return map;
-  }, [data, clientMetricsMap]);
+  }, [data, clientMetricsMap, clientObjectiveMap]);
 
   return (
     <div className="overflow-x-auto rounded-lg border border-white/10">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-white/10 bg-[#0d0f14]">
-            <th className="text-left py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky left-0 z-10 bg-[#0d0f14] min-w-[300px]">Nome</th>
+            <th
+              className="text-left py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky left-0 z-30 bg-[#0d0f14] relative select-none"
+              style={{ width: nameColWidth, minWidth: nameColWidth }}
+            >
+              Nome
+              <div
+                onMouseDown={onResizeStart}
+                className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-500/40 active:bg-blue-500/60 transition-colors"
+              />
+            </th>
             <th className="py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">Status</th>
             {allMetricIds.map(id => {
-              const isActive = data.some(c => (clientMetricsMap[c.id] ?? []).find(m => m.id === id)?.active);
+              const isActive =
+                data.some(c => (clientMetricsMap[c.id] ?? []).find(m => m.id === id)?.active) ||
+                data.some(c => Object.values(clientObjectiveMap[c.id] ?? {}).some((ms: MetricConfig[]) => ms.find(m => m.id === id)?.active));
               return (
                 <th key={id} className={`py-3 px-3 text-xs font-semibold uppercase tracking-wider text-center min-w-[100px] ${isActive ? 'text-gray-500' : 'text-gray-700'}`}>
                   {metricLabelMap[id] ?? id}
@@ -395,6 +494,7 @@ export const WarRoomTable = ({ data, clientMetricsMap, alertsOnly, onOpenClientS
               allMetricIds={allMetricIds}
               onOpenSettings={() => onOpenClientSettings(client.id)}
               previousMetricsMap={previousMetricsMap}
+              objectiveMetrics={clientObjectiveMap[client.id] ?? {}}
             />
           ))}
         </tbody>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { SlidersHorizontal, Settings2 } from 'lucide-react';
+import { SlidersHorizontal, Settings2, GripVertical, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -30,10 +30,25 @@ function getThresholdPreview(m: MetricConfig): string {
   }
 }
 
+/** Returns true if the ID order of two metric arrays differs */
+function orderChanged(a: MetricConfig[], b: MetricConfig[]): boolean {
+  if (a.length !== b.length) return false; // only compare order, not additions
+  return a.some((m, i) => m.id !== b[i].id);
+}
+
 export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [localMetrics, setLocalMetrics] = useState<MetricConfig[]>(metrics);
+  // Track the last committed order to detect pending reorder changes
+  const committedIdsRef = useRef<string[]>(metrics.map(m => m.id));
   const ref = useRef<HTMLDivElement>(null);
+  const dragIdxRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setLocalMetrics(metrics);
+    committedIdsRef.current = metrics.map(m => m.id);
+  }, [metrics]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -46,13 +61,39 @@ export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const activeCount = metrics.filter(m => m.active).length;
+  const activeCount = localMetrics.filter(m => m.active).length;
 
-  const toggle = (id: string) =>
-    onChange(metrics.map(m => m.id === id ? { ...m, active: !m.active } : m));
+  const pendingReorder = localMetrics.map(m => m.id).join(',') !== committedIdsRef.current.join(',');
 
-  const update = (id: string, patch: Partial<MetricConfig>) =>
-    onChange(metrics.map(m => m.id === id ? { ...m, ...patch } : m));
+  const saveOrder = () => {
+    committedIdsRef.current = localMetrics.map(m => m.id);
+    onChange(localMetrics);
+  };
+
+  const toggle = (id: string) => {
+    const next = localMetrics.map(m => m.id === id ? { ...m, active: !m.active } : m);
+    setLocalMetrics(next);
+    onChange(next);
+  };
+
+  const update = (id: string, patch: Partial<MetricConfig>) => {
+    const next = localMetrics.map(m => m.id === id ? { ...m, ...patch } : m);
+    setLocalMetrics(next);
+    onChange(next);
+  };
+
+  const handleDragStart = (idx: number) => { dragIdxRef.current = idx; };
+  const handleDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    const from = dragIdxRef.current;
+    if (from === null || from === idx) return;
+    const next = [...localMetrics];
+    const [item] = next.splice(from, 1);
+    next.splice(idx, 0, item);
+    dragIdxRef.current = idx;
+    setLocalMetrics(next);
+  };
+  const handleDragEnd = () => { dragIdxRef.current = null; };
 
   return (
     <div ref={ref} className="relative">
@@ -71,16 +112,35 @@ export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
 
       {open && (
         <div className="absolute right-0 top-full mt-2 w-80 bg-[#1a1d24] border border-white/10 rounded-lg shadow-2xl z-50 flex flex-col max-h-[65vh]">
-          <div className="p-3 border-b border-white/10 flex-shrink-0">
-            <p className="text-xs font-semibold text-gray-300">Configurar métricas globais</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">Aplica-se a todos os clientes</p>
+          <div className="p-3 border-b border-white/10 flex-shrink-0 flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold text-gray-300">Configurar métricas globais</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Arraste para reordenar as colunas</p>
+            </div>
+            {pendingReorder && (
+              <Button
+                size="sm"
+                onClick={saveOrder}
+                className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0 gap-1"
+              >
+                <Save className="h-3 w-3" /> Salvar ordem
+              </Button>
+            )}
           </div>
 
           <div className="overflow-y-auto divide-y divide-white/5">
-            {metrics.map(m => (
-              <div key={m.id} className="p-3">
+            {localMetrics.map((m, idx) => (
+              <div
+                key={m.id}
+                draggable
+                onDragStart={() => handleDragStart(idx)}
+                onDragOver={e => handleDragOver(e, idx)}
+                onDragEnd={handleDragEnd}
+                className="p-3 select-none"
+              >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <GripVertical className="h-4 w-4 text-gray-600 hover:text-gray-400 flex-shrink-0 cursor-grab active:cursor-grabbing" />
                     <Switch
                       checked={m.active}
                       onCheckedChange={() => toggle(m.id)}
