@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta Comercial – LV3 Multimarcas × Traffic Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ts-navy: #082347;
+    --ts-dark: #161819;
+    --ts-blue: #184892;
+    --ts-light: #F0F1F2;
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #8B6914;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ts-light);
+    color: var(--ts-dark);
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--ts-navy);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 60px 40px;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(24,72,146,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(201,168,76,0.12) 0%, transparent 60%);
+  }
+
+  .hero-grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 760px;
+  }
+
+  .logos-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+  }
+
+  .logo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(201,168,76,0.4);
+  }
+
+  .logo-ts {
+    width: 180px;
+    height: 80px;
+    object-fit: contain;
+  }
+
+  .logo-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(240,241,242,0.45);
+    font-weight: 500;
+  }
+
+  .connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--gold);
+  }
+
+  .connector-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+  }
+
+  .connector-x {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+  }
+
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    color: var(--ts-dark);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(240,241,242,0.6);
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 auto 40px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 16px 24px;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(4px);
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold-light);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: rgba(240,241,242,0.45);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* SECTION BASE */
+  section {
+    padding: 80px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ts-blue);
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-tag::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+    background: var(--ts-blue);
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    color: var(--ts-navy);
+    line-height: 1.2;
+    margin-bottom: 32px;
+  }
+
+  /* DIAGNOSIS */
+  .diagnosis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 36px;
+  }
+
+  .diag-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    border-left: 4px solid transparent;
+    box-shadow: 0 2px 20px rgba(8,35,71,0.06);
+    transition: transform 0.2s;
+  }
+
+  .diag-card:hover { transform: translateY(-4px); }
+
+  .diag-card.problem { border-left-color: #e05252; }
+  .diag-card.opportunity { border-left-color: var(--gold); }
+
+  .diag-icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .diag-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ts-navy);
+    margin-bottom: 10px;
+  }
+
+  .diag-card p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #555;
+  }
+
+  /* TIPS */
+  .tips-section {
+    background: var(--ts-navy);
+    border-radius: 20px;
+    padding: 60px 50px;
+    margin: 0 40px;
+    max-width: 900px;
+    margin: 0 auto 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tips-section::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .tips-section::after {
+    content: '';
+    position: absolute;
+    bottom: -80px;
+    left: -40px;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.07);
+  }
+
+  .tips-section .section-tag { color: var(--gold); }
+  .tips-section .section-tag::before { background: var(--gold); }
+  .tips-section h2 { color: #fff; }
+
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 36px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .tip-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 12px;
+    padding: 24px;
+    backdrop-filter: blur(4px);
+  }
+
+  .tip-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 900;
+    color: rgba(201,168,76,0.2);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .tip-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+  }
+
+  .tip-card p {
+    font-size: 13px;
+    color: rgba(240,241,242,0.65);
+    line-height: 1.7;
+  }
+
+  /* BUDGET */
+  .budget-wrap {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 60px rgba(8,35,71,0.10);
+  }
+
+  .budget-header {
+    background: linear-gradient(135deg, var(--ts-navy), var(--ts-blue));
+    padding: 36px 40px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .budget-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .budget-header p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+  }
+
+  .budget-year-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .budget-year-badge strong {
+    display: block;
+    font-size: 20px;
+    color: var(--gold-light);
+    font-family: 'Playfair Display', serif;
+    margin-top: 2px;
+  }
+
+  .budget-body { padding: 0; }
+
+  .budget-phase {
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .budget-phase:last-child { border-bottom: none; }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 40px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .phase-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .phase-dot.launch { background: var(--gold); }
+  .phase-dot.scale { background: var(--ts-blue); }
+
+  .phase-header h4 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--ts-navy);
+  }
+
+  .phase-header span {
+    margin-left: auto;
+    font-size: 12px;
+    color: #888;
+    letter-spacing: 1px;
+  }
+
+  .budget-items {
+    padding: 8px 0;
+  }
+
+  .budget-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 40px;
+    border-bottom: 1px solid #f7f7f7;
+    transition: background 0.2s;
+  }
+
+  .budget-item:hover { background: #fafcff; }
+  .budget-item:last-child { border-bottom: none; }
+
+  .item-info {}
+  .item-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ts-dark);
+  }
+  .item-desc {
+    font-size: 12px;
+    color: #888;
+    margin-top: 3px;
+  }
+
+  .item-freq {
+    font-size: 11px;
+    color: #aaa;
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .item-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ts-navy);
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  .budget-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 40px;
+    background: linear-gradient(135deg, var(--ts-navy) 0%, #0d3060 100%);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .total-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .total-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--gold-light);
+  }
+
+  .total-note {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  /* INFLUENCER */
+  .influencer-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    box-shadow: 0 4px 30px rgba(8,35,71,0.08);
+    border: 1px solid rgba(201,168,76,0.15);
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+
+  .influencer-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .influencer-info { flex: 1; min-width: 200px; }
+
+  .influencer-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ts-navy);
+    margin-bottom: 6px;
+  }
+
+  .influencer-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .tag {
+    background: #eef2ff;
+    color: var(--ts-blue);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .influencer-info p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.7;
+  }
+
+  .influencer-price-box {
+    text-align: center;
+    padding: 20px 28px;
+    background: linear-gradient(135deg, #fdf6e3, #fef9ed);
+    border: 1px solid var(--gold-light);
+    border-radius: 12px;
+    min-width: 140px;
+  }
+
+  .influencer-price-box .price-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 8px;
+  }
+
+  .influencer-price-box .price {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold-dim);
+  }
+
+  .influencer-price-box .price-sub {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+  }
+
+  /* TIMELINE */
+  .timeline {
+    position: relative;
+    margin-top: 40px;
+    padding-left: 30px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--gold), var(--ts-blue));
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 32px;
+    padding-left: 28px;
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: -30px;
+    top: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px var(--gold);
+    background: var(--gold);
+  }
+
+  .timeline-dot.blue {
+    box-shadow: 0 0 0 2px var(--ts-blue);
+    background: var(--ts-blue);
+  }
+
+  .timeline-month {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+  }
+
+  .timeline-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ts-navy);
+    margin-bottom: 8px;
+  }
+
+  .timeline-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.7;
+  }
+
+  .timeline-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .pill {
+    background: #eef4ff;
+    color: var(--ts-blue);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .pill.gold {
+    background: #fdf6e3;
+    color: var(--gold-dim);
+  }
+
+  /* ROI */
+  .roi-section {
+    background: linear-gradient(135deg, var(--ts-navy) 0%, #0d3466 100%);
+    border-radius: 20px;
+    padding: 60px 50px;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .roi-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.15), transparent 70%);
+  }
+
+  .roi-section h2 { color: #fff; position: relative; z-index: 1; }
+  .roi-section .section-tag { color: var(--gold); justify-content: center; position: relative; z-index: 1; }
+  .roi-section .section-tag::before { background: var(--gold); }
+
+  .roi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .roi-card {
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 12px;
+    padding: 28px 20px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .roi-icon { font-size: 32px; margin-bottom: 12px; }
+  .roi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+  }
+  .roi-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+  }
+
+  /* FOOTER */
+  .footer {
+    background: var(--ts-dark);
+    padding: 50px 40px;
+    text-align: center;
+    color: rgba(240,241,242,0.4);
+  }
+
+  .footer-logo {
+    height: 40px;
+    object-fit: contain;
+    opacity: 0.5;
+    margin-bottom: 20px;
+  }
+
+  .footer p { font-size: 13px; line-height: 1.8; }
+
+  .footer strong { color: rgba(240,241,242,0.7); }
+
+  .cta-strip {
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim));
+    padding: 20px 40px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: var(--ts-dark);
+  }
+
+  /* DIVIDER */
+  .divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--ts-blue));
+    margin: 0 auto 16px;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 600px) {
+    section { padding: 60px 24px; }
+    .tips-section, .roi-section { padding: 40px 24px; margin: 0 16px; }
+    .budget-header, .budget-item, .budget-total, .phase-header { padding-left: 24px; padding-right: 24px; }
+    .hero { padding: 60px 24px; }
+  }
+
+  @media print {
+    .fade-in {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+    }
+
+    body { background: #fff !important; }
+
+    .hero {
+      background: #082347 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      min-height: auto !important;
+      padding: 36px 30px !important;
+      page-break-after: always;
+      break-after: page;
+    }
+    .hero-grid-lines { display: none !important; }
+    .hero h1 { font-size: 32px !important; color: #fff !important; }
+    .hero h1 span { -webkit-text-fill-color: #C9A84C !important; color: #C9A84C !important; }
+    .hero-sub { color: #ccc !important; font-size: 13px !important; }
+    .stat { border-color: rgba(201,168,76,0.4) !important; background: rgba(255,255,255,0.05) !important; }
+    .stat-num { color: #E8C97A !important; }
+    .stat-label { color: #aaa !important; }
+    .badge { background: #C9A84C !important; color: #111 !important; }
+    .logo-label { color: #aaa !important; }
+    .connector-x { color: #C9A84C !important; }
+
+    section { padding: 30px !important; }
+    h2 { color: #082347 !important; }
+    .section-tag { color: #184892 !important; }
+    .section-tag::before { background: #184892 !important; }
+
+    .diag-card { background: #fff !important; box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; break-inside: avoid; }
+    .diag-card.problem { border-left: 4px solid #e05252 !important; }
+    .diag-card.opportunity { border-left: 4px solid #C9A84C !important; }
+    .diag-card h3 { color: #082347 !important; }
+    .diag-card p { color: #444 !important; }
+    .diagnosis-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    .tips-section {
+      background: #082347 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      margin: 0 !important;
+      padding: 30px !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .tips-section h2 { color: #fff !important; }
+    .tips-section .section-tag { color: #C9A84C !important; }
+    .tips-section .section-tag::before { background: #C9A84C !important; }
+    .tip-card { background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(201,168,76,0.3) !important; page-break-inside: avoid; break-inside: avoid; }
+    .tip-number { color: rgba(201,168,76,0.4) !important; }
+    .tip-card h3 { color: #E8C97A !important; }
+    .tip-card p { color: #ccc !important; }
+    .tips-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    .budget-wrap { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; break-inside: avoid; }
+    .budget-header {
+      background: #082347 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 20px 30px !important;
+    }
+    .budget-header h3 { color: #fff !important; }
+    .budget-header p { color: rgba(255,255,255,0.6) !important; }
+    .budget-year-badge { border-color: rgba(255,255,255,0.3) !important; color: #ccc !important; }
+    .budget-year-badge strong { color: #E8C97A !important; }
+    .phase-header { background: #f5f5f5 !important; padding: 14px 30px !important; }
+    .phase-header h4 { color: #082347 !important; }
+    .budget-item { padding: 12px 30px !important; page-break-inside: avoid; break-inside: avoid; }
+    .item-name { color: #161819 !important; }
+    .item-desc { color: #888 !important; }
+    .item-price { color: #082347 !important; }
+    .budget-total {
+      background: #082347 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 20px 30px !important;
+    }
+    .total-label { color: rgba(255,255,255,0.5) !important; }
+    .total-amount { color: #E8C97A !important; }
+    .total-note { color: rgba(255,255,255,0.4) !important; }
+    .budget-phase { page-break-inside: avoid; break-inside: avoid; }
+
+    .influencer-card { box-shadow: none !important; page-break-inside: avoid; break-inside: avoid; }
+    .influencer-info h3 { color: #082347 !important; }
+    .influencer-info p { color: #555 !important; }
+
+    .timeline-item { page-break-inside: avoid; break-inside: avoid; }
+    .timeline-title { color: #082347 !important; }
+    .timeline-desc { color: #555 !important; }
+    .timeline-month { color: #8B6914 !important; }
+
+    .roi-section {
+      background: #082347 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      margin: 0 !important;
+      padding: 30px !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .roi-section h2 { color: #fff !important; }
+    .roi-section .section-tag { color: #C9A84C !important; }
+    .roi-section .section-tag::before { background: #C9A84C !important; }
+    .roi-card { border-color: rgba(201,168,76,0.3) !important; page-break-inside: avoid; break-inside: avoid; }
+    .roi-value { color: #E8C97A !important; }
+    .roi-desc { color: #ccc !important; }
+    .roi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    .cta-strip {
+      background: #C9A84C !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color: #111 !important;
+      padding: 14px 30px !important;
+    }
+
+    .footer {
+      background: #161819 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 30px !important;
+    }
+    .footer p { color: rgba(240,241,242,0.5) !important; }
+    .footer strong { color: rgba(240,241,242,0.8) !important; }
+    .footer-logo { opacity: 0.7 !important; }
+  }
+
+  /* Scroll animation */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 0.7s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.25s; }
+  .delay-3 { animation-delay: 0.4s; }
+  .delay-4 { animation-delay: 0.55s; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid-lines"></div>
+  <div class="hero-content">
+    <div class="logos-row fade-in">
+      <div class="logo-wrap">
+        <img src="/lv3-logo.jpg" alt="LV3 Multimarcas" class="logo-img">
+        <span class="logo-label">LV3 Multimarcas</span>
+      </div>
+      <div class="connector">
+        <div class="connector-line"></div>
+        <span class="connector-x">×</span>
+        <div class="connector-line"></div>
+      </div>
+      <div class="logo-wrap">
+        <img src="/TFLOGO.png" alt="Traffic Solutions" class="logo-ts">
+        <span class="logo-label">Traffic Solutions</span>
+      </div>
+    </div>
+
+    <div class="badge fade-in delay-1">Proposta Comercial · 2025</div>
+
+    <h1 class="fade-in delay-2">Sua moda masculina<br><span>dominando o digital</span></h1>
+    <p class="hero-sub fade-in delay-3">Estratégia completa para retomar o crescimento da LV3 Multimarcas com tráfego pago, influência e presença digital de alto impacto.</p>
+
+    <div class="hero-stats fade-in delay-4">
+      <div class="stat">
+        <span class="stat-num">+10</span>
+        <span class="stat-label">Anos da LV3 no mercado</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">+R$100k</span>
+        <span class="stat-label">Faturamento/mês gerado pela Traffic Solutions</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">4×</span>
+        <span class="stat-label">ROAS médio no Meta Ads</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DIAGNÓSTICO -->
+<section>
+  <div class="section-tag">Diagnóstico</div>
+  <h2>O que está travando<br>as suas vendas?</h2>
+  <p style="color:#666; font-size:15px; line-height:1.8; max-width:600px;">
+    Com mais de 10 anos de mercado e presença consolidada na Feira da José Avelino, a LV3 Multimarcas tem todo o potencial para crescer muito além da queda atual. Identificamos os principais pontos a atacar:
+  </p>
+
+  <div class="diagnosis-grid">
+    <div class="diag-card problem">
+      <span class="diag-icon">📉</span>
+      <h3>Queda nas vendas</h3>
+      <p>A dependência exclusiva do ponto físico e do boca a boca reduziu drasticamente o alcance em um mercado cada vez mais digital.</p>
+    </div>
+    <div class="diag-card problem">
+      <span class="diag-icon">💻</span>
+      <h3>Baixa visibilidade online</h3>
+      <p>Compradores de outros estados precisam encontrar a LV3 nas redes sociais antes de virem até Fortaleza — hoje isso não acontece.</p>
+    </div>
+    <div class="diag-card problem">
+      <span class="diag-icon">🚫</span>
+      <h3>Sem captação ativa</h3>
+      <p>Nenhuma estratégia de tráfego pago significa depender apenas de quem já conhece a marca. Novos clientes não chegam.</p>
+    </div>
+    <div class="diag-card opportunity">
+      <span class="diag-icon">🚀</span>
+      <h3>Enorme potencial</h3>
+      <p>Marca consolidada + produto físico de moda masculina + foco em revendedores = combinação perfeita para escalar com tráfego pago.</p>
+    </div>
+    <div class="diag-card opportunity">
+      <span class="diag-icon">🗺</span>
+      <h3>Mercado nacional</h3>
+      <p>Revendedores de todo o Brasil compram em Fortaleza. Com presença digital, a LV3 pode captar esses clientes antes da concorrência.</p>
+    </div>
+    <div class="diag-card opportunity">
+      <span class="diag-icon">✨</span>
+      <h3>Branding premium</h3>
+      <p>A identidade visual da LV3 já transmite luxo e qualidade — isso é um ativo valioso para campanhas de alto engajamento.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DICAS -->
+<div style="padding: 0 40px; margin-bottom: 80px;">
+<div class="tips-section">
+  <div class="section-tag">Recomendações</div>
+  <h2 style="max-width:500px;">O que a LV3 precisa<br>fazer agora</h2>
+
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tip-number">01</div>
+      <h3>Perfil Profissional no Instagram & TikTok</h3>
+      <p>Criar ou otimizar os perfis com bio clara voltada para revendedores, destaques organizados e link na bio para contato direto via WhatsApp.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">02</div>
+      <h3>Conteúdo de produto toda semana</h3>
+      <p>Fotos e vídeos dos looks masculinos com qualidade — modelos usando as peças, bastidores da fábrica e lançamentos de coleção geram muito engajamento.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">03</div>
+      <h3>WhatsApp Business estruturado</h3>
+      <p>Catálogo de produtos atualizado, mensagens automáticas de resposta e listas de transmissão para revendedores cadastrados.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">04</div>
+      <h3>Parcerias com influenciadores regionais</h3>
+      <p>Influenciadores de moda e atacado do Nordeste têm audiências de revendedores. Uma indicação vale muito mais que um anúncio frio.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">05</div>
+      <h3>Anúncios segmentados para revendedores</h3>
+      <p>Campanhas no Meta Ads (Instagram/Facebook) segmentadas por interesse em moda masculina, atacado e regiões fora do Ceará.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">06</div>
+      <h3>Depoimentos e prova social</h3>
+      <p>Gravar vídeos curtos com revendedores satisfeitos e publicar regularmente. Nada converte melhor que a experiência real de quem já comprou.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- INFLUENCIADOR -->
+<section>
+  <div class="section-tag">Influência</div>
+  <h2>Parceria com<br>influenciadora indicada</h2>
+  <p style="color:#666; font-size:15px; line-height:1.8; max-width:580px;">
+    Para acelerar o reconhecimento da marca, indicamos a seguinte parceria estratégica como ponto de partida:
+  </p>
+
+  <div class="influencer-card">
+    <div class="influencer-avatar">👩‍🦰</div>
+    <div class="influencer-info">
+      <h3>Flavinha Paulino</h3>
+      <div class="influencer-tags">
+        <span class="tag">Moda</span>
+        <span class="tag">Atacado</span>
+        <span class="tag">Revendedores</span>
+        <span class="tag">Nordeste</span>
+      </div>
+      <p>Influenciadora com forte presença no segmento de moda e atacado, com audiência de revendedores e compradores de todo o Brasil. Divulgações pontuais com alto retorno de alcance para o público B2B de moda.</p>
+    </div>
+    <div class="influencer-price-box">
+      <div class="price-label">Por divulgação</div>
+      <div class="price">R$250</div>
+      <div class="price-sub">Valor estimado</div>
+    </div>
+  </div>
+</section>
+
+<!-- ORÇAMENTO -->
+<section>
+  <div class="section-tag">Investimento</div>
+  <h2>Orçamento detalhado<br>por fase</h2>
+
+  <div class="budget-wrap">
+    <div class="budget-header">
+      <div>
+        <h3>Plano de Crescimento LV3 Multimarcas</h3>
+        <p>Estruturado em 2 fases ao longo de 12 meses</p>
+      </div>
+      <div class="budget-year-badge">
+        Vigência<br><strong>12 meses</strong>
+      </div>
+    </div>
+
+    <div class="budget-body">
+
+      <!-- FASE 1 -->
+      <div class="budget-phase">
+        <div class="phase-header">
+          <div class="phase-dot launch"></div>
+          <h4>Fase 1 — Lançamento & Estruturação</h4>
+          <span>Meses 1 a 3</span>
+        </div>
+        <div class="budget-items">
+          <div class="budget-item">
+            <div class="item-info">
+              <div class="item-name">Gestão de Tráfego Pago</div>
+              <div class="item-desc">Criação e otimização de campanhas no Meta Ads (Instagram + Facebook)</div>
+            </div>
+            <div class="item-freq">/ mês</div>
+            <div class="item-price">R$ 500</div>
+          </div>
+          <div class="budget-item">
+            <div class="item-info">
+              <div class="item-name">Investimento em Anúncios</div>
+              <div class="item-desc">Verba para veiculação dos anúncios — foco em vendas e seguidores qualificados</div>
+            </div>
+            <div class="item-freq">R$200/sem</div>
+            <div class="item-price">~R$ 800</div>
+          </div>
+          <div class="budget-item">
+            <div class="item-info">
+              <div class="item-name">Divulgação Flavinha Paulino</div>
+              <div class="item-desc">1 divulgação mensal para alcance de revendedores no Brasil</div>
+            </div>
+            <div class="item-freq">/ mês</div>
+            <div class="item-price">R$ 250</div>
+          </div>
+          <div class="budget-item" style="background:#fffdf0;">
+            <div class="item-info">
+              <div class="item-name" style="font-weight:700;">Total Mensal — Fase 1</div>
+              <div class="item-desc">Meses 1, 2 e 3</div>
+            </div>
+            <div class="item-freq">/ mês</div>
+            <div class="item-price" style="color:var(--gold-dim); font-size:22px;">R$ 1.550</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 2 -->
+      <div class="budget-phase">
+        <div class="phase-header">
+          <div class="phase-dot scale"></div>
+          <h4>Fase 2 — Escala & Consolidação</h4>
+          <span>Meses 4 a 12</span>
+        </div>
+        <div class="budget-items">
+          <div class="budget-item">
+            <div class="item-info">
+              <div class="item-name">Gestão de Tráfego Pago</div>
+              <div class="item-desc">Escalonamento das campanhas com dados dos primeiros 3 meses</div>
+            </div>
+            <div class="item-freq">/ mês</div>
+            <div class="item-price">R$ 1.000</div>
+          </div>
+          <div class="budget-item">
+            <div class="item-info">
+              <div class="item-name">Investimento em Anúncios</div>
+              <div class="item-desc">Manutenção da verba — podendo escalar conforme resultados</div>
+            </div>
+            <div class="item-freq">R$200/sem</div>
+            <div class="item-price">~R$ 800</div>
+          </div>
+          <div class="budget-item">
+            <div class="item-info">
+              <div class="item-name">Divulgação Flavinha Paulino</div>
+              <div class="item-desc">1 divulgação mensal contínua para manutenção de alcance</div>
+            </div>
+            <div class="item-freq">/ mês</div>
+            <div class="item-price">R$ 250</div>
+          </div>
+          <div class="budget-item" style="background:#f0f5ff;">
+            <div class="item-info">
+              <div class="item-name" style="font-weight:700;">Total Mensal — Fase 2</div>
+              <div class="item-desc">Meses 4 ao 12</div>
+            </div>
+            <div class="item-freq">/ mês</div>
+            <div class="item-price" style="color:var(--ts-blue); font-size:22px;">R$ 2.050</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="budget-total">
+      <div>
+        <div class="total-label">Investimento médio mensal ao longo dos 12 meses</div>
+        <div class="total-note">Gestão + verba de anúncios + influenciadora inclusos</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="total-amount">R$ 1.550 — R$ 2.050</div>
+        <div class="total-note">Fase 1 (meses 1–3) → Fase 2 (meses 4–12)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section>
+  <div class="section-tag">Cronograma</div>
+  <h2>Como os próximos<br>meses vão acontecer</h2>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-month">Mês 1</div>
+      <div class="timeline-title">Onboarding & Estruturação</div>
+      <div class="timeline-desc">Levantamento de materiais, criação/otimização dos perfis, configuração do Meta Ads, primeiros anúncios no ar. Primeira divulgação com Flavinha Paulino.</div>
+      <div class="timeline-pills">
+        <span class="pill gold">Setup</span>
+        <span class="pill gold">Primeiros anúncios</span>
+        <span class="pill gold">Influenciadora</span>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-month">Meses 2 – 3</div>
+      <div class="timeline-title">Testes & Otimização</div>
+      <div class="timeline-desc">Análise dos primeiros dados, testes de criativos, públicos e mensagens. Ajuste da verba conforme o melhor desempenho. Relatórios quinzenais.</div>
+      <div class="timeline-pills">
+        <span class="pill gold">Testes A/B</span>
+        <span class="pill gold">Otimização</span>
+        <span class="pill gold">Relatórios</span>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot blue"></div>
+      <div class="timeline-month">Mês 4 em diante</div>
+      <div class="timeline-title">Escala & Crescimento</div>
+      <div class="timeline-desc">Com os dados dos primeiros 3 meses, a gestão entra em fase de escala. Campanhas mais assertivas, aumento progressivo de resultados e faturamento.</div>
+      <div class="timeline-pills">
+        <span class="pill">Escalonamento</span>
+        <span class="pill">Novos públicos</span>
+        <span class="pill">Retargeting</span>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot blue"></div>
+      <div class="timeline-month">Meses 6 – 12</div>
+      <div class="timeline-title">Consolidação & Expansão</div>
+      <div class="timeline-desc">LV3 Multimarcas com presença digital sólida, base de revendedores crescendo, faturamento digital somando ao físico. Estratégia pronta para escalar ainda mais.</div>
+      <div class="timeline-pills">
+        <span class="pill">Marca consolidada</span>
+        <span class="pill">Base de revendedores</span>
+        <span class="pill">Expansão nacional</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROI -->
+<div style="padding: 0 40px; margin-bottom: 80px;">
+<div class="roi-section">
+  <div class="section-tag">Resultados Esperados</div>
+  <div class="divider"></div>
+  <h2>O que esperar<br>dessa parceria</h2>
+  <p style="color:rgba(255,255,255,0.55); font-size:15px; margin-top:-20px; margin-bottom:0; max-width:500px; margin-left:auto; margin-right:auto;">
+    Baseado nos nossos cases com mais de R$100k de faturamento mensal gerado para clientes.
+  </p>
+
+  <div class="roi-grid">
+    <div class="roi-card">
+      <div class="roi-icon">📈</div>
+      <div class="roi-value">4×</div>
+      <div class="roi-desc">ROAS médio no Meta Ads — para cada R$1 investido, R$4 em retorno gerado</div>
+    </div>
+    <div class="roi-card">
+      <div class="roi-icon">💬</div>
+      <div class="roi-value">R$2,50–R$3</div>
+      <div class="roi-desc">Custo por lead estimado com campanhas otimizadas no Meta Ads</div>
+    </div>
+    <div class="roi-card">
+      <div class="roi-icon">📩</div>
+      <div class="roi-value">+900</div>
+      <div class="roi-desc">Leads de revendedores potenciais nos primeiros 3 meses (verba de ~R$800/mês)</div>
+    </div>
+    <div class="roi-card">
+      <div class="roi-icon">🗺</div>
+      <div class="roi-value">5+</div>
+      <div class="roi-desc">Novos estados alcançados com compradores em busca da LV3</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CTA -->
+<div class="cta-strip">
+  ✉️ &nbsp; Para fechar a parceria ou tirar dúvidas, entre em contato com a <strong>Traffic Solutions</strong>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <img src="/TFLOGO.png" alt="Traffic Solutions" class="footer-logo">
+  <p>
+    <strong>Traffic Solutions</strong> — Especialistas em tráfego pago para moda e atacado<br>
+    Cases comprovados com <strong>+R$100k de faturamento mensal</strong> gerado para nossos clientes<br><br>
+    Este documento é uma proposta comercial confidencial elaborada exclusivamente para a <strong>LV3 Multimarcas</strong>.<br>
+    Válida por 15 dias a partir da data de envio.
+  </p>
+</div>
+
+</body>
+</html>
