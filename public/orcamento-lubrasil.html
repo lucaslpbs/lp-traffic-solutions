@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta Comercial · LuBrasil × Traffic Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ts-navy: #082347;
+    --ts-blue: #184892;
+    --ts-dark: #161819;
+    --ts-light: #F0F1F2;
+    --rose: #C4877B;
+    --rose-light: #E8B4AE;
+    --rose-dim: #8C4F46;
+    --rose-bg: #FDF5F4;
+    --champagne: #E8DDD0;
+    --champagne-dark: #C4B09A;
+    --cream: #FAF7F4;
+    --ink: #1A1612;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  /* ===================== HERO ===================== */
+  .hero {
+    min-height: 100vh;
+    background: var(--ink);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    padding: 80px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-right {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(196,135,123,0.3), rgba(24,72,146,0.2));
+    z-index: 1;
+  }
+
+  .hero-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent, transparent 24px, rgba(196,135,123,0.06) 24px, rgba(196,135,123,0.06) 25px),
+      repeating-linear-gradient(-45deg, transparent, transparent 24px, rgba(196,135,123,0.06) 24px, rgba(196,135,123,0.06) 25px);
+    z-index: 0;
+  }
+
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  .orb1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(196,135,123,0.25) 0%, transparent 70%);
+    top: -100px; right: -100px;
+  }
+
+  .orb2 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(24,72,146,0.2) 0%, transparent 70%);
+    bottom: 50px; left: -80px;
+  }
+
+  .hero-deco {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .deco-circle {
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,135,123,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    color: rgba(232,180,174,0.7);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  .deco-circle::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,135,123,0.15);
+  }
+
+  .deco-line {
+    width: 1px;
+    height: 80px;
+    background: linear-gradient(to bottom, rgba(196,135,123,0.5), transparent);
+  }
+
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: slideIn 0.8s ease 0.1s forwards;
+  }
+
+  .eyebrow-line {
+    width: 32px; height: 1px;
+    background: var(--rose);
+  }
+
+  .eyebrow-text {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--rose-light);
+    font-weight: 500;
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 5vw, 70px);
+    font-weight: 300;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: slideIn 0.8s ease 0.25s forwards;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--rose-light);
+  }
+
+  .hero h1 strong {
+    font-weight: 700;
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: rgba(240,241,242,0.5);
+    line-height: 1.8;
+    max-width: 420px;
+    margin-bottom: 48px;
+    font-weight: 300;
+    opacity: 0;
+    animation: slideIn 0.8s ease 0.4s forwards;
+  }
+
+  .logos-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: slideIn 0.8s ease 0.55s forwards;
+    flex-wrap: wrap;
+  }
+
+  .logo-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 40px;
+    padding: 8px 16px 8px 8px;
+  }
+
+  .logo-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--rose-dim), var(--rose));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-pill img {
+    height: 28px;
+    object-fit: contain;
+    opacity: 0.8;
+  }
+
+  .logo-pill span {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+  }
+
+  .connector-pill {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: rgba(196,135,123,0.5);
+    font-style: italic;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: slideIn 0.8s ease 0.7s forwards;
+  }
+
+  .h-stat {
+    border-left: 2px solid rgba(196,135,123,0.4);
+    padding-left: 16px;
+  }
+
+  .h-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--rose-light);
+    line-height: 1;
+  }
+
+  .h-stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ===================== SECTIONS ===================== */
+  .section-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+
+  .section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .section-eyebrow span {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--rose-dim);
+    font-weight: 600;
+  }
+
+  .section-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px; height: 1px;
+    background: var(--rose);
+  }
+
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: 32px;
+  }
+
+  h2 em { font-style: italic; color: var(--rose-dim); }
+
+  /* ===================== PACOTES GRID ===================== */
+  .packages-grid {
+    display: grid;
+    gap: 20px;
+    margin-top: 16px;
+  }
+
+  /* Card de pacote premium */
+  .pkg-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 30px rgba(26,22,18,0.06);
+    border: 1px solid rgba(196,135,123,0.1);
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+
+  .pkg-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 50px rgba(26,22,18,0.1);
+  }
+
+  .pkg-header {
+    padding: 28px 32px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #f5f0ec;
+  }
+
+  .pkg-header.rose { background: linear-gradient(135deg, #fdf0ee, #fff); }
+  .pkg-header.navy { background: linear-gradient(135deg, #eef2fb, #fff); }
+  .pkg-header.sage { background: linear-gradient(135deg, #edf6f0, #fff); }
+  .pkg-header.amber { background: linear-gradient(135deg, #fdf8ee, #fff); }
+  .pkg-header.violet { background: linear-gradient(135deg, #f4eefb, #fff); }
+  .pkg-header.sky { background: linear-gradient(135deg, #eef6fb, #fff); }
+
+  .pkg-icon-title { display: flex; align-items: center; gap: 14px; }
+
+  .pkg-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .pkg-icon.rose { background: rgba(196,135,123,0.12); }
+  .pkg-icon.navy { background: rgba(24,72,146,0.1); }
+  .pkg-icon.sage { background: rgba(80,160,100,0.1); }
+  .pkg-icon.amber { background: rgba(200,150,60,0.12); }
+  .pkg-icon.violet { background: rgba(130,60,180,0.1); }
+  .pkg-icon.sky { background: rgba(40,140,200,0.1); }
+
+  .pkg-title-block {}
+  .pkg-category {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .pkg-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .pkg-pricing { text-align: right; }
+
+  .price-old {
+    font-size: 13px;
+    color: #ccc;
+    text-decoration: line-through;
+    margin-bottom: 4px;
+  }
+
+  .price-new {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .price-new.rose { color: var(--rose-dim); }
+  .price-new.navy { color: var(--ts-navy); }
+  .price-new.sage { color: #3a8a50; }
+  .price-new.amber { color: #a07020; }
+  .price-new.violet { color: #7030a0; }
+  .price-new.sky { color: #1878a8; }
+
+  .price-freq {
+    font-size: 11px;
+    color: #bbb;
+    font-weight: 400;
+    margin-top: 3px;
+  }
+
+  .pkg-body { padding: 22px 32px 28px; }
+
+  .pkg-desc {
+    font-size: 14px;
+    color: #777;
+    line-height: 1.7;
+    margin-bottom: 18px;
+  }
+
+  .pkg-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pkg-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  .feat-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .feat-dot.rose { background: var(--rose); }
+  .feat-dot.navy { background: var(--ts-blue); }
+  .feat-dot.sage { background: #4aaa64; }
+  .feat-dot.amber { background: #c89030; }
+  .feat-dot.violet { background: #8040c0; }
+  .feat-dot.sky { background: #2090c8; }
+
+  .pkg-note {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.6;
+    border-left: 3px solid #eee;
+  }
+
+  .pkg-note.rose { border-left-color: var(--rose-light); background: var(--rose-bg); color: var(--rose-dim); }
+  .pkg-note.navy { border-left-color: rgba(24,72,146,0.3); background: #eef3ff; color: var(--ts-navy); }
+  .pkg-note.amber { border-left-color: rgba(200,150,60,0.3); background: #fefaf0; color: #806020; }
+
+  /* Tag de economia */
+  .savings-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e8f8ec;
+    color: #2a8040;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 8px;
+  }
+
+  /* ===================== SISTEMA ESPECIAL ===================== */
+  .sistema-card {
+    background: var(--ts-navy);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 16px 60px rgba(8,35,71,0.2);
+    position: relative;
+  }
+
+  .sistema-card::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(196,135,123,0.15), transparent 70%);
+  }
+
+  .sistema-header {
+    padding: 40px 48px 32px;
+    position: relative;
+    z-index: 2;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .sistema-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(196,135,123,0.2);
+    border: 1px solid rgba(196,135,123,0.3);
+    color: var(--rose-light);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .sistema-header h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .sistema-header p {
+    font-size: 15px;
+    color: rgba(240,241,242,0.5);
+    line-height: 1.7;
+    max-width: 560px;
+    font-weight: 300;
+  }
+
+  .sistema-prices {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .sp-block {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px 24px;
+    min-width: 160px;
+  }
+
+  .sp-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 8px;
+  }
+
+  .sp-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--rose-light);
+  }
+
+  .sp-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 4px;
+  }
+
+  .sistema-body {
+    padding: 32px 48px 40px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .modulos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin-top: 8px;
+  }
+
+  .modulo-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+
+  .modulo-item h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modulo-item p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.5;
+  }
+
+  /* ===================== RESUMO FINANCEIRO ===================== */
+  .resumo-section {
+    background: var(--rose-bg);
+    border-top: 1px solid rgba(196,135,123,0.15);
+    border-bottom: 1px solid rgba(196,135,123,0.15);
+  }
+
+  .resumo-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 32px;
+  }
+
+  .resumo-table thead tr {
+    border-bottom: 2px solid rgba(196,135,123,0.2);
+  }
+
+  .resumo-table th {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #bbb;
+    font-weight: 600;
+    padding: 12px 16px;
+    text-align: left;
+  }
+
+  .resumo-table td {
+    padding: 16px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(196,135,123,0.08);
+    vertical-align: top;
+  }
+
+  .resumo-table tr:last-child td { border-bottom: none; }
+
+  .resumo-table tr:hover td { background: rgba(196,135,123,0.04); }
+
+  .item-name-cell { font-weight: 600; color: var(--ink); }
+  .item-cat { font-size: 11px; color: #bbb; font-weight: 400; margin-top: 2px; }
+
+  .price-cell {
+    text-align: right;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .price-cell.strike {
+    text-decoration: line-through;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .freq-cell {
+    color: #aaa;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .type-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-setup { background: #f0f0f0; color: #888; }
+  .badge-mensal { background: #eef3ff; color: var(--ts-blue); }
+  .badge-unico { background: #fdf0ee; color: var(--rose-dim); }
+
+  .total-row td {
+    border-top: 2px solid rgba(196,135,123,0.2);
+    padding-top: 24px;
+    padding-bottom: 8px;
+  }
+
+  .total-label-cell {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .total-amount-cell {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--rose-dim);
+    text-align: right;
+  }
+
+  .economy-banner {
+    margin-top: 20px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #e8f8ec, #f0fbf2);
+    border: 1px solid rgba(80,180,100,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .economy-banner p {
+    font-size: 14px;
+    color: #2a7040;
+    line-height: 1.6;
+  }
+
+  .economy-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #2a7040;
+    white-space: nowrap;
+  }
+
+  /* ===================== SISTEMA FEATURES LIST ===================== */
+  .feature-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .feat-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .feat-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: rgba(196,135,123,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .feat-text h5 {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 3px;
+  }
+
+  .feat-text p {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.5;
+  }
+
+  /* ===================== CRONOGRAMA ===================== */
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+    margin-top: 40px;
+    position: relative;
+  }
+
+  .timeline-grid::before {
+    content: '';
+    position: absolute;
+    top: 20px; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--rose), var(--ts-blue));
+    z-index: 0;
+  }
+
+  .tl-step {
+    padding: 0 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tl-dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .tl-dot.rose { background: var(--rose); color: #fff; box-shadow: 0 0 0 4px rgba(196,135,123,0.15); }
+  .tl-dot.blue { background: var(--ts-blue); color: #fff; box-shadow: 0 0 0 4px rgba(24,72,146,0.15); }
+  .tl-dot.navy { background: var(--ts-navy); color: #fff; box-shadow: 0 0 0 4px rgba(8,35,71,0.15); }
+
+  .tl-month {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--rose-dim);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .tl-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .tl-desc {
+    font-size: 12.5px;
+    color: #888;
+    line-height: 1.6;
+  }
+
+  /* ===================== FOOTER ===================== */
+  .cta-strip {
+    background: var(--rose);
+    padding: 22px 40px;
+    text-align: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .cta-strip strong { font-weight: 700; }
+
+  .footer {
+    background: var(--ink);
+    padding: 50px 40px;
+    text-align: center;
+  }
+
+  .footer img {
+    height: 36px;
+    object-fit: contain;
+    filter: brightness(10) opacity(0.5);
+    margin-bottom: 20px;
+    display: block;
+    margin: 0 auto 20px;
+  }
+
+  .footer p {
+    font-size: 13px;
+    color: rgba(240,241,242,0.35);
+    line-height: 1.9;
+  }
+
+  .footer strong { color: rgba(240,241,242,0.6); }
+
+  /* ===================== DIVIDER ===================== */
+  .fancy-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 48px 0 0;
+  }
+
+  .fancy-divider::before,
+  .fancy-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(196,135,123,0.3), transparent);
+  }
+
+  .divider-diamond {
+    width: 8px; height: 8px;
+    border: 1px solid rgba(196,135,123,0.5);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 760px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-right { display: none; }
+    .hero-left { padding: 60px 24px; }
+    .section-wrap { padding: 60px 24px; }
+    .sistema-header, .sistema-body { padding-left: 24px; padding-right: 24px; }
+    .resumo-table { font-size: 13px; }
+    .timeline-grid::before { display: none; }
+    .tl-step { padding: 0 0 28px 48px; position: relative; }
+    .tl-dot { position: absolute; left: 0; top: 0; }
+  }
+
+  /* ===================== NOTA LATERAL ===================== */
+  .side-note {
+    display: flex;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid rgba(196,135,123,0.15);
+    margin-top: 16px;
+    font-size: 13px;
+    color: #777;
+    line-height: 1.7;
+  }
+
+  .side-note-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">
+      <div class="eyebrow-line"></div>
+      <span class="eyebrow-text">Proposta Comercial · 2026</span>
+    </div>
+
+    <h1>Proposta para<br><em>LuBrasil</em><br><strong>Moda Feminina</strong></h1>
+
+    <p class="hero-sub">Estratégia completa de crescimento digital para uma fabricante de alfaiataria feminina com alto potencial de expansão — do tráfego pago ao sistema interno de gestão.</p>
+
+    <div class="logos-row">
+      <div class="logo-pill">
+        <img src="/lubrasil-logo.png" alt="LuBrasil" style="height:28px; object-fit:contain;">
+      </div>
+      <span class="connector-pill">×</span>
+      <div class="logo-pill">
+        <img src="/TFLOGO.png" alt="Traffic Solutions">
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="h-stat">
+        <div class="h-stat-num">+R$300k</div>
+        <div class="h-stat-label">faturamento/mês potencial para a LuBrasil</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-num">6×</div>
+        <div class="h-stat-label">ROAS meta no Meta Ads</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-num">R$1–1,50</div>
+        <div class="h-stat-label">Custo por lead estimado</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-pattern"></div>
+    <div class="hero-orb orb1"></div>
+    <div class="hero-orb orb2"></div>
+    <div class="hero-deco">
+      <div class="deco-circle">
+        <img src="/lubrasil-logo.png" alt="LuBrasil" style="width:120px; height:120px; object-fit:contain; border-radius:50%;">
+      </div>
+      <div class="deco-line"></div>
+      <div style="font-family:'Cormorant Garamond',serif; font-size:13px; color:rgba(196,135,123,0.5); letter-spacing:4px; text-transform:uppercase;">2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PACOTES ===== -->
+<div class="section-wrap">
+  <div class="section-eyebrow"><span>Soluções incluídas</span></div>
+  <h2>Tudo que a <em>LuBrasil</em><br>vai ter nessa parceria</h2>
+
+  <div class="packages-grid">
+
+    <!-- 1. INFLUENCIADORA -->
+    <div class="pkg-card">
+      <div class="pkg-header rose">
+        <div class="pkg-icon-title">
+          <div class="pkg-icon rose">📣</div>
+          <div class="pkg-title-block">
+            <div class="pkg-category">Influência & Alcance</div>
+            <div class="pkg-title">Pacote Flavinha Paulino</div>
+          </div>
+        </div>
+        <div class="pkg-pricing">
+          <div class="price-old">DE R$ 1.350/mês</div>
+          <div class="price-new rose">R$ 1.000<small style="font-size:16px;font-weight:300">/mês</small></div>
+          <div class="savings-tag">✓ Economia de R$350/mês</div>
+        </div>
+      </div>
+      <div class="pkg-body">
+        <p class="pkg-desc">Presença garantida com uma das influenciadoras mais relevantes do segmento de moda e atacado, com audiência fiel de revendedoras e consumidoras finais em todo o Brasil.</p>
+        <ul class="pkg-features">
+          <li><span class="feat-dot rose"></span><span><strong>6 divulgações online por mês</strong> — Reels, stories e posts com apresentação dos produtos</span></li>
+          <li><span class="feat-dot rose"></span><span><strong>2 divulgações presenciais por mês</strong> — Conteúdo gravado usando as peças da LuBrasil</span></li>
+          <li><span class="feat-dot rose"></span><span>Total de <strong>8 publicações mensais</strong> com alta exposição ao público-alvo</span></li>
+          <li><span class="feat-dot rose"></span><span>Alcance orgânico ampliado para além dos seguidores da marca</span></li>
+        </ul>
+        <div class="pkg-note rose">💡 Contrato mensal. Recomendamos mínimo 3 meses para sentir o efeito de construção de autoridade da marca.</div>
+      </div>
+    </div>
+
+    <!-- 2. TRÁFEGO PAGO -->
+    <div class="pkg-card">
+      <div class="pkg-header navy">
+        <div class="pkg-icon-title">
+          <div class="pkg-icon navy">🎯</div>
+          <div class="pkg-title-block">
+            <div class="pkg-category">Tráfego Pago</div>
+            <div class="pkg-title">Gestão Meta Ads</div>
+          </div>
+        </div>
+        <div class="pkg-pricing">
+          <div class="price-old">DE R$ 1.500/mês</div>
+          <div class="price-new navy">R$ 500 – R$ 1.000</div>
+          <div class="price-freq">Meses 1–3 / Mês 4 em diante</div>
+          <div class="savings-tag">✓ Entrada acessível</div>
+        </div>
+      </div>
+      <div class="pkg-body">
+        <p class="pkg-desc">Campanhas estratégicas no Instagram e Facebook (Meta Ads) com foco em aquisição de novas clientes, revendedoras e crescimento de seguidores qualificados.</p>
+        <ul class="pkg-features">
+          <li><span class="feat-dot navy"></span><span>Criação, configuração e gerenciamento completo das campanhas</span></li>
+          <li><span class="feat-dot navy"></span><span>Segmentação avançada: moda feminina, alfaiataria, revendedoras, Nordeste e demais estados</span></li>
+          <li><span class="feat-dot navy"></span><span><strong>Meta de ROAS 6×</strong> — para cada R$1 investido, R$6 em retorno gerado</span></li>
+          <li><span class="feat-dot navy"></span><span>Custo por lead estimado de <strong>R$1,00 a R$1,50</strong> com campanhas otimizadas</span></li>
+          <li><span class="feat-dot navy"></span><span>Fase 1 (meses 1–3): estruturação e testes — R$500/mês<br>Fase 2 (mês 4+): escala com dados reais — R$1.000/mês</span></li>
+        </ul>
+        <div class="pkg-note navy">📊 Recomendamos investir +R$1.000/mês em verba de anúncios (separado da gestão) para obter volumes expressivos de leads a R$1,00–R$1,50 cada — com meta de ROAS 6×.</div>
+      </div>
+    </div>
+
+    <!-- 3. TRÁFEGO ORGÂNICO -->
+    <div class="pkg-card">
+      <div class="pkg-header sage">
+        <div class="pkg-icon-title">
+          <div class="pkg-icon sage">🌿</div>
+          <div class="pkg-title-block">
+            <div class="pkg-category">Tráfego Orgânico</div>
+            <div class="pkg-title">Produção de Conteúdo</div>
+          </div>
+        </div>
+        <div class="pkg-pricing">
+          <div class="price-old">DE R$ 4.000/mês</div>
+          <div class="price-new sage">R$ 3.000<small style="font-size:16px;font-weight:300">/mês</small></div>
+          <div class="savings-tag">✓ Economia de R$1.000/mês</div>
+        </div>
+      </div>
+      <div class="pkg-body">
+        <p class="pkg-desc">Presença orgânica consistente e profissional no Instagram e TikTok com produção de conteúdo especializado em moda feminina — alimentando o algoritmo e construindo autoridade de marca.</p>
+        <ul class="pkg-features">
+          <li><span class="feat-dot sage"></span><span><strong>20 publicações mensais</strong> estratégicas (feed, reels e carrosseis)</span></li>
+          <li><span class="feat-dot sage"></span><span>Estratégia editorial mensal com calendário de pautas</span></li>
+          <li><span class="feat-dot sage"></span><span>Roteiros para stories diários com CTA (call to action) direcionado</span></li>
+          <li><span class="feat-dot sage"></span><span><strong>Videomaker incluso</strong> — gravação profissional das peças e looks</span></li>
+          <li><span class="feat-dot sage"></span><span>Legendas otimizadas com hashtags e copywriting de moda</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 4. SITE / CATÁLOGO -->
+    <div class="pkg-card">
+      <div class="pkg-header amber">
+        <div class="pkg-icon-title">
+          <div class="pkg-icon amber">🌐</div>
+          <div class="pkg-title-block">
+            <div class="pkg-category">Presença Digital</div>
+            <div class="pkg-title">Site para Vendas ou Catálogo Digital</div>
+          </div>
+        </div>
+        <div class="pkg-pricing">
+          <div class="price-new amber">A partir de R$ 1.300</div>
+          <div class="price-freq">desenvolvimento único</div>
+        </div>
+      </div>
+      <div class="pkg-body">
+        <p class="pkg-desc">Um canal de vendas ou vitrine digital profissional que funciona 24h por dia, recebendo visitas dos anúncios e das redes sociais, convertendo em pedidos e contatos.</p>
+        <ul class="pkg-features">
+          <li><span class="feat-dot amber"></span><span><strong>R$ 1.300</strong> — Site completo sem cadastro de produtos + treinamento de como cadastrar você mesma</span></li>
+          <li><span class="feat-dot amber"></span><span><strong>Valor sob consulta</strong> — Site com cadastro completo dos produtos incluído (mediante análise da quantidade de itens)</span></li>
+          <li><span class="feat-dot amber"></span><span><strong>R$ 300/mês</strong> — Plano de manutenção mensal (atualizações, suporte técnico, ajustes)</span></li>
+        </ul>
+        <div class="pkg-note amber">🔗 O site conectado diretamente com os anúncios potencializa muito a conversão. Recomendamos fortemente essa combinação.</div>
+      </div>
+    </div>
+
+    <!-- 5. AUTOMAÇÃO -->
+    <div class="pkg-card">
+      <div class="pkg-header violet">
+        <div class="pkg-icon-title">
+          <div class="pkg-icon violet">🤖</div>
+          <div class="pkg-title-block">
+            <div class="pkg-category">Automação</div>
+            <div class="pkg-title">Automação de Mensagens</div>
+          </div>
+        </div>
+        <div class="pkg-pricing">
+          <div class="price-new violet">Setup R$ 4.000</div>
+          <div class="price-freq">+ R$ 600/mês de manutenção</div>
+        </div>
+      </div>
+      <div class="pkg-body">
+        <p class="pkg-desc">Fluxos automáticos no WhatsApp e Instagram para responder leads imediatamente, qualificar clientes, enviar catálogos e fechar pedidos — mesmo fora do horário comercial.</p>
+        <ul class="pkg-features">
+          <li><span class="feat-dot violet"></span><span>Atendimento automático 24/7 no WhatsApp Business</span></li>
+          <li><span class="feat-dot violet"></span><span>Fluxos de qualificação: cliente final vs. revendedora vs. atacado</span></li>
+          <li><span class="feat-dot violet"></span><span>Envio automático de catálogo digital e lista de preços</span></li>
+          <li><span class="feat-dot violet"></span><span>Integração com campanhas de tráfego pago (lead entra → automação responde)</span></li>
+          <li><span class="feat-dot violet"></span><span>Ajustes mensais nos fluxos conforme demanda (R$600/mês)</span></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SISTEMA INTERNO ===== -->
+<div style="background: #f5f0ec; padding: 8px 0;">
+<div class="section-wrap" style="padding-bottom: 40px;">
+  <div class="section-eyebrow"><span>Gestão Interna</span></div>
+  <h2>Sistema de Gestão<br><em>LuBrasil</em> — exclusivo</h2>
+  <p style="color:#888; font-size:15px; line-height:1.8; max-width:620px; margin-bottom:32px; font-weight:300;">
+    Um sistema web completo desenvolvido sob medida para a LuBrasil — com controle total de estoque, produção com costureiras, vendas, financeiro e muito mais. Tudo em uma plataforma privada e segura.
+  </p>
+</div>
+</div>
+
+<div style="padding: 0 40px 80px; max-width: 1040px; margin: 0 auto;">
+<div class="sistema-card">
+  <div class="sistema-header">
+    <div class="sistema-badge">⚙️ Desenvolvimento Sob Medida · 75 dias</div>
+    <h3>Sistema Interno de Gestão LuBrasil</h3>
+    <p>Plataforma web completa com autenticação por perfis, painel administrativo, controle de estoque, módulo de vendas tipo PDV, gestão de costureiras, financeiro completo e relatórios — tudo personalizado para o fluxo da LuBrasil.</p>
+
+    <div class="sistema-prices">
+      <div class="sp-block">
+        <div class="sp-label">Setup / Desenvolvimento</div>
+        <div class="sp-value">R$ 10.000</div>
+        <div class="sp-sub">pagamento único na entrega</div>
+      </div>
+      <div class="sp-block">
+        <div class="sp-label">Suporte Mensal</div>
+        <div class="sp-value">R$ 800</div>
+        <div class="sp-sub">/ mês após entrega</div>
+      </div>
+      <div class="sp-block">
+        <div class="sp-label">Prazo de Desenvolvimento</div>
+        <div class="sp-value">75 dias</div>
+        <div class="sp-sub">a partir do kickoff</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sistema-body">
+    <p style="font-size:12px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-bottom:20px; font-weight:600;">Módulos incluídos</p>
+    <div class="feature-cols">
+      <div class="feat-item">
+        <div class="feat-icon">🔐</div>
+        <div class="feat-text">
+          <h5>Autenticação por Perfis</h5>
+          <p>4 roles: Admin, Gerente, Funcionário, Atendente — menu e acessos dinâmicos</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">📊</div>
+        <div class="feat-text">
+          <h5>Dashboard com KPIs</h5>
+          <p>Vendas do dia/mês, ticket médio, margem de lucro, gráficos e alertas de estoque</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🛒</div>
+        <div class="feat-text">
+          <h5>Módulo de Vendas (PDV)</h5>
+          <p>Interface tipo caixa com busca de produtos, carrinho, desconto, formas de pagamento e recibo</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">📦</div>
+        <div class="feat-text">
+          <h5>Controle de Estoque</h5>
+          <p>Variações por tamanho e cor, alertas críticos, entrada/saída manual, histórico completo</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🪡</div>
+        <div class="feat-text">
+          <h5>Gestão de Costureiras</h5>
+          <p>Cadastro com especialidade, CPF, valor por peça, lotes de produção e rastreabilidade</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">💰</div>
+        <div class="feat-text">
+          <h5>Financeiro Completo</h5>
+          <p>DRE, fluxo de caixa, contas a pagar/receber, custos fixos e margem por produto</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">📈</div>
+        <div class="feat-text">
+          <h5>Relatórios & Análises</h5>
+          <p>Posição de estoque, vendas por período, produção por costureira, desempenho de atendentes</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🔔</div>
+        <div class="feat-text">
+          <h5>Notificações em Tempo Real</h5>
+          <p>Alertas automáticos de estoque crítico, vendas confirmadas e vencimentos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== RESUMO FINANCEIRO ===== -->
+<div class="resumo-section">
+<div class="section-wrap">
+  <div class="section-eyebrow"><span>Resumo do Investimento</span></div>
+  <h2>Todos os valores<br><em>em um só lugar</em></h2>
+
+  <table class="resumo-table">
+    <thead>
+      <tr>
+        <th>Serviço</th>
+        <th>Tipo</th>
+        <th style="text-align:right">De</th>
+        <th style="text-align:right">Por</th>
+        <th style="text-align:right">Frequência</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <div class="item-name-cell">Influenciadora Flavinha Paulino</div>
+          <div class="item-cat">8 divulgações/mês (6 online + 2 presenciais)</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell strike">R$ 1.350</td>
+        <td class="price-cell">R$ 1.000</td>
+        <td class="freq-cell">/ mês</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Gestão de Tráfego Pago</div>
+          <div class="item-cat">Meses 1–3 (lançamento)</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell strike">R$ 1.500</td>
+        <td class="price-cell">R$ 500</td>
+        <td class="freq-cell">meses 1–3</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Gestão de Tráfego Pago</div>
+          <div class="item-cat">Mês 4 em diante (escala)</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell strike">R$ 1.500</td>
+        <td class="price-cell">R$ 1.000</td>
+        <td class="freq-cell">mês 4+</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Verba de Anúncios (Meta Ads)</div>
+          <div class="item-cat">Investimento direto na plataforma — ROAS 4× estimado</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell" style="color:#ccc">—</td>
+        <td class="price-cell">R$ 1.000</td>
+        <td class="freq-cell">/ mês</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Tráfego Orgânico — Produção de Conteúdo</div>
+          <div class="item-cat">20 posts + stories + videomaker mensal</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell strike">R$ 4.000</td>
+        <td class="price-cell">R$ 3.000</td>
+        <td class="freq-cell">/ mês</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Site / Catálogo Digital</div>
+          <div class="item-cat">Desenvolvimento — sem cadastro de produtos + treinamento</div>
+        </td>
+        <td><span class="type-badge badge-unico">Único</span></td>
+        <td class="price-cell" style="color:#ccc">—</td>
+        <td class="price-cell">R$ 1.300</td>
+        <td class="freq-cell">único</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Manutenção do Site</div>
+          <div class="item-cat">Suporte técnico e atualizações mensais</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell" style="color:#ccc">—</td>
+        <td class="price-cell">R$ 300</td>
+        <td class="freq-cell">/ mês</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Sistema Interno de Gestão</div>
+          <div class="item-cat">Desenvolvimento completo — prazo 75 dias</div>
+        </td>
+        <td><span class="type-badge badge-setup">Setup</span></td>
+        <td class="price-cell" style="color:#ccc">—</td>
+        <td class="price-cell">R$ 10.000</td>
+        <td class="freq-cell">único</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Suporte do Sistema Interno</div>
+          <div class="item-cat">Manutenção, ajustes e suporte pós-entrega</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell" style="color:#ccc">—</td>
+        <td class="price-cell">R$ 800</td>
+        <td class="freq-cell">/ mês</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Automação de Mensagens</div>
+          <div class="item-cat">Setup de fluxos no WhatsApp e Instagram</div>
+        </td>
+        <td><span class="type-badge badge-setup">Setup</span></td>
+        <td class="price-cell" style="color:#ccc">—</td>
+        <td class="price-cell">R$ 4.000</td>
+        <td class="freq-cell">único</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="item-name-cell">Manutenção da Automação</div>
+          <div class="item-cat">Ajustes mensais nos fluxos de atendimento</div>
+        </td>
+        <td><span class="type-badge badge-mensal">Mensal</span></td>
+        <td class="price-cell" style="color:#ccc">—</td>
+        <td class="price-cell">R$ 600</td>
+        <td class="freq-cell">/ mês</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TOTAIS -->
+  <div style="background:#fff; border-radius:16px; padding: 28px 32px; margin-top:24px; border: 1px solid rgba(196,135,123,0.15);">
+    <p style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#bbb; font-weight:600; margin-bottom:20px;">Resumo por tipo</p>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px;">
+      <div style="padding:20px 24px; background:var(--rose-bg); border-radius:12px; border:1px solid rgba(196,135,123,0.15);">
+        <div style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--rose-dim); margin-bottom:8px; font-weight:600;">Investimento Inicial (Setup)</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--rose-dim);">R$ 15.300</div>
+        <div style="font-size:12px; color:#bbb; margin-top:4px;">Sistema + Automação + Site</div>
+      </div>
+      <div style="padding:20px 24px; background:#eef3ff; border-radius:12px; border:1px solid rgba(24,72,146,0.12);">
+        <div style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ts-navy); margin-bottom:8px; font-weight:600;">Recorrente Mensal (1º ao 3º mês)</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--ts-navy);">R$ 6.400</div>
+        <div style="font-size:12px; color:#bbb; margin-top:4px;">Tráfego + Conteúdo + Influência + Manutenções + Verba</div>
+      </div>
+      <div style="padding:20px 24px; background:#eef3ff; border-radius:12px; border:1px solid rgba(24,72,146,0.12);">
+        <div style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ts-navy); margin-bottom:8px; font-weight:600;">Recorrente Mensal (4º mês+)</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--ts-navy);">R$ 6.900</div>
+        <div style="font-size:12px; color:#bbb; margin-top:4px;">Idem com gestão de tráfego em escala</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="economy-banner">
+    <div>
+      <p><strong>🎁 Economia total com os descontos negociados:</strong><br>
+      Influenciadora (−R$350/mês) + Tráfego Pago (−R$1.000/mês) + Conteúdo Orgânico (−R$1.000/mês)</p>
+    </div>
+    <div class="economy-amount">−R$ 2.350/mês</div>
+  </div>
+
+  <div class="side-note">
+    <span class="side-note-icon">📌</span>
+    <span>Os valores de <strong>setup</strong> (sistema, automação e site) são investimentos únicos, pagos na contratação ou entrega. Os valores <strong>mensais</strong> podem ser contratados individualmente ou em conjunto — quanto mais serviços, maior a sinergia entre eles. Recomendamos iniciar pelo tráfego pago + influenciadora e ir adicionando as demais soluções progressivamente.</span>
+  </div>
+</div>
+</div>
+
+<!-- ===== CRONOGRAMA ===== -->
+<div class="section-wrap">
+  <div class="section-eyebrow"><span>Cronograma</span></div>
+  <h2>Como os próximos<br><em>meses acontecem</em></h2>
+
+  <div class="timeline-grid">
+    <div class="tl-step">
+      <div class="tl-dot rose">1</div>
+      <div class="tl-month">Mês 1</div>
+      <div class="tl-title">Kickoff & Estrutura</div>
+      <div class="tl-desc">Onboarding, perfis otimizados, primeiros anúncios no ar, 1ª divulgação Flavinha Paulino, início da produção de conteúdo e kick-off do sistema interno.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot rose">2–3</div>
+      <div class="tl-month">Meses 2 – 3</div>
+      <div class="tl-title">Testes & Aprendizado</div>
+      <div class="tl-desc">Otimização dos anúncios com dados reais, ajuste de criativos, primeiros leads chegando, conteúdo orgânico ganhando tração e sistema em desenvolvimento.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot blue">4–6</div>
+      <div class="tl-month">Meses 4 – 6</div>
+      <div class="tl-title">Escala & Entrega do Sistema</div>
+      <div class="tl-desc">Tráfego entra em fase de escala (R$1.000/mês), sistema interno entregue e em uso, automações ativas — operação mais eficiente e vendas crescendo.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot navy">7–12</div>
+      <div class="tl-month">Meses 7 – 12</div>
+      <div class="tl-title">Consolidação & Expansão</div>
+      <div class="tl-desc">LuBrasil com marca digital consolidada, sistema rodando, base de clientes crescendo e métricas financeiras sob controle total.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CTA ===== -->
+<div class="cta-strip">
+  ✉️ &nbsp; Para fechar algum dos pacotes ou tirar dúvidas, entre em contato com a <strong>Traffic Solutions</strong> — vamos juntas fazer a LuBrasil crescer!
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  <img src="/TFLOGO.png" alt="Traffic Solutions">
+  <p>
+    <strong>Traffic Solutions</strong> — Especialistas em crescimento digital para moda e atacado<br>
+    Cases comprovados com <strong>+R$100k de faturamento mensal</strong> gerado para nossos clientes<br>
+    ROAS meta de <strong>6× no Meta Ads</strong> · Custo por lead estimado de <strong>R$1,00–R$1,50</strong><br><br>
+    Este documento é uma proposta comercial confidencial elaborada exclusivamente para a <strong>LuBrasil Moda Feminina</strong>.<br>
+    Válida por <strong>15 dias</strong> a partir da data de envio · 2026
+  </p>
+</div>
+
+</body>
+</html>
