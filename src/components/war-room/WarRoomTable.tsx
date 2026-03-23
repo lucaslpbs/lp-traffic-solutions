@@ -233,7 +233,7 @@ const Row = ({
           if (!metricCfg.active) {
             return (
               <td key={mid} className="py-2.5 px-3">
-                <span className="text-xs font-mono px-2 py-1 rounded bg-white text-gray-900">
+                <span className="text-xs font-mono px-2 py-1 rounded text-gray-500">
                   {formatMetricValue(val, metricCfg)}
                 </span>
               </td>
@@ -365,7 +365,7 @@ const ClientRow = ({
           if (!metricCfg.active) {
             return (
               <td key={mid} className="py-3 px-3">
-                <span className="text-xs font-mono px-2 py-1 rounded bg-white text-gray-900">
+                <span className="text-xs font-mono px-2 py-1 rounded text-gray-500">
                   {formatMetricValue(val, metricCfg)}
                 </span>
               </td>
