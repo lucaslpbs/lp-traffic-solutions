@@ -375,10 +375,10 @@ const WarRoom = () => {
             <SelectTrigger className="w-44 bg-[#0d0f14] border-white/10 text-white text-xs h-8">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
-            <SelectContent className="bg-[#1a1d24] border-white/10">
-              <SelectItem value="all">Todos</SelectItem>
+            <SelectContent className="bg-[#1a1d24] border-white/10 text-white">
+              <SelectItem value="all" className="text-white focus:bg-white/10 focus:text-white">Todos</SelectItem>
               {data.map(c => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.id} className="text-white focus:bg-white/10 focus:text-white">{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
