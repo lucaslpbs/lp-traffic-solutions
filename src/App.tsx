@@ -23,6 +23,7 @@ import ClientReport from "./pages/ClientReport";
 import WarRoom from "./pages/WarRoom";
 import OrcamentoLV3 from "./pages/OrcamentoLV3";
 import OrcamentoLuBrasil from "./pages/OrcamentoLuBrasil";
+import NpsDashboard from "./pages/NpsDashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/dashboard');
   const isLogin = location.pathname === '/login';
-  const isHiddenPage = location.pathname === '/brinde-exclusivo' || location.pathname === '/orcamento-lv3-multimarcas' || location.pathname === '/orcamento-lubrasil';
+  const isHiddenPage = location.pathname === '/brinde-exclusivo' || location.pathname === '/orcamento-lv3-multimarcas' || location.pathname === '/orcamento-lubrasil' || location.pathname === '/nps-ncsaude';
 
   if (isDashboard || isLogin || isHiddenPage) {
     return <>{children}</>;
@@ -59,6 +60,7 @@ const AppRoutes = () => {
         <Route path="/brinde-exclusivo" element={<BrindeLanding />} />
         <Route path="/orcamento-lv3-multimarcas" element={<OrcamentoLV3 />} />
         <Route path="/orcamento-lubrasil" element={<OrcamentoLuBrasil />} />
+        <Route path="/nps-ncsaude" element={<NpsDashboard />} />
         
         <Route path="/login" element={<Login />} />
         
