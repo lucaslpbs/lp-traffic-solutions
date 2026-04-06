@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta Comercial — Óticas Visão | Traffic Solutions</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #0f0f18;
+    --bg-card: #12121e;
+    --bg-card-hover: #16162a;
+    --border: rgba(99, 179, 237, 0.12);
+    --border-hover: rgba(99, 179, 237, 0.3);
+    --blue: #3b9eff;
+    --blue-light: #63b3ed;
+    --blue-glow: rgba(59, 158, 255, 0.15);
+    --blue-glow-strong: rgba(59, 158, 255, 0.3);
+    --gold: #f6c90e;
+    --gold-dim: rgba(246, 201, 14, 0.15);
+    --green: #48bb78;
+    --green-dim: rgba(72, 187, 120, 0.15);
+    --text-primary: #f0f4ff;
+    --text-secondary: #8896b3;
+    --text-muted: #4a5568;
+    --popular-badge: linear-gradient(135deg, #3b9eff, #6366f1);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ─── UTILITIES ─── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 96px 0; }
+  .section-sm { padding: 64px 0; }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--blue-glow); border: 1px solid var(--border-hover);
+    color: var(--blue-light); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 6px 14px; border-radius: 999px;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 5vw, 42px); font-weight: 800;
+    line-height: 1.2; color: var(--text-primary);
+  }
+  .section-title span { color: var(--blue); }
+  .section-subtitle {
+    font-size: clamp(15px, 2.5vw, 18px);
+    color: var(--text-secondary); margin-top: 12px; max-width: 600px;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 16px 32px; border-radius: var(--radius-sm); font-size: 15px;
+    font-weight: 600; cursor: pointer; border: none; text-decoration: none;
+    transition: all 0.25s ease; white-space: nowrap; font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--blue); color: #fff;
+    box-shadow: 0 0 24px var(--blue-glow-strong);
+  }
+  .btn-primary:hover { background: #5aadff; transform: translateY(-2px); box-shadow: 0 0 36px var(--blue-glow-strong); }
+  .btn-whatsapp {
+    background: #25d366; color: #fff;
+    box-shadow: 0 0 24px rgba(37,211,102,0.25);
+  }
+  .btn-whatsapp:hover { background: #20bd5a; transform: translateY(-2px); box-shadow: 0 0 36px rgba(37,211,102,0.35); }
+  .btn-outline {
+    background: transparent; color: var(--blue-light);
+    border: 1.5px solid var(--border-hover);
+  }
+  .btn-outline:hover { background: var(--blue-glow); border-color: var(--blue); transform: translateY(-2px); }
+  .btn-lg { padding: 20px 44px; font-size: 17px; border-radius: var(--radius); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 80px 24px 60px;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,158,255,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(99,102,241,0.08) 0%, transparent 60%),
+                var(--bg-primary);
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b9eff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .hero-logo-wrap {
+    margin-bottom: 36px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 32px;
+    backdrop-filter: blur(12px);
+    display: inline-block;
+  }
+  .hero-logo { height: 60px; width: auto; max-width: 260px; object-fit: contain; display: block; }
+
+  .hero h1 {
+    font-size: clamp(30px, 5.5vw, 56px); font-weight: 900;
+    line-height: 1.1; margin-bottom: 20px;
+    background: linear-gradient(135deg, #f0f4ff 30%, var(--blue-light) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero p.subtitle {
+    font-size: clamp(16px, 2.5vw, 20px); color: var(--text-secondary);
+    max-width: 600px; margin: 0 auto 16px;
+  }
+  .hero p.desc {
+    font-size: clamp(14px, 2vw, 16px); color: var(--text-muted);
+    max-width: 500px; margin: 0 auto 40px;
+  }
+  .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  /* scroll indicator */
+  .scroll-down {
+    margin-top: 56px; display: flex; flex-direction: column;
+    align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px;
+    animation: bounce 2s infinite;
+  }
+  .scroll-down svg { opacity: 0.5; }
+  @keyframes bounce { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(6px); } }
+
+  /* ─── PLANS SECTION ─── */
+  .plans-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 24px; margin-top: 56px; align-items: stretch;
+  }
+  .plan-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 36px 28px;
+    display: flex; flex-direction: column;
+    transition: all 0.3s ease; position: relative; overflow: hidden;
+  }
+  .plan-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .plan-card.popular {
+    border-color: var(--blue); background: var(--bg-card-hover);
+    box-shadow: 0 0 40px var(--blue-glow);
+    transform: scale(1.03);
+  }
+  .plan-card.popular:hover { transform: scale(1.03) translateY(-4px); }
+  .plan-card.popular::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--popular-badge);
+  }
+  .plan-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--popular-badge); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 20px;
+    width: fit-content;
+  }
+  .plan-name { font-size: 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .plan-price { font-size: 38px; font-weight: 900; color: var(--text-primary); line-height: 1; }
+  .plan-price span { font-size: 16px; font-weight: 500; color: var(--text-secondary); }
+  .plan-divider { height: 1px; background: var(--border); margin: 24px 0; }
+  .plan-features { list-style: none; flex: 1; }
+  .plan-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; font-size: 14px; color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .plan-features li:last-child { border-bottom: none; }
+  .plan-features li::before { content: '✓'; color: var(--blue); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ─── OPTIMIZATION ─── */
+  .optim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
+  .optim-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 40px 36px;
+    transition: all 0.3s ease; position: relative;
+  }
+  .optim-card:hover { border-color: var(--border-hover); transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,0.3); }
+  .optim-card.highlight {
+    border-color: var(--gold); background: linear-gradient(135deg, var(--bg-card), rgba(246,201,14,0.04));
+    box-shadow: 0 0 40px rgba(246,201,14,0.08);
+  }
+  .optim-card.highlight:hover { box-shadow: 0 16px 48px rgba(246,201,14,0.12); }
+  .save-badge {
+    position: absolute; top: -12px; right: 24px;
+    background: var(--gold); color: #0a0a0f;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+    padding: 5px 14px; border-radius: 999px;
+  }
+  .optim-type { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .optim-price-main { font-size: 44px; font-weight: 900; line-height: 1; margin-bottom: 6px; }
+  .optim-card.highlight .optim-price-main { color: var(--gold); }
+  .optim-price-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+  .optim-features { list-style: none; }
+  .optim-features li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0; font-size: 14px; color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .optim-features li:last-child { border-bottom: none; }
+  .optim-features li::before { content: '●'; color: var(--blue); font-size: 8px; flex-shrink: 0; }
+  .optim-card.highlight .optim-features li::before { color: var(--gold); }
+
+  /* ─── CALCULATOR ─── */
+  .calc-wrapper {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 48px; margin-top: 48px;
+    position: relative; overflow: hidden;
+  }
+  .calc-wrapper::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--blue), #6366f1, var(--blue));
+  }
+
+  .calc-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .calc-group { }
+  .calc-group-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-muted); margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .calc-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; border-radius: var(--radius-sm);
+    margin-bottom: 8px; cursor: pointer;
+    border: 1.5px solid transparent; background: var(--bg-primary);
+    transition: all 0.2s ease;
+  }
+  .calc-item:hover { border-color: var(--border-hover); background: rgba(59,158,255,0.04); }
+  .calc-item.selected { border-color: var(--blue); background: var(--blue-glow); }
+  .calc-item input[type="checkbox"] { display: none; }
+  .calc-check {
+    width: 18px; height: 18px; min-width: 18px;
+    border: 2px solid var(--text-muted); border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; margin-top: 1px;
+  }
+  .calc-item.selected .calc-check {
+    background: var(--blue); border-color: var(--blue);
+  }
+  .calc-check::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; display: none; }
+  .calc-item.selected .calc-check::after { display: block; }
+  .calc-item-info { flex: 1; }
+  .calc-item-name { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.3; }
+  .calc-item-price { font-size: 12px; color: var(--blue-light); font-weight: 600; margin-top: 2px; }
+
+  .calc-result {
+    margin-top: 40px; background: var(--bg-primary);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 36px;
+  }
+  .calc-result-title { font-size: 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 24px; }
+  .calc-items-list { margin-bottom: 20px; }
+  .calc-item-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 14px;
+  }
+  .calc-item-row:last-child { border-bottom: none; }
+  .calc-item-row span:first-child { color: var(--text-secondary); }
+  .calc-item-row span:last-child { color: var(--text-primary); font-weight: 600; }
+  .calc-empty { color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px 0; }
+
+  .calc-totals { border-top: 1px solid var(--border); padding-top: 20px; }
+  .calc-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; font-size: 15px;
+  }
+  .calc-row.subtotal { color: var(--text-secondary); }
+  .calc-row.discount { color: var(--green); font-weight: 600; }
+  .calc-row.discount .discount-label { display: flex; align-items: center; gap: 8px; }
+  .calc-row.total {
+    font-size: 28px; font-weight: 900; color: var(--text-primary);
+    padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--border);
+  }
+  .calc-row.total span:last-child { color: var(--blue); }
+
+  .discount-badge {
+    background: var(--green-dim); color: var(--green);
+    padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    animation: pulse-green 1s ease;
+  }
+  @keyframes pulse-green { 0%{ transform: scale(0.8); opacity: 0; } 60%{ transform: scale(1.1); } 100%{ transform: scale(1); opacity: 1; } }
+
+  .complete-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, var(--blue), #6366f1);
+    color: #fff; font-size: 12px; font-weight: 700;
+    padding: 6px 16px; border-radius: 999px; margin-top: 12px;
+    animation: pulse-blue 0.5s ease;
+  }
+  @keyframes pulse-blue { 0%{ transform: scale(0.8); opacity:0; } 60%{ transform: scale(1.05); } 100%{ transform: scale(1); opacity:1; } }
+
+  .calc-cta { margin-top: 28px; display: flex; justify-content: center; }
+
+  /* ─── ADS SECTION ─── */
+  .ads-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
+  .ads-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 40px 36px;
+    transition: all 0.3s ease; position: relative; overflow: hidden;
+  }
+  .ads-card:hover { border-color: var(--border-hover); transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,0.3); }
+  .ads-card.advanced {
+    border-color: var(--blue);
+    box-shadow: 0 0 40px var(--blue-glow);
+  }
+  .ads-card.advanced::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--popular-badge);
+  }
+  .ads-name { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .ads-price { font-size: 42px; font-weight: 900; color: var(--text-primary); line-height: 1; margin-bottom: 4px; }
+  .ads-price-note { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+  .ads-invest { font-size: 14px; color: var(--blue-light); font-weight: 600; margin-bottom: 28px; background: var(--blue-glow); padding: 8px 14px; border-radius: var(--radius-sm); display: inline-block; }
+  .ads-features { list-style: none; }
+  .ads-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 0; font-size: 14px; color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .ads-features li:last-child { border-bottom: none; }
+  .ads-features li::before { content: '→'; color: var(--blue); flex-shrink: 0; }
+  .ads-note {
+    margin-top: 32px; background: rgba(59,158,255,0.06); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 16px 20px;
+    font-size: 13px; color: var(--text-muted); font-style: italic;
+  }
+
+  /* ─── WHY SECTION ─── */
+  .why-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
+  .why-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 40px 32px; text-align: center;
+    transition: all 0.3s ease;
+  }
+  .why-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.25); }
+  .why-icon { font-size: 44px; margin-bottom: 20px; display: block; }
+  .why-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+  .why-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+
+  /* ─── FOOTER CTA ─── */
+  .footer-cta {
+    text-align: center; padding: 96px 24px;
+    background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(59,158,255,0.12) 0%, transparent 70%);
+  }
+  .footer-cta h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 900; margin-bottom: 16px; }
+  .footer-cta p { font-size: 18px; color: var(--text-secondary); margin-bottom: 40px; }
+  .footer-sign { margin-top: 48px; font-size: 13px; color: var(--text-muted); }
+
+  /* ─── DIVIDER ─── */
+  .section-divider {
+    height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 24px;
+  }
+
+  /* ─── FADE IN ANIMATIONS ─── */
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .plans-grid { grid-template-columns: 1fr; }
+    .plan-card.popular { transform: none; }
+    .plan-card.popular:hover { transform: translateY(-4px); }
+    .optim-grid { grid-template-columns: 1fr; }
+    .ads-grid { grid-template-columns: 1fr; }
+    .why-grid { grid-template-columns: 1fr; }
+    .calc-groups { grid-template-columns: 1fr; }
+    .calc-wrapper { padding: 28px 20px; }
+    .calc-result { padding: 24px 20px; }
+    .save-badge { right: 16px; top: -10px; }
+  }
+  @media (max-width: 480px) {
+    .section { padding: 64px 0; }
+    .btn-lg { padding: 18px 32px; font-size: 15px; }
+    .plan-price { font-size: 32px; }
+    .optim-price-main { font-size: 36px; }
+    .ads-price { font-size: 36px; }
+    .calc-row.total { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero" id="topo">
+  <div style="position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center">
+    <div class="hero-logo-wrap fade-in">
+      <img
+        src="https://dcdn-us.mitiendanube.com/stores/001/542/353/themes/flex/img-6411770019173714761-1770917135-ffe45dd723cbf39f643d6ff58be7269a1770917135.png"
+        alt="Óticas Visão"
+        class="hero-logo"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+      />
+      <span style="display:none;font-size:22px;font-weight:800;color:#f0f4ff;letter-spacing:-0.5px">Óticas Visão</span>
+    </div>
+
+    <h1 class="fade-in" style="animation-delay:0.1s">
+      Proposta Comercial Exclusiva<br>— Óticas Visão
+    </h1>
+    <p class="subtitle fade-in" style="animation-delay:0.2s">
+      Manutenção, Otimização e Crescimento Digital para o seu e-commerce
+    </p>
+    <div class="hero-cta fade-in" style="animation-delay:0.3s">
+      <a href="#planos" class="btn btn-primary btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        Ver minha proposta completa
+      </a>
+      <a href="https://wa.me/5585998088064?text=Ol%C3%A1!%20Vi%20a%20proposta%20e%20tenho%20interesse." target="_blank" class="btn btn-outline btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.861L0 24l6.335-1.509A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.848 0-3.58-.487-5.073-1.337l-.363-.216-3.763.896.959-3.681-.236-.38A10 10 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Falar no WhatsApp
+      </a>
+    </div>
+    <div class="scroll-down fade-in" style="animation-delay:0.4s">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      Role para ver a proposta
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════ PLANOS ═══════════════ -->
+<section class="section" id="planos">
+  <div class="container">
+    <div class="fade-in">
+      <div class="tag">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Planos de Manutenção
+      </div>
+      <h2 class="section-title" style="margin-top:14px">Escolha o plano ideal para<br><span>o seu site</span></h2>
+      <p class="section-subtitle">Suporte contínuo, atualizações e crescimento mês a mês — sem preocupações técnicas.</p>
+    </div>
+
+    <div class="plans-grid">
+      <!-- Essencial -->
+      <div class="plan-card fade-in">
+        <div class="plan-name">Essencial</div>
+        <div class="plan-price">R$ 700<span>/mês</span></div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Suporte técnico e correção de erros</li>
+          <li>Atualizações de segurança e plataforma</li>
+          <li>Ajustes de layout e conteúdo</li>
+          <li>Relatório mensal simplificado</li>
+        </ul>
+      </div>
+
+      <!-- Crescimento (popular) -->
+      <div class="plan-card popular fade-in" style="animation-delay:0.1s">
+        <div class="plan-badge">⭐ Mais Popular</div>
+        <div class="plan-name">Crescimento</div>
+        <div class="plan-price">R$ 950<span>/mês</span></div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Tudo do plano Essencial</li>
+          <li><strong style="color:var(--blue-light)">10 produtos/mês</strong> otimizados (imagem, descrição e SEO)</li>
+          <li>Relatório mensal completo</li>
+        </ul>
+      </div>
+
+      <!-- Aceleração -->
+      <div class="plan-card fade-in" style="animation-delay:0.2s">
+        <div class="plan-name">Aceleração</div>
+        <div class="plan-price">R$ 1.200<span>/mês</span></div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Tudo do plano Crescimento</li>
+          <li><strong style="color:var(--blue-light)">20 produtos/mês</strong> otimizados (imagem, descrição e SEO)</li>
+          <li>Prioridade no atendimento</li>
+          <li>Relatório mensal avançado com métricas</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════ OTIMIZAÇÃO ═══════════════ -->
+<section class="section" id="otimizacao">
+  <div class="container">
+    <div class="fade-in">
+      <div class="tag">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Catálogo Completo
+      </div>
+      <h2 class="section-title" style="margin-top:14px">Transforme seu catálogo<br><span>completo de uma vez</span></h2>
+      <p class="section-subtitle">1.050 produtos otimizados com imagens, descrições profissionais e SEO</p>
+    </div>
+
+    <div class="optim-grid">
+      <!-- Parcelado -->
+      <div class="optim-card fade-in">
+        <div class="optim-type">Parcelado</div>
+        <div class="optim-price-main">6× R$ 1.750</div>
+        <div class="optim-price-sub">Total de R$ 10.500,00 — entrega em lotes mensais</div>
+      </div>
+
+      <!-- À Vista -->
+      <div class="optim-card highlight fade-in" style="animation-delay:0.1s">
+        <div class="save-badge">ECONOMIZE R$ 2.000</div>
+        <div class="optim-type">À Vista</div>
+        <div class="optim-price-main">R$ 8.500</div>
+        <div class="optim-price-sub">Desconto de R$ 2.000,00 — início imediato</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════ CALCULADORA ═══════════════ -->
+<section class="section" id="calculadora">
+  <div class="container">
+    <div class="fade-in" style="text-align:center">
+      <div class="tag" style="margin:0 auto">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+        Monte seu pacote
+      </div>
+      <h2 class="section-title" style="margin-top:14px">Monte o pacote ideal e veja<br><span>seu desconto em tempo real</span></h2>
+      <p class="section-subtitle" style="margin:0 auto">Quanto mais você investe no crescimento do seu site, maior o desconto.</p>
+    </div>
+
+    <div class="calc-wrapper fade-in">
+      <!-- Grupos de serviços -->
+      <div class="calc-groups">
+
+        <!-- Manutenção -->
+        <div class="calc-group">
+          <div class="calc-group-title">Manutenção Mensal</div>
+
+          <div class="calc-item" data-group="manutencao" data-price="700" data-label="Plano Essencial" data-suffix="/mês" onclick="toggleItem(this)">
+            <div class="calc-check"></div>
+            <div class="calc-item-info">
+              <div class="calc-item-name">Plano Essencial</div>
+              <div class="calc-item-price">R$ 700/mês</div>
+            </div>
+          </div>
+
+          <div class="calc-item" data-group="manutencao" data-price="950" data-label="Plano Crescimento" data-suffix="/mês" onclick="toggleItem(this)">
+            <div class="calc-check"></div>
+            <div class="calc-item-info">
+              <div class="calc-item-name">Plano Crescimento</div>
+              <div class="calc-item-price">R$ 950/mês</div>
+            </div>
+          </div>
+
+          <div class="calc-item" data-group="manutencao" data-price="1200" data-label="Plano Aceleração" data-suffix="/mês" onclick="toggleItem(this)">
+            <div class="calc-check"></div>
+            <div class="calc-item-info">
+              <div class="calc-item-name">Plano Aceleração</div>
+              <div class="calc-item-price">R$ 1.200/mês</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Otimização -->
+        <div class="calc-group">
+          <div class="calc-group-title">Otimização do Catálogo</div>
+
+          <div class="calc-item" data-group="otimizacao" data-price="1750" data-label="Otimização — Parcelado (6×)" data-suffix="/mês" onclick="toggleItem(this)">
+            <div class="calc-check"></div>
+            <div class="calc-item-info">
+              <div class="calc-item-name">Catálogo Completo — Parcelado</div>
+              <div class="calc-item-price">6× R$ 1.750/mês</div>
+            </div>
+          </div>
+
+          <div class="calc-item" data-group="otimizacao" data-price="8500" data-label="Otimização — À vista" data-suffix="" onclick="toggleItem(this)">
+            <div class="calc-check"></div>
+            <div class="calc-item-info">
+              <div class="calc-item-name">Catálogo Completo — À Vista</div>
+              <div class="calc-item-price">R$ 8.500 único</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tráfego -->
+        <div class="calc-group">
+          <div class="calc-group-title">Gestão de Tráfego Pago</div>
+
+          <div class="calc-item" data-group="trafego" data-price="2000" data-label="Google Ads Básico" data-suffix="/mês" onclick="toggleItem(this)">
+            <div class="calc-check"></div>
+            <div class="calc-item-info">
+              <div class="calc-item-name">Google Ads — Básico</div>
+              <div class="calc-item-price">R$ 2.000/mês (gestão)</div>
+            </div>
+          </div>
+
+          <div class="calc-item" data-group="trafego" data-price="3500" data-label="Google Ads Avançado" data-suffix="/mês" onclick="toggleItem(this)">
+            <div class="calc-check"></div>
+            <div class="calc-item-info">
+              <div class="calc-item-name">Google Ads — Avançado</div>
+              <div class="calc-item-price">R$ 3.500/mês (gestão)</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Resultado -->
+      <div class="calc-result">
+        <div class="calc-result-title">Resumo da proposta</div>
+        <div class="calc-items-list" id="calcItemsList">
+          <div class="calc-empty" id="calcEmpty">Selecione os serviços acima para montar seu pacote.</div>
+        </div>
+        <div class="calc-totals" id="calcTotals" style="display:none">
+          <div class="calc-row subtotal">
+            <span>Subtotal</span>
+            <span id="calcSubtotal">R$ 0,00</span>
+          </div>
+          <div class="calc-row discount" id="calcDiscountRow" style="display:none">
+            <span class="discount-label">
+              Desconto
+              <span class="discount-badge" id="calcDiscountPct"></span>
+            </span>
+            <span id="calcDiscountVal" style="color:var(--green)">− R$ 0,00</span>
+          </div>
+          <div class="calc-row total">
+            <span>Total</span>
+            <span id="calcTotal">R$ 0,00</span>
+          </div>
+          <div id="calcCompleteBadge" style="display:none;margin-top:12px">
+            <span class="complete-badge">🏆 Pacote Completo — Melhor desconto aplicado!</span>
+          </div>
+        </div>
+        <div class="calc-cta">
+          <a href="#" id="calcWhatsBtn" class="btn btn-whatsapp btn-lg" style="display:none" target="_blank">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.861L0 24l6.335-1.509A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.848 0-3.58-.487-5.073-1.337l-.363-.216-3.763.896.959-3.681-.236-.38A10 10 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            Quero esse pacote — Falar no WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════ TRÁFEGO ═══════════════ -->
+<section class="section" id="trafego">
+  <div class="container">
+    <div class="fade-in">
+      <div class="tag">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Google Ads
+      </div>
+      <h2 class="section-title" style="margin-top:14px">Leve clientes até o seu site<br><span>com Google Ads</span></h2>
+      <p class="section-subtitle">Gestão profissional de campanhas para vender mais todos os dias</p>
+    </div>
+
+    <div class="ads-grid">
+      <!-- Básico -->
+      <div class="ads-card fade-in">
+        <div class="ads-name">Google Ads — Básico</div>
+        <div class="ads-price">R$ 2.000</div>
+        <div class="ads-price-note">/mês (gestão)</div>
+        <div class="ads-invest">Investimento de até R$ 4.000/mês em anúncios</div>
+        <ul class="ads-features">
+          <li>Criação e otimização de campanhas</li>
+          <li>Segmentação por produto e público</li>
+          <li>Relatório quinzenal de performance</li>
+        </ul>
+      </div>
+
+      <!-- Avançado -->
+      <div class="ads-card advanced fade-in" style="animation-delay:0.1s">
+        <div class="ads-name">Google Ads — Avançado</div>
+        <div class="ads-price">R$ 3.500</div>
+        <div class="ads-price-note">/mês (gestão)</div>
+        <div class="ads-invest">Investimento de até R$ 8.000/mês em anúncios</div>
+        <ul class="ads-features">
+          <li>Tudo do plano Básico</li>
+          <li>Remarketing + Google Shopping</li>
+          <li>Relatório semanal + suporte prioritário</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════ FOOTER CTA ═══════════════ -->
+<footer class="footer-cta" id="contato">
+  <div class="container">
+    <div class="fade-in">
+      <h2>Alguma dúvida?<br><span style="color:var(--blue)">Chame no WhatsApp.</span></h2>
+      <p></p>
+      <a href="https://wa.me/5585998088064?text=Ol%C3%A1!%20Vi%20a%20proposta%20e%20tenho%20interesse." target="_blank" class="btn btn-whatsapp btn-lg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.861L0 24l6.335-1.509A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.848 0-3.58-.487-5.073-1.337l-.363-.216-3.763.896.959-3.681-.236-.38A10 10 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Falar agora no WhatsApp
+      </a>
+      <div class="footer-sign">Proposta elaborada por Traffic Solutions</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
+<script>
+  // ─── Format currency pt-BR ───
+  function fmt(val) {
+    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  // ─── Calculator State ───
+  const selected = {}; // group -> { el, price, label, suffix }
+
+  function toggleItem(el) {
+    const group = el.dataset.group;
+    const price = parseFloat(el.dataset.price);
+    const label = el.dataset.label;
+    const suffix = el.dataset.suffix;
+
+    // If already selected, deselect
+    if (selected[group] && selected[group].el === el) {
+      el.classList.remove('selected');
+      delete selected[group];
+    } else {
+      // Deselect previous in same group
+      if (selected[group]) {
+        selected[group].el.classList.remove('selected');
+      }
+      el.classList.add('selected');
+      selected[group] = { el, price, label, suffix };
+    }
+    updateCalc();
+  }
+
+  function updateCalc() {
+    const items = Object.values(selected);
+    const listEl = document.getElementById('calcItemsList');
+    const emptyEl = document.getElementById('calcEmpty');
+    const totalsEl = document.getElementById('calcTotals');
+    const subtotalEl = document.getElementById('calcSubtotal');
+    const discountRowEl = document.getElementById('calcDiscountRow');
+    const discountPctEl = document.getElementById('calcDiscountPct');
+    const discountValEl = document.getElementById('calcDiscountVal');
+    const totalEl = document.getElementById('calcTotal');
+    const completeBadgeEl = document.getElementById('calcCompleteBadge');
+    const whatsBtn = document.getElementById('calcWhatsBtn');
+
+    if (items.length === 0) {
+      emptyEl.style.display = 'block';
+      totalsEl.style.display = 'none';
+      whatsBtn.style.display = 'none';
+
+      // Remove item rows
+      listEl.querySelectorAll('.calc-item-row').forEach(r => r.remove());
+      return;
+    }
+
+    emptyEl.style.display = 'none';
+    totalsEl.style.display = 'block';
+    whatsBtn.style.display = 'flex';
+
+    // Clear old rows
+    listEl.querySelectorAll('.calc-item-row').forEach(r => r.remove());
+
+    let subtotal = 0;
+    items.forEach(item => {
+      subtotal += item.price;
+      const row = document.createElement('div');
+      row.className = 'calc-item-row';
+      row.innerHTML = `<span>${item.label}</span><span>${fmt(item.price)}${item.suffix ? item.suffix : ''}</span>`;
+      listEl.appendChild(row);
+    });
+
+    // Discount logic
+    const groupCount = items.length;
+    const hasAll = selected['manutencao'] && selected['otimizacao'] && selected['trafego'];
+    let discountPct = 0;
+
+    if (hasAll) discountPct = 15;
+    else if (groupCount >= 3) discountPct = 10;
+    else if (groupCount === 2) discountPct = 5;
+
+    const discountVal = subtotal * (discountPct / 100);
+    const total = subtotal - discountVal;
+
+    subtotalEl.textContent = fmt(subtotal);
+
+    if (discountPct > 0) {
+      discountRowEl.style.display = 'flex';
+      discountPctEl.textContent = discountPct + '%';
+      discountPctEl.className = 'discount-badge'; // re-trigger animation
+      void discountPctEl.offsetWidth;
+      discountPctEl.className = 'discount-badge';
+      discountValEl.textContent = '− ' + fmt(discountVal);
+    } else {
+      discountRowEl.style.display = 'none';
+    }
+
+    totalEl.textContent = fmt(total);
+    completeBadgeEl.style.display = hasAll ? 'block' : 'none';
+
+    // Build WhatsApp message
+    let msg = 'Olá! Tenho interesse na proposta. Gostaria de contratar:\n';
+    items.forEach(item => {
+      msg += `- ${item.label} (${fmt(item.price)}${item.suffix})\n`;
+    });
+    if (discountPct > 0) {
+      msg += `Desconto aplicado: ${discountPct}%\n`;
+      msg += `Valor economizado: ${fmt(discountVal)}\n`;
+    }
+    msg += `Total: ${fmt(total)}`;
+
+    whatsBtn.href = 'https://wa.me/5585998088064?text=' + encodeURIComponent(msg);
+  }
+
+  // ─── Intersection Observer for fade-in ───
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        // slight stagger based on position
+        setTimeout(() => entry.target.classList.add('visible'), i * 40);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

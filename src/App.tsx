@@ -25,6 +25,7 @@ import OrcamentoLV3 from "./pages/OrcamentoLV3";
 import OrcamentoLuBrasil from "./pages/OrcamentoLuBrasil";
 import NpsDashboard from "./pages/NpsDashboard";
 import KoruEngenharia from "./pages/KoruEngenharia";
+import OrcamentoOticasVisao from "./pages/OrcamentoOticasVisao";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +33,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/dashboard');
   const isLogin = location.pathname === '/login';
-  const isHiddenPage = location.pathname === '/brinde-exclusivo' || location.pathname === '/orcamento-lv3-multimarcas' || location.pathname === '/orcamento-lubrasil' || location.pathname === '/nps-ncsaude' || location.pathname === '/koru-engenharia';
+  const isHiddenPage = location.pathname === '/brinde-exclusivo' || location.pathname === '/orcamento-lv3-multimarcas' || location.pathname === '/orcamento-lubrasil' || location.pathname === '/nps-ncsaude' || location.pathname === '/koru-engenharia' || location.pathname === '/orcamento-oticasvisao';
 
   if (isDashboard || isLogin || isHiddenPage) {
     return <>{children}</>;
@@ -63,6 +64,7 @@ const AppRoutes = () => {
         <Route path="/orcamento-lubrasil" element={<OrcamentoLuBrasil />} />
         <Route path="/nps-ncsaude" element={<NpsDashboard />} />
         <Route path="/koru-engenharia" element={<KoruEngenharia />} />
+        <Route path="/orcamento-oticasvisao" element={<OrcamentoOticasVisao />} />
         
         <Route path="/login" element={<Login />} />
         
