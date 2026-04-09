@@ -16,6 +16,7 @@ import {
   formatCurrencyFull,
   type KoruDashboardData,
   type KoruLead,
+  type FunilStep,
   type VendaGanhaRow,
   type VgvEtapaRow,
   computeKPIs,

@@ -35,6 +35,54 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          atendente: string | null
+          comprou: boolean | null
+          created_at: string
+          id: string
+          interesse_cliente: string | null
+          nivel_atendimento: string | null
+          nivel_conversa: string | null
+          nome: string
+          notas: string | null
+          origem: string | null
+          status: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          atendente?: string | null
+          comprou?: boolean | null
+          created_at?: string
+          id?: string
+          interesse_cliente?: string | null
+          nivel_atendimento?: string | null
+          nivel_conversa?: string | null
+          nome: string
+          notas?: string | null
+          origem?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          atendente?: string | null
+          comprou?: boolean | null
+          created_at?: string
+          id?: string
+          interesse_cliente?: string | null
+          nivel_atendimento?: string | null
+          nivel_conversa?: string | null
+          nome?: string
+          notas?: string | null
+          origem?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           clicks: number
