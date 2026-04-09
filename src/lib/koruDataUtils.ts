@@ -107,11 +107,11 @@ const IMOBILIARIAS = [
 
 const FUNIL_ORDER = [
   'Contato inicial',
+  'Em Atendimento',
   'Corretor nomeado',
   'Visita REALIZADA',
-  'DOCUMENTOS PENDENTES',
-  'contratado',
   'Venda Ganha',
+  'Venda Perdida',
 ];
 
 // Stages that represent a closed/won deal
@@ -156,11 +156,13 @@ function parseDateStr(dateStr: unknown): Date | null {
 function normalizeEtapa(etapa: string): string {
   const lower = etapa.toLowerCase().trim();
   if (lower === 'contato inicial') return 'Contato inicial';
+  if (lower.includes('em atendimento') || lower === 'atendimento') return 'Em Atendimento';
   if (lower === 'corretor nomeado') return 'Corretor nomeado';
   if (lower.includes('visita')) return 'Visita REALIZADA';
-  if (lower.includes('document')) return 'DOCUMENTOS PENDENTES';
-  if (lower === 'contratado') return 'contratado';
+  if (lower.includes('document')) return 'DOCUMENTOS PENDENTES'; // kept for legacy data
+  if (lower === 'contratado') return 'contratado'; // legacy
   if (lower.includes('venda ganha') || lower === 'ganha') return 'Venda Ganha';
+  if (lower.includes('venda perdida') || lower === 'perdida') return 'Venda Perdida';
   return etapa.trim();
 }
 
@@ -253,9 +255,11 @@ export function computeFunil(leads: KoruLead[]): FunilStep[] {
   return steps.map((step, i) => ({
     etapa: step.etapa,
     total: step.total,
+    // conversaoPrev kept for type compatibility but chart uses conversaoTotal
     conversaoPrev: i > 0 && steps[i - 1].total > 0
       ? parseFloat(((step.total / steps[i - 1].total) * 100).toFixed(1))
       : null,
+    // % relative to the first step — never exceeds 100%
     conversaoTotal: first > 0
       ? parseFloat(((step.total / first) * 100).toFixed(1))
       : null,

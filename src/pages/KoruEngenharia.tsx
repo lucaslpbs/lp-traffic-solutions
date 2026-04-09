@@ -166,12 +166,12 @@ function FunilChart({ data, title = 'Funil de Vendas' }: { data: FunilStep[]; ti
                   )}
                 </div>
                 <div className="w-16 text-right">
-                  {step.conversaoPrev !== null ? (
+                  {step.conversaoTotal !== null ? (
                     <span
                       className="text-xs font-semibold px-1.5 py-0.5 rounded"
                       style={{ background: `${color}22`, color }}
                     >
-                      {step.conversaoPrev}%
+                      {step.conversaoTotal}%
                     </span>
                   ) : (
                     <span className="text-xs" style={{ color: C.textMuted }}>100%</span>
@@ -184,7 +184,7 @@ function FunilChart({ data, title = 'Funil de Vendas' }: { data: FunilStep[]; ti
       </div>
       <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
         <p className="text-xs" style={{ color: C.textMuted }}>
-          % = conversão da etapa anterior → etapa atual
+          % = conversão em relação ao topo do funil (Contato inicial)
         </p>
       </div>
     </div>
