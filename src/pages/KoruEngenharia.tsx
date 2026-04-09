@@ -4,24 +4,28 @@ import {
   LineChart, Line, PieChart, Pie, Cell, Legend, LabelList,
 } from 'recharts';
 import {
-  Building2, Users, UserCheck, FileCheck, TrendingUp, DollarSign,
+  Users, UserCheck, FileCheck, TrendingUp, DollarSign,
   ReceiptText, UserX, RefreshCw, Upload, ChevronUp, ChevronDown,
   ChevronsUpDown, Search, ChevronLeft, ChevronRight, Lightbulb,
-  CalendarDays,
+  CalendarDays, Check, X,
 } from 'lucide-react';
 import {
-  loadKoruData,
+  loadAllKoruData,
   loadKoruDataFromFile,
   formatCurrency,
   formatCurrencyFull,
   type KoruDashboardData,
   type KoruLead,
+  type VendaGanhaRow,
+  type VgvEtapaRow,
   computeKPIs,
   computeFunil,
   computeLeadsPorMes,
   computePorCorretor,
   computePorCanal,
   computePorProduto,
+  computeVendasGanhas,
+  computeVgvPorEtapa,
   generateInsights,
 } from '@/lib/koruDataUtils';
 
@@ -50,6 +54,7 @@ const ETAPA_COLORS: Record<string, string> = {
 };
 
 const CANAL_COLORS = ['#1E3A5F', '#2563EB', '#60A5FA', '#93C5FD', '#BFDBFE'];
+const PRODUTO_COLORS = ['#1E3A5F', '#2563EB', '#10B981', '#F59E0B', '#7C3AED', '#EF4444', '#EC4899', '#06B6D4'];
 
 // ── Utility ────────────────────────────────────────────────────────────────────
 function cn(...classes: (string | undefined | false | null)[]) {
@@ -111,7 +116,7 @@ function KPICard({ label, value, icon, color = C.primary, sparkData, subLabel }:
 }
 
 // ── Funil ─────────────────────────────────────────────────────────────────────
-function FunilChart({ data }: { data: FunilStep[] }) {
+function FunilChart({ data, title = 'Funil de Vendas' }: { data: FunilStep[]; title?: string }) {
   const max = data[0]?.total || 1;
 
   return (
@@ -120,7 +125,7 @@ function FunilChart({ data }: { data: FunilStep[] }) {
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
       <h2 className="text-base font-bold mb-5" style={{ color: C.textPrimary }}>
-        Funil de Vendas
+        {title}
       </h2>
       <div className="space-y-3">
         {data.map((step, i) => {
@@ -388,6 +393,170 @@ function ProdutoChart({ data }: { data: { produto: string; total: number; contra
   );
 }
 
+// ── VGV Funil Chart ───────────────────────────────────────────────────────────
+function VgvFunilChart({ data, title = 'VGV em Jogo por Etapa' }: { data: VgvEtapaRow[]; title?: string }) {
+  const max = data[0]?.vgv || 1;
+  const COLORS = ['#1E3A5F', '#1D4ED8', '#F59E0B', '#F97316', '#10B981', '#7C3AED', '#EC4899'];
+
+  return (
+    <div className="rounded-2xl p-6 shadow-sm" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+      <h2 className="text-base font-bold mb-5" style={{ color: C.textPrimary }}>{title}</h2>
+      {data.length === 0 ? (
+        <p className="text-sm py-8 text-center" style={{ color: C.textMuted }}>Sem dados de valor por etapa</p>
+      ) : (
+        <>
+          <div className="space-y-3">
+            {data.map((row, i) => {
+              const pct = max > 0 ? (row.vgv / max) * 100 : 0;
+              const color = COLORS[i % COLORS.length];
+              const showInside = pct > 30;
+              return (
+                <div key={row.etapa}>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="text-xs font-medium w-44 truncate text-right flex-shrink-0"
+                      style={{ color: C.textSecondary }}
+                      title={row.etapa}
+                    >
+                      {row.etapa}
+                    </span>
+                    <div className="flex-1 relative h-9 rounded-md overflow-hidden" style={{ background: C.bg }}>
+                      <div
+                        className="h-full rounded-md flex items-center px-3 transition-all duration-700"
+                        style={{ width: `${Math.max(pct, 2)}%`, background: color }}
+                      >
+                        {showInside && (
+                          <span className="text-white text-xs font-bold whitespace-nowrap">
+                            {formatCurrency(row.vgv)}
+                          </span>
+                        )}
+                      </div>
+                      {!showInside && row.vgv > 0 && (
+                        <span
+                          className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold"
+                          style={{ color: C.textSecondary }}
+                        >
+                          {formatCurrency(row.vgv)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="w-16 text-right flex-shrink-0">
+                      <span className="text-xs" style={{ color: C.textMuted }}>{row.count}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 pt-4 flex justify-between" style={{ borderTop: `1px solid ${C.border}` }}>
+            <p className="text-xs" style={{ color: C.textMuted }}>
+              Valor acumulado por etapa · n° de leads à direita
+            </p>
+            <p className="text-xs font-semibold" style={{ color: C.textPrimary }}>
+              Total: {formatCurrency(data.reduce((s, r) => s + r.vgv, 0))}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Vendas Ganhas Chart ───────────────────────────────────────────────────────
+function VendasGanhasChart({ data, produtos }: { data: VendaGanhaRow[]; produtos: string[] }) {
+  const [byProduct, setByProduct] = useState(true);
+
+  if (data.length === 0) {
+    return (
+      <div
+        className="rounded-2xl p-6 shadow-sm flex items-center justify-center"
+        style={{ background: C.card, border: `1px solid ${C.border}`, minHeight: 220 }}
+      >
+        <p className="text-sm" style={{ color: C.textMuted }}>Nenhum lead ganho com valor registrado</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl p-6 shadow-sm" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-base font-bold" style={{ color: C.textPrimary }}>Vendas — Leads Ganhos</h2>
+          <p className="text-xs mt-0.5" style={{ color: C.textMuted }}>
+            VGV por mês · {data.reduce((s, d) => s + d.total, 0)} contratos fechados
+          </p>
+        </div>
+        <button
+          onClick={() => setByProduct(p => !p)}
+          className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
+          style={{
+            background: byProduct ? `${C.primaryLight}18` : C.bg,
+            color: byProduct ? C.primaryLight : C.textSecondary,
+            border: `1px solid ${byProduct ? C.primaryLight : C.border}`,
+          }}
+        >
+          {byProduct ? 'Por produto' : 'Total'}
+        </button>
+      </div>
+
+      <ResponsiveContainer width="100%" height={270}>
+        <BarChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
+          <XAxis dataKey="mes" tick={{ fontSize: 11, fill: C.textSecondary }} />
+          <YAxis
+            tick={{ fontSize: 10, fill: C.textSecondary }}
+            tickFormatter={v =>
+              v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M`
+                : v >= 1_000 ? `${(v / 1_000).toFixed(0)}k`
+                  : String(v)
+            }
+          />
+          <Tooltip
+            contentStyle={{ borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12 }}
+            formatter={(val: number, name: string) => [
+              val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+              name === 'vgv' ? 'VGV Total' : name,
+            ]}
+          />
+          {byProduct
+            ? produtos.map((p, i) => (
+              <Bar
+                key={p}
+                dataKey={p}
+                stackId="vgv"
+                fill={PRODUTO_COLORS[i % PRODUTO_COLORS.length]}
+                name={p}
+                radius={i === produtos.length - 1 ? [4, 4, 0, 0] : undefined}
+              />
+            ))
+            : (
+              <Bar dataKey="vgv" fill={C.accent} radius={[4, 4, 0, 0]} name="vgv">
+                <LabelList
+                  dataKey="total"
+                  position="top"
+                  style={{ fontSize: 10, fill: C.textSecondary }}
+                  formatter={(v: number) => v > 0 ? `${v}` : ''}
+                />
+              </Bar>
+            )
+          }
+        </BarChart>
+      </ResponsiveContainer>
+
+      {byProduct && produtos.length > 0 && (
+        <div className="flex flex-wrap gap-3 mt-3 justify-center">
+          {produtos.map((p, i) => (
+            <div key={p} className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: PRODUTO_COLORS[i % PRODUTO_COLORS.length] }} />
+              <span className="text-xs" style={{ color: C.textSecondary }}>{p}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Insights Panel ────────────────────────────────────────────────────────────
 function InsightsPanel({ insights }: { insights: string[] }) {
   return (
@@ -429,6 +598,111 @@ function EtapaBadge({ etapa }: { etapa: string }) {
   );
 }
 
+// ── MultiSelect ───────────────────────────────────────────────────────────────
+interface MultiSelectProps {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+}
+
+function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const toggle = (opt: string) => {
+    onChange(selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt]);
+  };
+
+  const displayText = selected.length === 0
+    ? 'Todos'
+    : selected.length === 1
+      ? selected[0]
+      : `${selected.length} selecionados`;
+
+  return (
+    <div className="relative flex items-center gap-1.5" ref={ref}>
+      <span className="text-xs font-medium whitespace-nowrap" style={{ color: C.textSecondary }}>{label}:</span>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs transition-colors"
+        style={{
+          background: selected.length > 0 ? `${C.primaryLight}15` : 'white',
+          border: `1px solid ${selected.length > 0 ? C.primaryLight : C.border}`,
+          color: selected.length > 0 ? C.primaryLight : C.textPrimary,
+          minWidth: 90,
+        }}
+      >
+        <span className="truncate max-w-[120px]">{displayText}</span>
+        <ChevronDown size={11} className="flex-shrink-0" />
+      </button>
+      {selected.length > 0 && (
+        <button
+          onClick={() => onChange([])}
+          className="p-0.5 rounded hover:opacity-70"
+          style={{ color: C.textMuted }}
+        >
+          <X size={12} />
+        </button>
+      )}
+      {open && (
+        <div
+          className="absolute z-50 top-full left-0 mt-1 rounded-xl shadow-lg py-1"
+          style={{
+            background: 'white',
+            border: `1px solid ${C.border}`,
+            minWidth: 200,
+            maxHeight: 260,
+            overflowY: 'auto',
+          }}
+        >
+          <div
+            className="px-3 py-2 cursor-pointer hover:bg-slate-50 flex items-center gap-2 text-sm"
+            onClick={() => { onChange([]); setOpen(false); }}
+          >
+            <div
+              className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0"
+              style={{
+                background: selected.length === 0 ? C.primaryLight : 'transparent',
+                borderColor: selected.length === 0 ? C.primaryLight : C.border,
+              }}
+            >
+              {selected.length === 0 && <Check size={10} color="white" />}
+            </div>
+            <span style={{ color: C.textPrimary }}>Todos</span>
+          </div>
+          {options.map(opt => (
+            <div
+              key={opt}
+              className="px-3 py-2 cursor-pointer hover:bg-slate-50 flex items-center gap-2 text-sm"
+              onClick={() => toggle(opt)}
+            >
+              <div
+                className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: selected.includes(opt) ? C.primaryLight : 'transparent',
+                  borderColor: selected.includes(opt) ? C.primaryLight : C.border,
+                }}
+              >
+                {selected.includes(opt) && <Check size={10} color="white" />}
+              </div>
+              <span className="truncate" style={{ color: C.textPrimary }}>{opt}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Leads Table ───────────────────────────────────────────────────────────────
 type SortDir = 'asc' | 'desc' | null;
 type SortKey = keyof KoruLead | null;
@@ -438,17 +712,41 @@ function LeadsTable({ leads }: { leads: KoruLead[] }) {
   const [page, setPage] = useState(1);
   const [sortKey, setSortKey] = useState<SortKey>('dataCriada');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [selEtapas, setSelEtapas] = useState<string[]>([]);
+  const [selProdutos, setSelProdutos] = useState<string[]>([]);
+  const [selCorretores, setSelCorretores] = useState<string[]>([]);
+  const [selCanais, setSelCanais] = useState<string[]>([]);
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const PER_PAGE = 10;
+
+  const etapaOpts = useMemo(() => [...new Set(leads.map(l => l.etapa))].sort(), [leads]);
+  const produtoOpts = useMemo(() => [...new Set(leads.map(l => l.produto))].filter(Boolean).sort(), [leads]);
+  const corretorOpts = useMemo(() => [...new Set(leads.map(l => l.corretor || '').filter(Boolean))].sort(), [leads]);
+  const canalOpts = useMemo(() => [...new Set(leads.map(l => l.canalOrigem || 'Não informado'))].sort(), [leads]);
+
+  const hasTableFilters = selEtapas.length > 0 || selProdutos.length > 0 || selCorretores.length > 0 ||
+    selCanais.length > 0 || !!dataInicio || !!dataFim;
+
+  const clearTableFilters = () => {
+    setSelEtapas([]); setSelProdutos([]); setSelCorretores([]); setSelCanais([]);
+    setDataInicio(''); setDataFim(''); setPage(1);
+  };
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return leads.filter(l =>
-      !q ||
-      l.contato.toLowerCase().includes(q) ||
-      l.titulo.toLowerCase().includes(q) ||
-      (l.corretor || '').toLowerCase().includes(q)
-    );
-  }, [leads, search]);
+    return leads.filter(l => {
+      if (q && !l.contato.toLowerCase().includes(q) && !l.titulo.toLowerCase().includes(q) &&
+        !(l.corretor || '').toLowerCase().includes(q)) return false;
+      if (selEtapas.length > 0 && !selEtapas.includes(l.etapa)) return false;
+      if (selProdutos.length > 0 && !selProdutos.includes(l.produto)) return false;
+      if (selCorretores.length > 0 && !selCorretores.includes(l.corretor || '')) return false;
+      if (selCanais.length > 0 && !selCanais.includes(l.canalOrigem || 'Não informado')) return false;
+      if (dataInicio && l.dataCriada && l.dataCriada < new Date(dataInicio)) return false;
+      if (dataFim && l.dataCriada && l.dataCriada > new Date(`${dataFim}T23:59:59`)) return false;
+      return true;
+    });
+  }, [leads, search, selEtapas, selProdutos, selCorretores, selCanais, dataInicio, dataFim]);
 
   const sorted = useMemo(() => {
     if (!sortKey || !sortDir) return filtered;
@@ -512,23 +810,61 @@ function LeadsTable({ leads }: { leads: KoruLead[] }) {
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
       {/* Table header */}
-      <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${C.border}` }}>
-        <h2 className="text-base font-bold" style={{ color: C.textPrimary }}>
-          Leads Recentes
-        </h2>
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} />
-          <input
-            className="pl-8 pr-3 py-1.5 text-sm rounded-lg focus:outline-none"
-            style={{
-              background: C.bg,
-              border: `1px solid ${C.border}`,
-              color: C.textPrimary,
-            }}
-            placeholder="Buscar contato..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
-          />
+      <div className="px-6 py-4" style={{ borderBottom: `1px solid ${C.border}` }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold" style={{ color: C.textPrimary }}>
+            Leads Recentes
+          </h2>
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} />
+            <input
+              className="pl-8 pr-3 py-1.5 text-sm rounded-lg focus:outline-none"
+              style={{
+                background: C.bg,
+                border: `1px solid ${C.border}`,
+                color: C.textPrimary,
+              }}
+              placeholder="Buscar contato..."
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+            />
+          </div>
+        </div>
+        {/* Multi-select filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <MultiSelect label="Etapa" options={etapaOpts} selected={selEtapas} onChange={v => { setSelEtapas(v); setPage(1); }} />
+          <MultiSelect label="Produto" options={produtoOpts} selected={selProdutos} onChange={v => { setSelProdutos(v); setPage(1); }} />
+          <MultiSelect label="Corretor" options={corretorOpts} selected={selCorretores} onChange={v => { setSelCorretores(v); setPage(1); }} />
+          <MultiSelect label="Canal" options={canalOpts} selected={selCanais} onChange={v => { setSelCanais(v); setPage(1); }} />
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium whitespace-nowrap" style={{ color: C.textSecondary }}>Data:</span>
+            <input
+              type="date"
+              value={dataInicio}
+              onChange={e => { setDataInicio(e.target.value); setPage(1); }}
+              className="px-2 py-1.5 text-xs rounded-lg focus:outline-none"
+              style={{ background: 'white', border: `1px solid ${C.border}`, color: C.textPrimary }}
+              title="Data início"
+            />
+            <span className="text-xs" style={{ color: C.textMuted }}>até</span>
+            <input
+              type="date"
+              value={dataFim}
+              onChange={e => { setDataFim(e.target.value); setPage(1); }}
+              className="px-2 py-1.5 text-xs rounded-lg focus:outline-none"
+              style={{ background: 'white', border: `1px solid ${C.border}`, color: C.textPrimary }}
+              title="Data fim"
+            />
+          </div>
+          {hasTableFilters && (
+            <button
+              onClick={clearTableFilters}
+              className="text-xs px-3 py-1.5 rounded-lg font-medium hover:opacity-80 transition-colors"
+              style={{ background: `${C.danger}18`, color: C.danger }}
+            >
+              Limpar
+            </button>
+          )}
         </div>
       </div>
 
@@ -744,12 +1080,17 @@ function FilterBar({
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
+type FunilFiltro = 'Todos' | 'Vendas Internas' | 'Vendas Externas';
+
 export default function KoruEngenharia() {
   const [data, setData] = useState<KoruDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [filters, setFilters] = useState<Filters>({ produto: 'Todos', corretor: 'Todos', canal: 'Todos' });
+  const [funilSelecionado, setFunilSelecionado] = useState<FunilFiltro>('Todos');
+  const [dataGlobalInicio, setDataGlobalInicio] = useState('');
+  const [dataGlobalFim, setDataGlobalFim] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = useCallback(async (file?: File) => {
@@ -760,7 +1101,7 @@ export default function KoruEngenharia() {
       if (file) {
         result = await loadKoruDataFromFile(file);
       } else {
-        result = await loadKoruData();
+        result = await loadAllKoruData();
       }
       setData(result);
     } catch (e) {
@@ -781,10 +1122,27 @@ export default function KoruEngenharia() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Apply filters
-  const filteredLeads = useMemo(() => {
+  // Global date filter (applied before everything else)
+  const leadsNoPeriodo = useMemo(() => {
     if (!data) return [];
     return data.leads.filter(l => {
+      if (!l.dataCriada) return true;
+      if (dataGlobalInicio && l.dataCriada < new Date(dataGlobalInicio)) return false;
+      if (dataGlobalFim && l.dataCriada > new Date(`${dataGlobalFim}T23:59:59`)) return false;
+      return true;
+    });
+  }, [data, dataGlobalInicio, dataGlobalFim]);
+
+  // Filter by funil
+  const leadsDoFunil = useMemo(() => {
+    if (funilSelecionado === 'Todos') return leadsNoPeriodo;
+    const keyword = funilSelecionado === 'Vendas Internas' ? 'interna' : 'externa';
+    return leadsNoPeriodo.filter(l => l.funil.toLowerCase().includes(keyword));
+  }, [leadsNoPeriodo, funilSelecionado]);
+
+  // Apply dashboard-level filters
+  const filteredLeads = useMemo(() => {
+    return leadsDoFunil.filter(l => {
       if (filters.produto !== 'Todos' && l.produto !== filters.produto) return false;
       if (filters.corretor !== 'Todos' && (l.corretor || '') !== filters.corretor) return false;
       if (filters.canal !== 'Todos') {
@@ -793,7 +1151,7 @@ export default function KoruEngenharia() {
       }
       return true;
     });
-  }, [data, filters]);
+  }, [leadsDoFunil, filters]);
 
   const filteredKpis = useMemo(() => computeKPIs(filteredLeads), [filteredLeads]);
   const filteredFunil = useMemo(() => computeFunil(filteredLeads), [filteredLeads]);
@@ -805,6 +1163,27 @@ export default function KoruEngenharia() {
     () => generateInsights(filteredLeads, filteredKpis, filteredLeadsPorMes, filteredPorCorretor),
     [filteredLeads, filteredKpis, filteredLeadsPorMes, filteredPorCorretor]
   );
+
+  // Separate funils for side-by-side view (based on filtered leads per funil)
+  const leadsInternas = useMemo(
+    () => filteredLeads.filter(l => l.funil.toLowerCase().includes('interna')),
+    [filteredLeads]
+  );
+  const leadsExternas = useMemo(
+    () => filteredLeads.filter(l => l.funil.toLowerCase().includes('externa')),
+    [filteredLeads]
+  );
+
+  const funilInternas = useMemo(() => computeFunil(leadsInternas), [leadsInternas]);
+  const funilExternas = useMemo(() => computeFunil(leadsExternas), [leadsExternas]);
+
+  // VGV por etapa (funil de valores)
+  const filteredVgvFunil = useMemo(() => computeVgvPorEtapa(filteredLeads), [filteredLeads]);
+  const vgvFunilInternas = useMemo(() => computeVgvPorEtapa(leadsInternas), [leadsInternas]);
+  const vgvFunilExternas = useMemo(() => computeVgvPorEtapa(leadsExternas), [leadsExternas]);
+
+  // Vendas ganhas chart data
+  const vendasGanhas = useMemo(() => computeVendasGanhas(filteredLeads), [filteredLeads]);
 
   const sparkLeadsPorMes = filteredLeadsPorMes.map(m => m.total);
 
@@ -870,11 +1249,8 @@ export default function KoruEngenharia() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Logo + Title */}
             <div className="flex items-center gap-3">
-              <div
-                className="rounded-xl p-2.5"
-                style={{ background: 'rgba(255,255,255,0.15)' }}
-              >
-                <Building2 size={24} className="text-white" />
+              <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.9)', padding: 5 }}>
+                <img src="/logo koru.jpg" alt="Koru Engenharia" className="h-14 w-auto object-contain" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">Koru Engenharia</h1>
@@ -918,10 +1294,68 @@ export default function KoruEngenharia() {
             </div>
           </div>
 
-          {/* Filters */}
+          {/* Funil tabs + Filters */}
           {data && (
-            <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
-              <FilterBar leads={data.leads} filters={filters} onChange={setFilters} />
+            <div className="mt-4 pt-4 space-y-3" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+              {/* Global date filter */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <CalendarDays size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
+                  <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>Período:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={dataGlobalInicio}
+                    onChange={e => setDataGlobalInicio(e.target.value)}
+                    className="px-2.5 py-1.5 text-xs rounded-lg focus:outline-none"
+                    style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', color: 'white', colorScheme: 'dark' }}
+                    title="Data início"
+                  />
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>até</span>
+                  <input
+                    type="date"
+                    value={dataGlobalFim}
+                    onChange={e => setDataGlobalFim(e.target.value)}
+                    className="px-2.5 py-1.5 text-xs rounded-lg focus:outline-none"
+                    style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', color: 'white', colorScheme: 'dark' }}
+                    title="Data fim"
+                  />
+                </div>
+                {(dataGlobalInicio || dataGlobalFim) && (
+                  <button
+                    onClick={() => { setDataGlobalInicio(''); setDataGlobalFim(''); }}
+                    className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg transition-colors hover:bg-white/20"
+                    style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}
+                  >
+                    <X size={11} />
+                    Limpar
+                  </button>
+                )}
+                <span className="text-xs ml-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  {leadsNoPeriodo.length.toLocaleString('pt-BR')} leads no período
+                </span>
+              </div>
+              {/* Funil selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold mr-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Funil:</span>
+                {(['Todos', 'Vendas Internas', 'Vendas Externas'] as FunilFiltro[]).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFunilSelecionado(f)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                    style={{
+                      background: funilSelecionado === f ? 'white' : 'rgba(255,255,255,0.12)',
+                      color: funilSelecionado === f ? C.primary : 'rgba(255,255,255,0.85)',
+                      border: funilSelecionado === f ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              {/* Dashboard filters */}
+              <FilterBar leads={leadsNoPeriodo} filters={filters} onChange={setFilters} />
             </div>
           )}
         </div>
@@ -968,10 +1402,29 @@ export default function KoruEngenharia() {
               ))}
             </div>
 
-            {/* Funil + Leads por Mês */}
+            {/* Funil de leads (contagem) + Funil de VGV (valores) */}
+            {funilSelecionado === 'Todos' ? (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <FunilChart data={funilInternas} title="Funil — Vendas Internas" />
+                  <VgvFunilChart data={vgvFunilInternas} title="VGV por Etapa — Internas" />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <FunilChart data={funilExternas} title="Funil — Vendas Externas" />
+                  <VgvFunilChart data={vgvFunilExternas} title="VGV por Etapa — Externas" />
+                </div>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <FunilChart data={filteredFunil} title={`Funil — ${funilSelecionado}`} />
+                <VgvFunilChart data={filteredVgvFunil} title={`VGV por Etapa — ${funilSelecionado}`} />
+              </div>
+            )}
+
+            {/* Leads por Mês + Vendas Ganhas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <FunilChart data={filteredFunil} />
               <LeadsPorMesChart data={filteredLeadsPorMes} />
+              <VendasGanhasChart data={vendasGanhas.data} produtos={vendasGanhas.produtos} />
             </div>
 
             {/* Secondary charts */}

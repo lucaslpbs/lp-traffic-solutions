@@ -111,7 +111,12 @@ const FUNIL_ORDER = [
   'Visita REALIZADA',
   'DOCUMENTOS PENDENTES',
   'contratado',
+  'Venda Ganha',
 ];
+
+// Stages that represent a closed/won deal
+const WON_STAGES = new Set(['contratado', 'Venda Ganha']);
+export const isWonLead = (etapa: string) => WON_STAGES.has(etapa);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -155,6 +160,7 @@ function normalizeEtapa(etapa: string): string {
   if (lower.includes('visita')) return 'Visita REALIZADA';
   if (lower.includes('document')) return 'DOCUMENTOS PENDENTES';
   if (lower === 'contratado') return 'contratado';
+  if (lower.includes('venda ganha') || lower === 'ganha') return 'Venda Ganha';
   return etapa.trim();
 }
 
@@ -179,7 +185,7 @@ function parseVenda(raw: unknown): number {
 
 // ── Main parser ───────────────────────────────────────────────────────────────
 
-export function parseKoruLeads(rawData: Record<string, unknown>[]): KoruLead[] {
+export function parseKoruLeads(rawData: Record<string, unknown>[], defaultFunil = ''): KoruLead[] {
   return rawData.map(row => {
     const tags = String(row['Lead tags'] ?? '');
     const etapaRaw = String(row['Etapa do lead'] ?? '');
@@ -189,7 +195,7 @@ export function parseKoruLeads(rawData: Record<string, unknown>[]): KoruLead[] {
       contato: String(row['Contato principal'] ?? ''),
       responsavel: String(row['Lead usuário responsável'] ?? ''),
       etapa: normalizeEtapa(etapaRaw),
-      funil: String(row['Funil de vendas'] ?? ''),
+      funil: String(row['Funil de vendas'] ?? '') || defaultFunil,
       venda: parseVenda(row['Venda']),
       dataCriada: parseDateStr(row['Data Criada']),
       ultimaModificacao: parseDateStr(row['Última modificação']),
@@ -209,7 +215,7 @@ export function computeKPIs(leads: KoruLead[]): KoruKPIs {
   const totalLeads = leads.length;
   const emAtendimento = leads.filter(l => l.etapa === 'Contato inicial').length;
   const corretoresNomeados = leads.filter(l => l.etapa === 'Corretor nomeado').length;
-  const contratosFechados = leads.filter(l => l.etapa === 'contratado').length;
+  const contratosFechados = leads.filter(l => isWonLead(l.etapa)).length;
   const taxaConversao = totalLeads > 0 ? (contratosFechados / totalLeads) * 100 : 0;
   const vgvTotal = leads.reduce((sum, l) => sum + l.venda, 0);
   const leadsComVenda = leads.filter(l => l.venda > 0).length;
@@ -234,10 +240,13 @@ export function computeFunil(leads: KoruLead[]): FunilStep[] {
     countByEtapa[l.etapa] = (countByEtapa[l.etapa] || 0) + 1;
   }
 
-  const steps = FUNIL_ORDER.map(etapa => ({
-    etapa,
-    total: countByEtapa[etapa] || 0,
-  }));
+  // Known stages first, then any extra stages found in this funnel's data
+  const extraStages = Object.keys(countByEtapa).filter(e => !FUNIL_ORDER.includes(e));
+  const fullOrder = [...FUNIL_ORDER, ...extraStages];
+
+  const steps = fullOrder
+    .filter(etapa => (countByEtapa[etapa] || 0) > 0)
+    .map(etapa => ({ etapa, total: countByEtapa[etapa] || 0 }));
 
   const first = steps[0]?.total || 1;
 
@@ -262,7 +271,7 @@ export function computeLeadsPorMes(leads: KoruLead[]): LeadsPorMes[] {
     const keyCapitalized = key.charAt(0).toUpperCase() + key.slice(1);
     const entry = map.get(keyCapitalized) || { total: 0, contratados: 0 };
     entry.total++;
-    if (l.etapa === 'contratado') entry.contratados++;
+    if (isWonLead(l.etapa)) entry.contratados++;
     map.set(keyCapitalized, entry);
   }
 
@@ -291,7 +300,7 @@ export function computePorCorretor(leads: KoruLead[]): CorretorData[] {
     const key = l.corretor || 'Sem corretor';
     const entry = map.get(key) || { total: 0, contratados: 0 };
     entry.total++;
-    if (l.etapa === 'contratado') entry.contratados++;
+    if (isWonLead(l.etapa)) entry.contratados++;
     map.set(key, entry);
   }
 
@@ -320,7 +329,7 @@ export function computePorProduto(leads: KoruLead[]): ProdutoData[] {
     const key = l.produto || 'Sem produto';
     const entry = map.get(key) || { total: 0, contratados: 0, vgv: 0 };
     entry.total++;
-    if (l.etapa === 'contratado') entry.contratados++;
+    if (isWonLead(l.etapa)) entry.contratados++;
     entry.vgv += l.venda;
     map.set(key, entry);
   }
@@ -372,6 +381,81 @@ export function generateInsights(
   return insights;
 }
 
+// ── Vendas Ganhas ─────────────────────────────────────────────────────────────
+
+export interface VendaGanhaRow {
+  mes: string;
+  total: number;
+  vgv: number;
+  [produto: string]: string | number;
+}
+
+export function computeVendasGanhas(leads: KoruLead[]): { data: VendaGanhaRow[]; produtos: string[] } {
+  const wonLeads = leads.filter(l => isWonLead(l.etapa) && l.dataCriada);
+
+  const produtos = [...new Set(wonLeads.map(l => l.produto || 'Sem produto'))].sort();
+
+  const map = new Map<string, VendaGanhaRow>();
+
+  const parseLabel = (s: string) => {
+    const months: Record<string, number> = {
+      jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+      jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11,
+    };
+    const parts = s.toLowerCase().split('/');
+    const m = months[parts[0]] ?? 0;
+    const y = parseInt('20' + parts[1]) || 2025;
+    return y * 100 + m;
+  };
+
+  for (const lead of wonLeads) {
+    if (!lead.dataCriada) continue;
+    const raw = format(startOfMonth(lead.dataCriada), 'MMM/yy', { locale: ptBR });
+    const key = raw.charAt(0).toUpperCase() + raw.slice(1);
+
+    if (!map.has(key)) {
+      const entry: VendaGanhaRow = { mes: key, total: 0, vgv: 0 };
+      for (const p of produtos) entry[p] = 0;
+      map.set(key, entry);
+    }
+
+    const entry = map.get(key)!;
+    entry.total++;
+    entry.vgv += lead.venda;
+    const pk = lead.produto || 'Sem produto';
+    entry[pk] = ((entry[pk] as number) || 0) + lead.venda;
+  }
+
+  const data = Array.from(map.values()).sort((a, b) => parseLabel(a.mes) - parseLabel(b.mes));
+
+  return { data, produtos };
+}
+
+// ── VGV por Etapa ─────────────────────────────────────────────────────────────
+
+export interface VgvEtapaRow {
+  etapa: string;
+  vgv: number;
+  count: number;
+}
+
+export function computeVgvPorEtapa(leads: KoruLead[]): VgvEtapaRow[] {
+  const countMap: Record<string, number> = {};
+  const vgvMap: Record<string, number> = {};
+
+  for (const l of leads) {
+    countMap[l.etapa] = (countMap[l.etapa] || 0) + 1;
+    vgvMap[l.etapa] = (vgvMap[l.etapa] || 0) + l.venda;
+  }
+
+  const extraStages = Object.keys(countMap).filter(e => !FUNIL_ORDER.includes(e));
+  const fullOrder = [...FUNIL_ORDER, ...extraStages];
+
+  return fullOrder
+    .filter(s => (countMap[s] || 0) > 0)
+    .map(s => ({ etapa: s, vgv: vgvMap[s] || 0, count: countMap[s] || 0 }));
+}
+
 // ── Formatters ────────────────────────────────────────────────────────────────
 
 export function formatCurrency(value: number): string {
@@ -393,14 +477,14 @@ export function formatCurrencyFull(value: number): string {
 
 // ── XLSX loader ───────────────────────────────────────────────────────────────
 
-async function buildDashboardFromBuffer(arrayBuffer: ArrayBuffer, fileName = ''): Promise<KoruDashboardData> {
+async function buildDashboardFromBuffer(arrayBuffer: ArrayBuffer, defaultFunil = ''): Promise<KoruDashboardData> {
   const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array', cellDates: false });
 
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
   const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }) as Record<string, unknown>[];
 
-  const leads = parseKoruLeads(rawData);
+  const leads = parseKoruLeads(rawData, defaultFunil);
   const kpis = computeKPIs(leads);
   const funil = computeFunil(leads);
   const leadsPorMes = computeLeadsPorMes(leads);
@@ -437,4 +521,46 @@ export async function loadKoruData(filePath = '/data/kommo_export_leads_2026-04-
 export async function loadKoruDataFromFile(file: File): Promise<KoruDashboardData> {
   const arrayBuffer = await file.arrayBuffer();
   return buildDashboardFromBuffer(arrayBuffer, file.name);
+}
+
+export async function loadAllKoruData(): Promise<KoruDashboardData> {
+  const sources = [
+    { fileName: 'Funil Vendas Internas.xlsx', defaultFunil: 'Vendas Internas' },
+    { fileName: 'Funil Vendas Externas.xlsx', defaultFunil: 'Vendas Externas' },
+  ];
+
+  const allLeads: KoruLead[] = [];
+  let latestDate = new Date(0);
+
+  for (const { fileName, defaultFunil } of sources) {
+    try {
+      const response = await fetch(`/data/${encodeURIComponent(fileName)}`);
+      if (!response.ok) continue;
+      const arrayBuffer = await response.arrayBuffer();
+      const dashData = await buildDashboardFromBuffer(arrayBuffer, defaultFunil);
+      allLeads.push(...dashData.leads);
+      const dates = dashData.leads
+        .map(l => l.ultimaModificacao || l.dataCriada)
+        .filter(Boolean) as Date[];
+      if (dates.length > 0) {
+        const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+        if (maxDate > latestDate) latestDate = maxDate;
+      }
+    } catch {
+      // ignore individual file failures
+    }
+  }
+
+  const kpis = computeKPIs(allLeads);
+  const funil = computeFunil(allLeads);
+  const leadsPorMes = computeLeadsPorMes(allLeads);
+  const porCorretor = computePorCorretor(allLeads);
+  const porCanal = computePorCanal(allLeads);
+  const porProduto = computePorProduto(allLeads);
+  const insights = generateInsights(allLeads, kpis, leadsPorMes, porCorretor);
+  const dataAtualizacao = latestDate > new Date(0)
+    ? format(latestDate, 'dd/MM/yyyy', { locale: ptBR })
+    : format(new Date(), 'dd/MM/yyyy', { locale: ptBR });
+
+  return { leads: allLeads, kpis, funil, leadsPorMes, porCorretor, porCanal, porProduto, insights, dataAtualizacao };
 }
