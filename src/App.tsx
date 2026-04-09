@@ -26,6 +26,7 @@ import OrcamentoLuBrasil from "./pages/OrcamentoLuBrasil";
 import NpsDashboard from "./pages/NpsDashboard";
 import KoruEngenharia from "./pages/KoruEngenharia";
 import OrcamentoOticasVisao from "./pages/OrcamentoOticasVisao";
+import LeadsDashboard from "./pages/LeadsDashboard";
 
 const queryClient = new QueryClient();
 
