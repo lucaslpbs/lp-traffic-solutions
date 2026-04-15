@@ -1,24 +1,22 @@
 import { Fragment, useState, useEffect, useMemo } from 'react';
 import {
-  Users, Phone, UserCheck, ShoppingCart, TrendingUp,
-  Search, RefreshCw, ChevronDown, ChevronUp, MessageSquare,
-  Star, AlertCircle, CheckCircle2, Clock, XCircle,
-  Filter, ThumbsUp, ThumbsDown, ArrowRight,
+  Users, ShoppingCart, TrendingUp, Search, RefreshCw,
+  ChevronDown, ChevronUp, MessageSquare, Star, AlertCircle,
+  CheckCircle2, Clock, XCircle, ThumbsUp, ThumbsDown, ArrowRight,
+  UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
+
+// ── Tipos ────────────────────────────────────────────────────────────────────
 
 interface ResumoLead {
   id: number;
@@ -37,28 +35,38 @@ interface ResumoLead {
   proximo_passo_sugerido: string | null;
   created_at: string;
   fez_followup: boolean | null;
+  nome_lead?: string;
+  telefone_lead?: string;
 }
+
+interface VendedorData {
+  vendedor_id: number;
+  nome: string;
+  instancia: string;
+  resumos: ResumoLead[];
+}
+
+interface ApiResponse {
+  vendedores: VendedorData[];
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 const parseJsonArray = (val: string | null): string[] => {
   if (!val) return [];
   try { return JSON.parse(val); } catch { return []; }
 };
 
-const qualidadeColor = (q: number): string => {
-  if (q >= 8) return '#10b981';
-  if (q >= 5) return '#f59e0b';
-  return '#ef4444';
-};
+const qualidadeColor = (q: number) =>
+  q >= 8 ? '#10b981' : q >= 5 ? '#f59e0b' : '#ef4444';
 
-const qualidadeLabel = (q: number): string => {
-  if (q >= 8) return 'Alto';
-  if (q >= 5) return 'Médio';
-  return 'Baixo';
-};
+// ── Componente principal ──────────────────────────────────────────────────────
 
 export default function LeadsDashboard() {
-  const [resumos, setResumos] = useState<ResumoLead[]>([]);
+  const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedVendedorId, setSelectedVendedorId] = useState<number | 'todos'>('todos');
+
   const [search, setSearch] = useState('');
   const [filterVendeu, setFilterVendeu] = useState<string>('all');
   const [filterQualidadeLead, setFilterQualidadeLead] = useState<string>('all');
@@ -66,31 +74,62 @@ export default function LeadsDashboard() {
   const [sortField, setSortField] = useState<'created_at' | 'qualidade_lead'>('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  const fetchResumos = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('https://n8n.trafficsolutions.cloud/webhook/busca-resumos');
-      if (res.ok) {
-        const data = await res.json();
-        setResumos(Array.isArray(data) ? data : data && typeof data === 'object' ? [data] : []);
+  // ── Fetch ────────────────────────────────────────────────────────────────
+
+const fetchData = async () => {
+  setLoading(true);
+  try {
+    const res = await fetch('https://n8n.trafficsolutions.cloud/webhook/busca-resumos');
+    if (res.ok) {
+      const raw = await res.json();
+      
+      // Normalizar diferentes formatos de resposta do n8n
+      let parsed: ApiResponse | null = null;
+
+      if (raw?.vendedores) {
+        parsed = raw;
+      } else if (Array.isArray(raw) && raw[0]?.vendedores) {
+        parsed = raw[0];
+      } else if (Array.isArray(raw) && raw[0]?.json?.vendedores) {
+        parsed = raw[0].json;
       }
-    } catch (err) {
-      console.error('Erro ao buscar resumos:', err);
+
+      setData(parsed);
     }
-    setLoading(false);
-  };
+  } catch (err) {
+    console.error('Erro ao buscar dados:', err);
+  }
+  setLoading(false);
+};
 
-  useEffect(() => { fetchResumos(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
+  // ── Derivações ────────────────────────────────────────────────────────────
+
+  // Todos os resumos (independente de vendedor)
+  const todosResumos = useMemo<ResumoLead[]>(() => {
+    if (!data) return [];
+    return data.vendedores.flatMap(v => v.resumos);
+  }, [data]);
+
+  // Resumos do vendedor selecionado
+  const resumosAtivos = useMemo<ResumoLead[]>(() => {
+    if (!data) return [];
+    if (selectedVendedorId === 'todos') return todosResumos;
+    return data.vendedores.find(v => v.vendedor_id === selectedVendedorId)?.resumos ?? [];
+  }, [data, selectedVendedorId, todosResumos]);
+
+  // Filtros + ordenação
   const filtered = useMemo(() => {
-    let result = [...resumos];
+    let result = [...resumosAtivos];
 
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(r =>
         r.resumo.toLowerCase().includes(q) ||
         r.proximo_passo_sugerido?.toLowerCase().includes(q) ||
-        r.motivo_nao_venda?.toLowerCase().includes(q)
+        r.motivo_nao_venda?.toLowerCase().includes(q) ||
+        r.nome_lead?.toLowerCase().includes(q)
       );
     }
     if (filterVendeu === 'sim') result = result.filter(r => r.vendeu === true);
@@ -100,54 +139,51 @@ export default function LeadsDashboard() {
     if (filterQualidadeLead === 'baixo') result = result.filter(r => r.qualidade_lead < 5);
 
     result.sort((a, b) => {
-      if (sortField === 'qualidade_lead') {
+      if (sortField === 'qualidade_lead')
         return sortDir === 'asc' ? a.qualidade_lead - b.qualidade_lead : b.qualidade_lead - a.qualidade_lead;
-      }
       return sortDir === 'asc'
         ? a.created_at.localeCompare(b.created_at)
         : b.created_at.localeCompare(a.created_at);
     });
 
     return result;
-  }, [resumos, search, filterVendeu, filterQualidadeLead, sortField, sortDir]);
+  }, [resumosAtivos, search, filterVendeu, filterQualidadeLead, sortField, sortDir]);
 
-  // KPIs
-  const total = resumos.length;
-  const totalVendeu = resumos.filter(r => r.vendeu).length;
+  // ── KPIs ─────────────────────────────────────────────────────────────────
+
+  const total = resumosAtivos.length;
+  const totalVendeu = resumosAtivos.filter(r => r.vendeu).length;
   const taxaConversao = total > 0 ? ((totalVendeu / total) * 100).toFixed(1) : '0';
-  const avgQualidadeLead = total > 0 ? (resumos.reduce((s, r) => s + r.qualidade_lead, 0) / total).toFixed(1) : '0';
-  const avgQualidadeVendedor = total > 0 ? (resumos.reduce((s, r) => s + r.qualidade_vendedor, 0) / total).toFixed(1) : '0';
+  const avgQualidadeLead = total > 0
+    ? (resumosAtivos.reduce((s, r) => s + r.qualidade_lead, 0) / total).toFixed(1) : '0';
+  const avgQualidadeVendedor = total > 0
+    ? (resumosAtivos.reduce((s, r) => s + r.qualidade_vendedor, 0) / total).toFixed(1) : '0';
 
-  // Charts
-  const vendaData = useMemo(() => {
-    const vendeu = resumos.filter(r => r.vendeu).length;
-    const naoVendeu = resumos.filter(r => !r.vendeu).length;
-    return [
-      { name: 'Vendeu', value: vendeu, color: '#10b981' },
-      { name: 'Não Vendeu', value: naoVendeu, color: '#ef4444' },
-    ].filter(d => d.value > 0);
-  }, [resumos]);
+  // ── Charts ────────────────────────────────────────────────────────────────
 
-  const qualidadeLeadData = useMemo(() => {
-    const alto = resumos.filter(r => r.qualidade_lead >= 8).length;
-    const medio = resumos.filter(r => r.qualidade_lead >= 5 && r.qualidade_lead < 8).length;
-    const baixo = resumos.filter(r => r.qualidade_lead < 5).length;
-    return [
-      { name: 'Alto (8-10)', value: alto, color: '#10b981' },
-      { name: 'Médio (5-7)', value: medio, color: '#f59e0b' },
-      { name: 'Baixo (1-4)', value: baixo, color: '#ef4444' },
-    ];
-  }, [resumos]);
+  const vendaData = useMemo(() => [
+    { name: 'Vendeu', value: resumosAtivos.filter(r => r.vendeu).length, color: '#10b981' },
+    { name: 'Não Vendeu', value: resumosAtivos.filter(r => !r.vendeu).length, color: '#ef4444' },
+  ].filter(d => d.value > 0), [resumosAtivos]);
+
+  const qualidadeLeadData = useMemo(() => [
+    { name: 'Alto (8-10)', value: resumosAtivos.filter(r => r.qualidade_lead >= 8).length, color: '#10b981' },
+    { name: 'Médio (5-7)', value: resumosAtivos.filter(r => r.qualidade_lead >= 5 && r.qualidade_lead < 8).length, color: '#f59e0b' },
+    { name: 'Baixo (1-4)', value: resumosAtivos.filter(r => r.qualidade_lead < 5).length, color: '#ef4444' },
+  ], [resumosAtivos]);
 
   const toggleSort = (field: 'created_at' | 'qualidade_lead') => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortField(field); setSortDir('desc'); }
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-screen bg-[#050505] text-white p-6 md:p-8">
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white">
             Painel de Resumos & Conversas
@@ -157,13 +193,43 @@ export default function LeadsDashboard() {
           </p>
         </div>
         <Button
-          onClick={fetchResumos}
+          onClick={fetchData}
           variant="outline"
           className="border-white/10 text-gray-300 hover:bg-white/5 hover:text-white gap-2"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Atualizar
         </Button>
+      </div>
+
+      {/* ── Navegação por atendente ── */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white/[0.03] border border-white/[0.08] rounded-xl">
+        <span className="text-xs text-gray-500 mr-1">Atendente:</span>
+
+        <button
+          onClick={() => { setSelectedVendedorId('todos'); setExpandedId(null); }}
+          className={`px-4 py-1.5 rounded-lg border text-sm transition-all ${
+            selectedVendedorId === 'todos'
+              ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+              : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          Todos
+        </button>
+
+        {(data?.vendedores ?? []).map(v => (
+          <button
+            key={v.vendedor_id}
+            onClick={() => { setSelectedVendedorId(v.vendedor_id); setExpandedId(null); }}
+            className={`px-4 py-1.5 rounded-lg border text-sm transition-all ${
+              selectedVendedorId === v.vendedor_id
+                ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {v.nome}
+          </button>
+        ))}
       </div>
 
       {/* KPI Cards */}
@@ -240,7 +306,7 @@ export default function LeadsDashboard() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Buscar no resumo, motivo ou próximo passo..."
+              placeholder="Buscar no resumo, lead, motivo ou próximo passo..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500"
@@ -282,6 +348,7 @@ export default function LeadsDashboard() {
               <tr className="border-b border-white/10">
                 {[
                   { label: 'ID', field: null },
+                  { label: 'Lead', field: null },
                   { label: 'Resumo', field: null },
                   { label: 'Qual. Lead', field: 'qualidade_lead' as const },
                   { label: 'Qual. Vendedor', field: null },
@@ -309,7 +376,7 @@ export default function LeadsDashboard() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-white/5">
-                    {Array.from({ length: 8 }).map((_, j) => (
+                    {Array.from({ length: 9 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-4 bg-white/5 rounded animate-pulse" />
                       </td>
@@ -318,7 +385,7 @@ export default function LeadsDashboard() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
                     <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     Nenhum resumo encontrado
                   </td>
@@ -338,6 +405,15 @@ export default function LeadsDashboard() {
                         onClick={() => setExpandedId(isExpanded ? null : r.id)}
                       >
                         <td className="px-4 py-3 text-gray-500 font-mono text-xs">#{r.id}</td>
+
+                        {/* NOVO: coluna do lead */}
+                        <td className="px-4 py-3">
+                          <p className="text-white text-sm font-medium">{r.nome_lead || `Lead ${r.lead_id}`}</p>
+                          {r.telefone_lead && (
+                            <p className="text-gray-500 text-xs mt-0.5">{r.telefone_lead}</p>
+                          )}
+                        </td>
+
                         <td className="px-4 py-3 text-gray-300 max-w-xs">
                           <p className="truncate">{r.resumo}</p>
                         </td>
@@ -380,11 +456,11 @@ export default function LeadsDashboard() {
                           {new Date(r.created_at).toLocaleDateString('pt-BR')}
                         </td>
                       </tr>
+
                       {isExpanded && (
                         <tr key={`${r.id}-detail`} className="border-b border-white/5 bg-white/[0.02]">
-                          <td colSpan={8} className="px-6 py-5">
+                          <td colSpan={9} className="px-6 py-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {/* Resumo completo */}
                               <div>
                                 <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2 flex items-center gap-1.5">
                                   <MessageSquare className="h-3.5 w-3.5" /> Resumo da Conversa
@@ -410,7 +486,6 @@ export default function LeadsDashboard() {
                                 )}
                               </div>
 
-                              {/* Avaliação do vendedor */}
                               <div>
                                 {pontosPositivos.length > 0 && (
                                   <div className="mb-4">
@@ -464,6 +539,11 @@ export default function LeadsDashboard() {
 
         <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-500">
           <span>Exibindo {filtered.length} de {total} resumos</span>
+          {selectedVendedorId !== 'todos' && (
+            <span className="text-violet-400">
+              Filtrando por: {data?.vendedores.find(v => v.vendedor_id === selectedVendedorId)?.nome}
+            </span>
+          )}
         </div>
       </div>
     </div>
