@@ -66,7 +66,7 @@ const AppRoutes = () => {
         <Route path="/nps-ncsaude" element={<NpsDashboard />} />
         <Route path="/koru-engenharia" element={<KoruEngenharia />} />
         <Route path="/orcamento-oticasvisao" element={<OrcamentoOticasVisao />} />
-        <Route path="/leads-dashboard" element={<LeadsDashboard />} />
+        <Route path="/leads-dashboard" element={<ProtectedRoute><LeadsDashboard /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         
         <Route
