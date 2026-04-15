@@ -72,7 +72,7 @@ export default function LeadsDashboard() {
       const res = await fetch('https://n8n.trafficsolutions.cloud/webhook/busca-resumos');
       if (res.ok) {
         const data = await res.json();
-        setResumos(Array.isArray(data) ? data : []);
+        setResumos(Array.isArray(data) ? data : data && typeof data === 'object' ? [data] : []);
       }
     } catch (err) {
       console.error('Erro ao buscar resumos:', err);
