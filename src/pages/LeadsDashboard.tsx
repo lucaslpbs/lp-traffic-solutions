@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { Fragment, useState, useEffect, useMemo } from 'react';
 import {
   Users, Phone, UserCheck, ShoppingCart, TrendingUp,
   Search, RefreshCw, ChevronDown, ChevronUp, MessageSquare,
@@ -332,9 +332,8 @@ export default function LeadsDashboard() {
                   const vendedorColor = qualidadeColor(r.qualidade_vendedor);
 
                   return (
-                    <>
+                    <Fragment key={r.id}>
                       <tr
-                        key={r.id}
                         className="border-b border-white/5 hover:bg-white/[0.03] transition-colors cursor-pointer"
                         onClick={() => setExpandedId(isExpanded ? null : r.id)}
                       >
@@ -455,7 +454,7 @@ export default function LeadsDashboard() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })
               )}
