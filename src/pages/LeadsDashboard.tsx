@@ -268,7 +268,7 @@ const fetchData = async () => {
                 <Pie data={vendaData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
                   {vendaData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }} />
+                <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -290,7 +290,7 @@ const fetchData = async () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }} />
+                <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }} />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                   {qualidadeLeadData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Bar>
