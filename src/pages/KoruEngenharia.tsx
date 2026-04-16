@@ -4,11 +4,12 @@ import {
   LineChart, Line, PieChart, Pie, Cell, Legend, LabelList,
 } from 'recharts';
 import {
-  Users, UserCheck, FileCheck, TrendingUp, DollarSign,
-  ReceiptText, UserX, RefreshCw, Upload, ChevronUp, ChevronDown,
+  Users, UserCheck, FileCheck, TrendingUp,
+  RefreshCw, Upload, ChevronUp, ChevronDown, Timer,
   ChevronsUpDown, Search, ChevronLeft, ChevronRight, Lightbulb,
   CalendarDays, Check, X,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   loadAllKoruData,
   loadKoruDataFromFile,
@@ -395,7 +396,7 @@ function ProdutoChart({ data }: { data: { produto: string; total: number; contra
 }
 
 // ── VGV Funil Chart ───────────────────────────────────────────────────────────
-function VgvFunilChart({ data, title = 'VGV em Jogo por Etapa' }: { data: VgvEtapaRow[]; title?: string }) {
+function VgvFunilChart({ data, title = 'Valor em Jogo por Etapa' }: { data: VgvEtapaRow[]; title?: string }) {
   const max = data[0]?.vgv || 1;
   const COLORS = ['#1E3A5F', '#1D4ED8', '#F59E0B', '#F97316', '#10B981', '#7C3AED', '#EC4899'];
 
@@ -484,7 +485,7 @@ function VendasGanhasChart({ data, produtos }: { data: VendaGanhaRow[]; produtos
         <div>
           <h2 className="text-base font-bold" style={{ color: C.textPrimary }}>Vendas — Leads Ganhos</h2>
           <p className="text-xs mt-0.5" style={{ color: C.textMuted }}>
-            VGV por mês · {data.reduce((s, d) => s + d.total, 0)} contratos fechados
+            Valor por mês · {data.reduce((s, d) => s + d.total, 0)} contratos fechados
           </p>
         </div>
         <button
@@ -516,7 +517,7 @@ function VendasGanhasChart({ data, produtos }: { data: VendaGanhaRow[]; produtos
             contentStyle={{ borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12 }}
             formatter={(val: number, name: string) => [
               val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-              name === 'vgv' ? 'VGV Total' : name,
+              name === 'vgv' ? 'Valor Total' : name,
             ]}
           />
           {byProduct
@@ -1216,29 +1217,18 @@ export default function KoruEngenharia() {
       color: C.accent,
     },
     {
-      label: 'Taxa de Conversão',
+      label: 'Taxa de Conversão (período)',
       value: `${filteredKpis.taxaConversao.toFixed(2)}%`,
       icon: <TrendingUp size={18} />,
       color: C.accent,
+      subLabel: 'leads criados no período selecionado',
     },
     {
-      label: 'VGV Total',
-      value: formatCurrency(filteredKpis.vgvTotal),
-      icon: <DollarSign size={18} />,
-      color: C.primary,
-    },
-    {
-      label: 'Ticket Médio',
-      value: filteredKpis.ticketMedio > 0 ? formatCurrency(filteredKpis.ticketMedio) : '—',
-      icon: <ReceiptText size={18} />,
+      label: 'Ciclo de Vendas',
+      value: filteredKpis.cicloMedioVendas >= 0 ? `${filteredKpis.cicloMedioVendas} dias` : '—',
+      icon: <Timer size={18} />,
       color: '#7C3AED',
-    },
-    {
-      label: 'Sem Corretor',
-      value: filteredKpis.semCorretor.toLocaleString('pt-BR'),
-      icon: <UserX size={18} />,
-      color: C.danger,
-      subLabel: 'leads em Contato Inicial',
+      subLabel: 'média de dias até fechamento',
     },
   ];
 
@@ -1293,6 +1283,33 @@ export default function KoruEngenharia() {
                 />
               </label>
             </div>
+          </div>
+
+          {/* Nav tabs */}
+          <div className="flex gap-2 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+            <Link
+              to="/koru-engenharia"
+              className="px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+              style={{
+                background: 'white',
+                color: C.primary,
+                textDecoration: 'none',
+              }}
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/koru-engenharia/ciclo-vendas"
+              className="px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+              style={{
+                background: 'rgba(255,255,255,0.12)',
+                color: 'rgba(255,255,255,0.85)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                textDecoration: 'none',
+              }}
+            >
+              Ciclo de Vendas
+            </Link>
           </div>
 
           {/* Funil tabs + Filters */}
@@ -1397,28 +1414,28 @@ export default function KoruEngenharia() {
         {!loading && data && (
           <>
             {/* KPI row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {kpiCards.map(card => (
                 <KPICard key={card.label} {...card} />
               ))}
             </div>
 
-            {/* Funil de leads (contagem) + Funil de VGV (valores) */}
+            {/* Funil de leads (contagem) + Valor por etapa */}
             {funilSelecionado === 'Todos' ? (
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FunilChart data={funilInternas} title="Funil — Vendas Internas" />
-                  <VgvFunilChart data={vgvFunilInternas} title="VGV por Etapa — Internas" />
+                  <VgvFunilChart data={vgvFunilInternas} title="Valor por Etapa — Internas" />
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FunilChart data={funilExternas} title="Funil — Vendas Externas" />
-                  <VgvFunilChart data={vgvFunilExternas} title="VGV por Etapa — Externas" />
+                  <VgvFunilChart data={vgvFunilExternas} title="Valor por Etapa — Externas" />
                 </div>
               </>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <FunilChart data={filteredFunil} title={`Funil — ${funilSelecionado}`} />
-                <VgvFunilChart data={filteredVgvFunil} title={`VGV por Etapa — ${funilSelecionado}`} />
+                <VgvFunilChart data={filteredVgvFunil} title={`Valor por Etapa — ${funilSelecionado}`} />
               </div>
             )}
 

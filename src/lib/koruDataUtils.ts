@@ -18,6 +18,7 @@ export interface KoruLead {
   canalOrigem: string;
   produto: string;
   fechadaEm: string;
+  fechadaEmDate: Date | null;
   corretor: string | null;
   imobiliaria: string | null;
 }
@@ -62,6 +63,7 @@ export interface KoruKPIs {
   vgvTotal: number;
   ticketMedio: number;
   semCorretor: number;
+  cicloMedioVendas: number; // média de dias até fechamento; -1 = sem dados
 }
 
 export interface KoruDashboardData {
@@ -205,6 +207,7 @@ export function parseKoruLeads(rawData: Record<string, unknown>[], defaultFunil 
       canalOrigem: String(row['Canal de Origem'] ?? ''),
       produto: normalizeProduto(row['Produto']),
       fechadaEm: String(row['Fechada em'] ?? ''),
+      fechadaEmDate: parseDateStr(row['Fechada em']),
       corretor: extractCorretor(tags),
       imobiliaria: extractImobiliaria(tags),
     };
@@ -224,6 +227,16 @@ export function computeKPIs(leads: KoruLead[]): KoruKPIs {
   const ticketMedio = leadsComVenda > 0 ? vgvTotal / leadsComVenda : 0;
   const semCorretor = leads.filter(l => l.etapa === 'Contato inicial' && !l.corretor).length;
 
+  const wonWithDates = leads.filter(l => isWonLead(l.etapa) && l.dataCriada && l.fechadaEmDate);
+  const cicloMedioVendas = wonWithDates.length > 0
+    ? Math.round(
+        wonWithDates.reduce((sum, l) => {
+          const dias = (l.fechadaEmDate!.getTime() - l.dataCriada!.getTime()) / (1000 * 60 * 60 * 24);
+          return sum + Math.max(0, dias);
+        }, 0) / wonWithDates.length
+      )
+    : -1;
+
   return {
     totalLeads,
     emAtendimento,
@@ -233,6 +246,7 @@ export function computeKPIs(leads: KoruLead[]): KoruKPIs {
     vgvTotal,
     ticketMedio,
     semCorretor,
+    cicloMedioVendas,
   };
 }
 
@@ -344,7 +358,7 @@ export function computePorProduto(leads: KoruLead[]): ProdutoData[] {
 }
 
 export function generateInsights(
-  leads: KoruLead[],
+  _leads: KoruLead[],
   kpis: KoruKPIs,
   leadsPorMes: LeadsPorMes[],
   porCorretor: CorretorData[]
@@ -374,7 +388,7 @@ export function generateInsights(
 
   // VGV médio
   if (kpis.contratosFechados > 0 && kpis.vgvTotal > 0) {
-    insights.push(`💰 VGV médio por contrato: ${formatCurrency(kpis.ticketMedio)}`);
+    insights.push(`💰 Ticket médio por contrato: ${formatCurrency(kpis.ticketMedio)}`);
   }
 
   // Sem corretor
