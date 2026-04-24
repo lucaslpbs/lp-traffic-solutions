@@ -4,7 +4,6 @@ import Hero from './components/Hero';
 import Servicos from './components/Servicos';
 import Precificacao from './components/Precificacao';
 import CTA from './components/CTA';
-import logoTraffic from './assets/logo-traffic.png';
 
 function ReadingProgressBar() {
   const { scrollYProgress } = useScroll();
@@ -57,9 +56,9 @@ function Navbar() {
       }}
     >
       <img
-        src={logoTraffic}
+        src="/TFLOGO.png"
         alt="Traffic Solutions"
-        style={{ height: 32, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+        style={{ height: 32, objectFit: 'contain' }}
       />
       <motion.a
         href="https://wa.me/5585998088064"

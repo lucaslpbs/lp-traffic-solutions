@@ -325,7 +325,7 @@ export default function Precificacao() {
 
               {/* Line items */}
               {[
-                { label: 'Gestão de Tráfego Pago', value: 1000, note: 'Inclui até R$ 4.000/mês em investimento nas plataformas', old: null },
+                { label: 'Gestão de Tráfego Pago', value: 1200, note: 'Inclui até R$ 4.000/mês em investimento nas plataformas', old: null },
                 { label: 'Manutenção do CRM Kommo', value: 0, old: 500 },
                 { label: 'Manutenção das Automações', value: 0, old: 500 },
               ].map((item, i) => (
@@ -418,7 +418,7 @@ export default function Precificacao() {
                   color: '#F0F1F2',
                   lineHeight: 1,
                 }}>
-                  {isInView ? <CounterValue value={1000} prefix="R$ " suffix="/mês" /> : 'R$ 0/mês'}
+                  {isInView ? <CounterValue value={1200} prefix="R$ " suffix="/mês" /> : 'R$ 0/mês'}
                 </div>
                 <div style={{
                   fontFamily: 'Inter, sans-serif',

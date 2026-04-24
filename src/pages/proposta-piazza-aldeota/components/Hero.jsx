@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import logoTraffic from '../assets/logo-traffic.png';
 
 const containerVariants = {
   hidden: {},
@@ -72,9 +71,9 @@ export default function Hero() {
         }}
       >
         <img
-          src={logoTraffic}
+          src="/TFLOGO.png"
           alt="Traffic Solutions"
-          style={{ height: 44, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+          style={{ height: 44, objectFit: 'contain' }}
         />
       </motion.div>
 
