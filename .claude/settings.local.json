@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(cp \"C:\\\\Users\\\\lucas\\\\source\\\\repos\\\\lp-traffic-solutions\\\\public\\\\Logo TrafficSolutions.png\" \"C:\\\\Users\\\\lucas\\\\source\\\\repos\\\\lp-traffic-solutions\\\\src\\\\pages\\\\proposta-piazza-aldeota\\\\assets\\\\logo-traffic.png\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\lucas\\\\source\\\\repos\\\\lp-traffic-solutions\\\\src\\\\pages\\\\proposta-piazza-aldeota\\\\assets\")"
     ]
   }
 }
