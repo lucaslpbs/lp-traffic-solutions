@@ -25,12 +25,14 @@ import OrcamentoLV3 from "./pages/OrcamentoLV3";
 import OrcamentoLuBrasil from "./pages/OrcamentoLuBrasil";
 import NpsDashboard from "./pages/NpsDashboard";
 import KoruEngenharia from "./pages/KoruEngenharia";
+import KoruCicloVendas from "./pages/KoruCicloVendas";
+import KoruVendas from "./pages/KoruVendas";
 import OrcamentoOticasVisao from "./pages/OrcamentoOticasVisao";
 import LeadsDashboard from "./pages/LeadsDashboard";
-// ── Novos dashboards por cliente ──────────────────────────────────────────────
-import LivetDashboard from "./pages/Livetdashboard";
-import NCSaudeDashboard from "./pages/Ncsaudedashboard";
-import ClaraFashionDashboard from "./pages/Clarafashiondashboard";
+import LivetDashboard from "./pages/LivetDashboard.tsx";
+import NCSaudeDashboard from "./pages/NCSaudeDashboard.tsx";
+import ClaraFashionDashboard from "./pages/ClaraFashionDashboard.tsx";
+import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,7 @@ const HIDDEN_PATHS = [
   '/koru-engenharia',
   '/orcamento-oticasvisao',
   '/leads-dashboard',
+  '/proposta-piazza-aldeota',
   // Dashboards por cliente
   '/livet-dashboard',
   '/ncsaude-dashboard',
@@ -85,6 +88,8 @@ const AppRoutes = () => {
         <Route path="/orcamento-lubrasil" element={<OrcamentoLuBrasil />} />
         <Route path="/nps-ncsaude" element={<NpsDashboard />} />
         <Route path="/koru-engenharia" element={<KoruEngenharia />} />
+        <Route path="/koru-engenharia/ciclo-vendas" element={<KoruCicloVendas />} />
+        <Route path="/koru-engenharia/vendas" element={<KoruVendas />} />
         <Route path="/orcamento-oticasvisao" element={<OrcamentoOticasVisao />} />
 
         {/* Dashboard geral (todos os clientes) — protegido */}
@@ -95,7 +100,8 @@ const AppRoutes = () => {
         <Route path="/ncsaude-dashboard" element={<ProtectedRoute><NCSaudeDashboard /></ProtectedRoute>} />
         <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
 
-        {/* Login */}
+        <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
+
         <Route path="/login" element={<Login />} />
 
         {/* Dashboard interno */}
