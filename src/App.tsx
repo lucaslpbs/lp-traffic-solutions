@@ -27,14 +27,33 @@ import NpsDashboard from "./pages/NpsDashboard";
 import KoruEngenharia from "./pages/KoruEngenharia";
 import OrcamentoOticasVisao from "./pages/OrcamentoOticasVisao";
 import LeadsDashboard from "./pages/LeadsDashboard";
+// ── Novos dashboards por cliente ──────────────────────────────────────────────
+import LivetDashboard from "./pages/Livetdashboard";
+import NCSaudeDashboard from "./pages/Ncsaudedashboard";
+import ClaraFashionDashboard from "./pages/Clarafashiondashboard";
 
 const queryClient = new QueryClient();
+
+// Rotas internas que não mostram Header/Footer
+const HIDDEN_PATHS = [
+  '/brinde-exclusivo',
+  '/orcamento-lv3-multimarcas',
+  '/orcamento-lubrasil',
+  '/nps-ncsaude',
+  '/koru-engenharia',
+  '/orcamento-oticasvisao',
+  '/leads-dashboard',
+  // Dashboards por cliente
+  '/livet-dashboard',
+  '/ncsaude-dashboard',
+  '/clarafashion-dashboard',
+];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/dashboard');
   const isLogin = location.pathname === '/login';
-  const isHiddenPage = location.pathname === '/brinde-exclusivo' || location.pathname === '/orcamento-lv3-multimarcas' || location.pathname === '/orcamento-lubrasil' || location.pathname === '/nps-ncsaude' || location.pathname === '/koru-engenharia' || location.pathname === '/orcamento-oticasvisao' || location.pathname === '/leads-dashboard';
+  const isHiddenPage = HIDDEN_PATHS.includes(location.pathname);
 
   if (isDashboard || isLogin || isHiddenPage) {
     return <>{children}</>;
@@ -53,6 +72,7 @@ const AppRoutes = () => {
   return (
     <LayoutWrapper>
       <Routes>
+        {/* Páginas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/servicos" element={<Services />} />
         <Route path="/sobre" element={<About />} />
@@ -66,9 +86,19 @@ const AppRoutes = () => {
         <Route path="/nps-ncsaude" element={<NpsDashboard />} />
         <Route path="/koru-engenharia" element={<KoruEngenharia />} />
         <Route path="/orcamento-oticasvisao" element={<OrcamentoOticasVisao />} />
+
+        {/* Dashboard geral (todos os clientes) — protegido */}
         <Route path="/leads-dashboard" element={<ProtectedRoute><LeadsDashboard /></ProtectedRoute>} />
+
+        {/* ── Dashboards por cliente — protegidos ── */}
+        <Route path="/livet-dashboard" element={<ProtectedRoute><LivetDashboard /></ProtectedRoute>} />
+        <Route path="/ncsaude-dashboard" element={<ProtectedRoute><NCSaudeDashboard /></ProtectedRoute>} />
+        <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
+
+        {/* Login */}
         <Route path="/login" element={<Login />} />
-        
+
+        {/* Dashboard interno */}
         <Route
           path="/dashboard"
           element={
@@ -81,7 +111,7 @@ const AppRoutes = () => {
           <Route path="guerra" element={<WarRoom />} />
           <Route path=":clientId" element={<ClientReport />} />
         </Route>
-        
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </LayoutWrapper>
