@@ -56,7 +56,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/dashboard');
   const isLogin = location.pathname === '/login';
-  const isHiddenPage = HIDDEN_PATHS.includes(location.pathname);
+  const isHiddenPage = HIDDEN_PATHS.some(
+    (path) => location.pathname === path || location.pathname.startsWith(path + '/')
+  );
 
   if (isDashboard || isLogin || isHiddenPage) {
     return <>{children}</>;
