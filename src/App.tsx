@@ -33,6 +33,7 @@ import LivetDashboard from "./pages/LivetDashboard.tsx";
 import NCSaudeDashboard from "./pages/NCSaudeDashboard.tsx";
 import ClaraFashionDashboard from "./pages/ClaraFashionDashboard.tsx";
 import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
+import Obrigado from "./pages/obrigado";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const HIDDEN_PATHS = [
   '/orcamento-oticasvisao',
   '/leads-dashboard',
   '/proposta-piazza-aldeota',
+  '/obrigado',
   // Dashboards por cliente
   '/livet-dashboard',
   '/ncsaude-dashboard',
@@ -103,6 +105,7 @@ const AppRoutes = () => {
         <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
 
         <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
+        <Route path="/obrigado" element={<Obrigado />} />
 
         <Route path="/login" element={<Login />} />
 
