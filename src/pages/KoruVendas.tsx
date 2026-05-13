@@ -17,9 +17,10 @@ const XLSX_INTERNA = '/data/Funil%20Vendas%20Internas.xlsx';
 const XLSX_EXTERNA = '/data/Funil%20Vendas%20Externas.xlsx';
 const DEFAULT_TICKET = 245000;
 const PIPELINE_ID_INTERNA = 12157328;
-const PIPELINE_ID_EXTERNA = 12628095;
+const PIPELINE_ID_EXTERNA = 13422447;
 const ETAPAS_GANHA = ['venda ganha', 'contratado'];
 const ETAPAS_PERDIDA = ['venda perdida', 'descartado'];
+const ETAPAS_TERMINAL = ['venda ganha', 'contratado', 'venda perdida', 'descartado', 'lead perdido', 'base de perdidos'];
 
 // ── Design Tokens ──────────────────────────────────────────────────────────
 const D = {
@@ -364,11 +365,11 @@ function CicloEtapaChart({ data }: { data: CicloEtapaRow[] }) {
                 <>
                   <div className="h-full rounded-lg flex items-center px-3 transition-all duration-700"
                     style={{ width: `${Math.max(pct, 3)}%`, background: color, opacity: 0.85 }}>
-                    {pct > 28 && <span className="text-xs font-bold whitespace-nowrap" style={{ color: D.bg }}>{label}</span>}
+                    {pct > 28 && <span className="text-xs font-bold whitespace-nowrap" style={{ color: '#fff' }}>{label}</span>}
                   </div>
                   {pct <= 28 && label && (
                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold"
-                      style={{ color: D.textSec }}>{label}</span>
+                      style={{ color: D.text }}>{label}</span>
                   )}
                 </>
               ) : (
@@ -446,7 +447,9 @@ function useXlsx(tab: 'interna' | 'externa') {
         const map = new Map<string, number>();
         for (const row of json) {
           const e = String(row[key] ?? '').trim();
-          if (e) map.set(e, (map.get(e) ?? 0) + 1);
+          if (!e) continue;
+          if (ETAPAS_TERMINAL.some(t => norm(e).includes(norm(t)))) continue;
+          map.set(e, (map.get(e) ?? 0) + 1);
         }
         setRows(Array.from(map.entries())
           .map(([etapa, quantidade]) => ({ etapa, quantidade }))
@@ -605,22 +608,41 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
 }
 
 // ── Section II ─────────────────────────────────────────────────────────────
-function SecaoPeriodica({ metricas }: { metricas: Metricas }) {
-  const { totalCriados: tc } = metricas;
-  const rows = [
-    { label: 'Total de Leads Criados',             qty: metricas.totalCriados,    color: D.blue },
-    { label: 'Total de Leads Atendidos',            qty: metricas.atendidos,       color: D.cyan },
-    { label: 'Total de Leads c/ Corretor Nomeado',  qty: metricas.corretorNomeado, color: D.purple },
-    { label: 'Total de Visitas Realizadas',          qty: metricas.visitasRealizadas, color: D.amber },
-    { label: 'Total de Análises de Crédito',         qty: metricas.analisesCredito, color: D.orange },
-    { label: 'Total de Negociações',                 qty: metricas.negociacoes,    color: D.pink },
-    { label: 'Total de Leads Descartados',           qty: metricas.descartados,    color: D.red },
-    { label: 'Total de Vendas Fechadas',             qty: metricas.vendasFechadas, color: D.green },
-  ];
+function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
+  // Deriva etapas reais do pipeline — cada funil tem seus próprios estágios
+  const { etapas, totalLeads, descartados, vendasFechadas } = (() => {
+    const stageMap = new Map<string, Set<string>>();
+    const ganhaIds = new Set<string>();
+    const perdidaIds = new Set<string>();
+    const allIds = new Set<string>();
+    for (const r of records) {
+      const id = String(r.lead_id);
+      allIds.add(id);
+      const e = norm(r.etapa_nome ?? '');
+      if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) ganhaIds.add(id);
+      if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) perdidaIds.add(id);
+      const etapa = r.etapa_nome?.trim();
+      if (etapa && !ETAPAS_TERMINAL.some(t => norm(etapa).includes(norm(t)))) {
+        if (!stageMap.has(etapa)) stageMap.set(etapa, new Set());
+        stageMap.get(etapa)!.add(id);
+      }
+    }
+    return {
+      etapas: Array.from(stageMap.entries())
+        .map(([etapa, ids]) => ({ etapa, quantidade: ids.size }))
+        .sort((a, b) => b.quantidade - a.quantidade),
+      totalLeads: allIds.size,
+      descartados: perdidaIds.size,
+      vendasFechadas: ganhaIds.size,
+    };
+  })();
 
-  const funnelData = rows.slice(0, 6).filter(r => r.qty > 0);
-  const chartH = Math.max(funnelData.length * 52 + 20, 180);
-  const maxVal = rows[0].qty || 1;
+  if (!records.length) {
+    return <p className="text-center py-8" style={{ color: D.textMuted }}>Nenhum lead encontrado para o período.</p>;
+  }
+
+  const chartH = Math.max(etapas.length * 52 + 20, 180);
+  const maxVal = etapas[0]?.quantidade || 1;
 
   return (
     <div className="space-y-6">
@@ -635,77 +657,99 @@ function SecaoPeriodica({ metricas }: { metricas: Metricas }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
-              <tr key={row.label} style={{ background: i % 2 === 0 ? D.card : D.cardHover, borderTop: `1px solid ${D.border}` }}>
-                <td className="px-4 py-3 font-medium" style={{ color: D.text }}>{row.label}</td>
-                <td className="px-4 py-3 text-right font-bold" style={{ color: row.color }}>{row.qty}</td>
+            <tr style={{ background: D.card }}>
+              <td className="px-4 py-3 font-medium" style={{ color: D.text }}>Total de Leads Criados</td>
+              <td className="px-4 py-3 text-right font-bold" style={{ color: D.blue }}>{totalLeads}</td>
+              <td className="px-4 py-3 text-right" style={{ color: D.textSec }}>100,00%</td>
+            </tr>
+            {etapas.map((row, i) => (
+              <tr key={row.etapa} style={{ background: (i + 1) % 2 === 0 ? D.card : D.cardHover, borderTop: `1px solid ${D.border}` }}>
+                <td className="px-4 py-3 font-medium" style={{ color: D.text }}>{row.etapa}</td>
+                <td className="px-4 py-3 text-right font-bold" style={{ color: CC[i % CC.length] }}>{row.quantidade}</td>
                 <td className="px-4 py-3 text-right" style={{ color: D.textSec }}>
-                  {tc > 0 ? fmtPct((row.qty / tc) * 100) : '—'}
+                  {totalLeads > 0 ? fmtPct((row.quantidade / totalLeads) * 100) : '—'}
                 </td>
               </tr>
             ))}
+            <tr style={{ borderTop: `1px solid ${D.borderLight}`, background: `${D.red}10` }}>
+              <td className="px-4 py-3 font-medium" style={{ color: D.red }}>Descartados / Perdidos</td>
+              <td className="px-4 py-3 text-right font-bold" style={{ color: D.red }}>{descartados}</td>
+              <td className="px-4 py-3 text-right" style={{ color: D.red }}>
+                {totalLeads > 0 ? fmtPct((descartados / totalLeads) * 100) : '—'}
+              </td>
+            </tr>
+            <tr style={{ borderTop: `1px solid ${D.borderLight}`, background: `${D.green}10` }}>
+              <td className="px-4 py-3 font-medium" style={{ color: D.green }}>Vendas Fechadas</td>
+              <td className="px-4 py-3 text-right font-bold" style={{ color: D.green }}>{vendasFechadas}</td>
+              <td className="px-4 py-3 text-right" style={{ color: D.green }}>
+                {totalLeads > 0 ? fmtPct((vendasFechadas / totalLeads) * 100) : '—'}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bar */}
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Performance por Etapa</p>
-          <ResponsiveContainer width="100%" height={chartH}>
-            <BarChart data={funnelData} layout="vertical" margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={D.border} horizontal={false} />
-              <XAxis type="number" tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="etapa" width={160} tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<TTip />} />
-              <Bar dataKey="quantidade" radius={[0, 6, 6, 0]} name="Leads">
-                {funnelData.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
-                <LabelList dataKey="quantidade" position="right" style={{ fill: D.text, fontSize: 12, fontWeight: 700 }} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      {etapas.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Bar */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Performance por Etapa</p>
+            <ResponsiveContainer width="100%" height={chartH}>
+              <BarChart data={etapas} layout="vertical" margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={D.border} horizontal={false} />
+                <XAxis type="number" tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="etapa" width={160} tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip content={<TTip />} />
+                <Bar dataKey="quantidade" radius={[0, 6, 6, 0]} name="Leads">
+                  {etapas.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
+                  <LabelList dataKey="quantidade" position="right" style={{ fill: D.text, fontSize: 12, fontWeight: 700 }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-        {/* Funnel */}
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: D.textSec }}>Funil de Conversão</p>
-          <div className="space-y-3">
-            {funnelData.map((step, i) => {
-              const pct = (step.qty / maxVal) * 100;
-              const conv = i > 0 && funnelData[i - 1].qty > 0
-                ? ((step.qty / funnelData[i - 1].qty) * 100).toFixed(1) : null;
-              return (
-                <div key={step.label}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm" style={{ color: D.textSec }}>{step.label.replace('Total de ', '').replace('Total d', '')}</span>
-                    <div className="flex items-center gap-3">
-                      {conv && <span className="text-xs" style={{ color: D.textMuted }}>↓ {conv}%</span>}
-                      <span className="text-base font-bold" style={{ color: step.color }}>{step.qty}</span>
+          {/* Funnel */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: D.textSec }}>Funil de Conversão</p>
+            <div className="space-y-3">
+              {etapas.map((step, i) => {
+                const pct = (step.quantidade / maxVal) * 100;
+                const prev = etapas[i - 1];
+                const conv = prev && prev.quantidade > 0
+                  ? ((step.quantidade / prev.quantidade) * 100).toFixed(1) : null;
+                return (
+                  <div key={step.etapa}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm" style={{ color: D.textSec }}>{step.etapa}</span>
+                      <div className="flex items-center gap-3">
+                        {conv && <span className="text-xs" style={{ color: D.textMuted }}>↓ {conv}%</span>}
+                        <span className="text-base font-bold" style={{ color: CC[i % CC.length] }}>{step.quantidade}</span>
+                      </div>
+                    </div>
+                    <div className="h-7 rounded-lg overflow-hidden" style={{ background: D.cardHover, border: `1px solid ${D.border}` }}>
+                      <div className="h-full rounded-lg transition-all duration-700"
+                        style={{ width: `${Math.max(pct, step.quantidade > 0 ? 2 : 0)}%`, background: CC[i % CC.length], opacity: 0.85 }} />
                     </div>
                   </div>
-                  <div className="h-7 rounded-lg overflow-hidden" style={{ background: D.cardHover, border: `1px solid ${D.border}` }}>
-                    <div className="h-full rounded-lg transition-all duration-700"
-                      style={{ width: `${Math.max(pct, step.qty > 0 ? 2 : 0)}%`, background: step.color, opacity: 0.85 }} />
-                  </div>
+                );
+              })}
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl"
+                  style={{ background: `${D.red}18`, border: `1px solid ${D.red}44` }}>
+                  <span className="text-xs font-semibold" style={{ color: D.red }}>❌ Descartados</span>
+                  <span className="text-sm font-black" style={{ color: D.red }}>{descartados}</span>
                 </div>
-              );
-            })}
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <div className="flex items-center justify-between px-3 py-2 rounded-xl"
-                style={{ background: `${D.red}18`, border: `1px solid ${D.red}44` }}>
-                <span className="text-xs font-semibold" style={{ color: D.red }}>❌ Descartados</span>
-                <span className="text-sm font-black" style={{ color: D.red }}>{metricas.descartados}</span>
-              </div>
-              <div className="flex items-center justify-between px-3 py-2 rounded-xl"
-                style={{ background: `${D.green}18`, border: `1px solid ${D.green}44` }}>
-                <span className="text-xs font-semibold" style={{ color: D.green }}>✅ Fechadas</span>
-                <span className="text-sm font-black" style={{ color: D.green }}>{metricas.vendasFechadas}</span>
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl"
+                  style={{ background: `${D.green}18`, border: `1px solid ${D.green}44` }}>
+                  <span className="text-xs font-semibold" style={{ color: D.green }}>✅ Fechadas</span>
+                  <span className="text-sm font-black" style={{ color: D.green }}>{vendasFechadas}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -866,20 +910,42 @@ export default function KoruVendas() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Filtra por pipeline_id antes de aplicar o filtro de data — única fonte de verdade
+  const rawDataInterna = useMemo(
+    () => rawData?.filter(r => String(r.pipeline_id) === String(PIPELINE_ID_INTERNA)) ?? null,
+    [rawData]
+  );
+  const rawDataExterna = useMemo(
+    () => rawData?.filter(r => String(r.pipeline_id) === String(PIPELINE_ID_EXTERNA)) ?? null,
+    [rawData]
+  );
+
+  const filteredInterna = useMemo(() => {
+    if (!rawDataInterna) return [];
+    return filterByDate(rawDataInterna, dateStart, dateEnd);
+  }, [rawDataInterna, dateStart, dateEnd]);
+
+  const filteredExterna = useMemo(() => {
+    if (!rawDataExterna) return [];
+    return filterByDate(rawDataExterna, dateStart, dateEnd);
+  }, [rawDataExterna, dateStart, dateEnd]);
+
+  const metricasInterna = useMemo(() => computeMetricas(filteredInterna), [filteredInterna]);
+  const metricasExterna = useMemo(() => computeMetricas(filteredExterna), [filteredExterna]);
+
+  // Seção III — usa o funil selecionado na tab para análise de investimento
   const filteredRecords = useMemo(() => {
-    if (!rawData) return [];
-    const pid = activeTab === 'interna' ? PIPELINE_ID_INTERNA : PIPELINE_ID_EXTERNA;
-    return filterByDate(rawData.filter(r => Number(r.pipeline_id) === pid), dateStart, dateEnd);
-  }, [rawData, activeTab, dateStart, dateEnd]);
+    const data = activeTab === 'interna' ? rawDataInterna : rawDataExterna;
+    if (!data) return [];
+    return filterByDate(data, dateStart, dateEnd);
+  }, [rawDataInterna, rawDataExterna, activeTab, dateStart, dateEnd]);
 
   const metricas = useMemo(() => computeMetricas(filteredRecords), [filteredRecords]);
 
   // Seção IV — usa TODOS os registros do pipeline (sem filtro de data) para ciclo de vendas
   const pipelineAllRecords = useMemo(() => {
-    if (!rawData) return [];
-    const pid = activeTab === 'interna' ? PIPELINE_ID_INTERNA : PIPELINE_ID_EXTERNA;
-    return rawData.filter(r => Number(r.pipeline_id) === pid);
-  }, [rawData, activeTab]);
+    return activeTab === 'interna' ? (rawDataInterna ?? []) : (rawDataExterna ?? []);
+  }, [rawDataInterna, rawDataExterna, activeTab]);
 
   const cicloEtapas = useMemo(() => computeCicloEtapas(pipelineAllRecords), [pipelineAllRecords]);
   const cicloEntries = useMemo(() => computeCicloEntries(pipelineAllRecords), [pipelineAllRecords]);
@@ -926,6 +992,37 @@ export default function KoruVendas() {
         <p className="text-sm" style={{ color: D.textSec }}>Análise de funil · Performance periódica · Métricas de investimento</p>
       </div>
 
+      {/* Global Date Filter */}
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap p-4 rounded-2xl"
+          style={{ background: D.card, border: `1px solid ${D.border}` }}>
+          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: D.textSec }}>
+            Filtro de Período
+          </span>
+          <div className="flex items-center gap-2">
+            <Calendar size={14} style={{ color: D.textSec }} />
+            <input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)}
+              className="rounded-lg px-3 py-2 text-sm outline-none"
+              style={{ background: D.cardHover, border: `1px solid ${D.border}`, color: D.text, colorScheme: 'dark' }} />
+            <span style={{ color: D.textSec }}>até</span>
+            <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)}
+              className="rounded-lg px-3 py-2 text-sm outline-none"
+              style={{ background: D.cardHover, border: `1px solid ${D.border}`, color: D.text, colorScheme: 'dark' }} />
+          </div>
+          <button onClick={fetchData} disabled={apiLoading}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+            style={{ background: D.blueGlow, color: '#fff', opacity: apiLoading ? 0.65 : 1 }}>
+            <RefreshCw size={14} className={apiLoading ? 'animate-spin' : ''} />
+            {apiLoading ? 'Carregando...' : 'Atualizar'}
+          </button>
+          {apiError && (
+            <span className="flex items-center gap-1 text-xs" style={{ color: D.red }}>
+              <AlertCircle size={13} /> {apiError}
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
         {/* I — Static */}
@@ -940,36 +1037,29 @@ export default function KoruVendas() {
         {/* II — Periodic */}
         <Card
           title="(II) Análise Periódica"
-          sub="Dados via API · Filtrados por data de criação do lead"
-          icon={<Calendar size={20} style={{ color: D.purple }} />}
+          sub={activeTab === 'interna'
+            ? 'Funil Vendas Internas · Leads criados no período selecionado'
+            : 'Funil Vendas Externas · Leads criados no período selecionado'}
+          icon={<Calendar size={20} style={{ color: activeTab === 'interna' ? D.blue : D.purple }} />}
         >
-          {/* Date controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Calendar size={14} style={{ color: D.textSec }} />
-              <input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)}
-                className="rounded-lg px-3 py-2 text-sm outline-none"
-                style={{ background: D.cardHover, border: `1px solid ${D.border}`, color: D.text, colorScheme: 'dark' }} />
-              <span style={{ color: D.textSec }}>até</span>
-              <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)}
-                className="rounded-lg px-3 py-2 text-sm outline-none"
-                style={{ background: D.cardHover, border: `1px solid ${D.border}`, color: D.text, colorScheme: 'dark' }} />
-            </div>
-            <button onClick={fetchData} disabled={apiLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-              style={{ background: D.blueGlow, color: '#fff', opacity: apiLoading ? 0.65 : 1 }}>
-              <RefreshCw size={14} className={apiLoading ? 'animate-spin' : ''} />
-              {apiLoading ? 'Carregando...' : 'Atualizar'}
-            </button>
-          </div>
-
-          {apiError && <ErrBanner msg={apiError} />}
           {apiLoading && <Spinner />}
-          {!apiLoading && rawData !== null && <SecaoPeriodica metricas={metricas} />}
-          {!apiLoading && rawData === null && !apiError && (
-            <p className="text-center py-16" style={{ color: D.textSec }}>
-              Clique em <strong>Atualizar</strong> para carregar os dados.
-            </p>
+          {!apiLoading && activeTab === 'interna' && (
+            rawDataInterna !== null
+              ? <SecaoPeriodica records={filteredInterna} />
+              : !apiError && (
+                <p className="text-center py-16" style={{ color: D.textSec }}>
+                  Clique em <strong>Atualizar</strong> para carregar os dados.
+                </p>
+              )
+          )}
+          {!apiLoading && activeTab === 'externa' && (
+            rawDataExterna !== null
+              ? <SecaoPeriodica records={filteredExterna} />
+              : !apiError && (
+                <p className="text-center py-16" style={{ color: D.textSec }}>
+                  Clique em <strong>Atualizar</strong> para carregar os dados.
+                </p>
+              )
           )}
         </Card>
 
@@ -1016,14 +1106,14 @@ export default function KoruVendas() {
           )}
         </Card>
 
-        {/* IV — Ciclo de Vendas */}
-        <Card
+        {/* IV — Ciclo de Vendas (oculto — remover o `false &&` para reativar) */}
+        {false && <Card
           title="(IV) Ciclo de Vendas"
           sub="Tempo médio desde criação até fechamento · transições reais via API · todos os períodos"
           icon={<Timer size={20} style={{ color: D.cyan }} />}
         >
           {apiLoading && <Spinner />}
-          {!apiLoading && rawData !== null && (
+          {!apiLoading && pipelineAllRecords.length > 0 && (
             <div className="space-y-8">
 
               {/* KPIs */}
@@ -1165,12 +1255,12 @@ export default function KoruVendas() {
 
             </div>
           )}
-          {!apiLoading && rawData === null && !apiError && (
+          {!apiLoading && pipelineAllRecords.length === 0 && !apiError && (
             <p className="text-center py-12" style={{ color: D.textSec }}>
               Clique em <strong>Atualizar</strong> na Seção II para carregar os dados.
             </p>
           )}
-        </Card>
+        </Card>}
 
       </div>
     </div>
