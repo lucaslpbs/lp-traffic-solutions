@@ -39,6 +39,7 @@ interface LeadRecord {
   pipeline_id?: string | number;
   etapa_nome?: string;
   data_hora_criacao_lead?: string;
+  lead_criado_em?: string;
   data_hora_etapa?: string;
   produto?: string;
   tags?: string;
@@ -65,46 +66,75 @@ function parseDateBR(s: string): number {
   return new Date(s).getTime();
 }
 
-function filterByDate(records: LeadRecord[], start: string, end: string): LeadRecord[] {
-  if (!start || !end) return records;
-  const s = new Date(start).getTime();
-  const e = new Date(end + 'T23:59:59').getTime();
-  return records.filter(r => {
-    const t = parseDateBR(r.data_hora_criacao_lead ?? '');
-    return t > 0 && t >= s && t <= e;
-  });
+// Extrai a data de criação do lead como string YYYY-MM-DD (sem conversão de timezone)
+function extractLeadCreatedDate(r: LeadRecord): string {
+  // Usa || (não ??) para que string vazia "" também faça fallback
+  const s = ((r.lead_criado_em as string) || (r.data_hora_criacao_lead as string) || '');
+  if (!s) return '';
+  // Formato DD/MM/YYYY HH:MM:SS → converte para YYYY-MM-DD
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  // Já está em YYYY-MM-DD ou ISO → pega os 10 primeiros chars
+  return s.substring(0, 10);
 }
 
-function uniqueInStage(records: LeadRecord[], stage: string): number {
-  const s = norm(stage);
-  const ids = new Set<string>();
-  for (const r of records) {
-    if (norm(r.etapa_nome ?? '').includes(s)) ids.add(String(r.lead_id));
+// Filtra os leads criados no período e retorna TODOS os seus registros de etapa.
+// Compara strings YYYY-MM-DD diretamente para evitar problemas de fuso horário (UTC vs BRT).
+function filterLeadsCreatedInPeriod(allRecords: LeadRecord[], start: string, end: string): LeadRecord[] {
+  if (!start || !end) return allRecords;
+
+  // Passo 1: encontra os lead_ids cujo dia de criação está dentro do período
+  const createdLeadIds = new Set<string>();
+  for (const r of allRecords) {
+    const dateStr = extractLeadCreatedDate(r);
+    if (dateStr && dateStr >= start && dateStr <= end) {
+      createdLeadIds.add(String(r.lead_id));
+    }
   }
-  return ids.size;
+
+  // Passo 2: retorna TODOS os registros desses leads (incluindo etapas fora do período)
+  return allRecords.filter(r => createdLeadIds.has(String(r.lead_id)));
 }
 
-function uniqueLeads(records: LeadRecord[]): number {
-  return new Set(records.map(r => String(r.lead_id))).size;
-}
 
 function computeMetricas(records: LeadRecord[]): Metricas {
-  const ganhaIds = new Set<string>();
-  const perdidaIds = new Set<string>();
+  // Agrupa por lead e usa apenas o último estado de cada um
+  const byLead = new Map<string, LeadRecord[]>();
   for (const r of records) {
-    const e = norm(r.etapa_nome ?? '');
-    if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) ganhaIds.add(String(r.lead_id));
-    if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) perdidaIds.add(String(r.lead_id));
+    const id = String(r.lead_id);
+    if (!byLead.has(id)) byLead.set(id, []);
+    byLead.get(id)!.push(r);
   }
+
+  let ganhaCount = 0, perdidaCount = 0;
+  let atendidos = 0, corretorNomeado = 0, visitasRealizadas = 0;
+  let analisesCredito = 0, negociacoes = 0;
+
+  for (const events of byLead.values()) {
+    const last = events.reduce((a, b) =>
+      parseDateBR(a.data_hora_etapa ?? '') >= parseDateBR(b.data_hora_etapa ?? '') ? a : b
+    );
+    const e = norm(last.etapa_nome ?? '');
+    if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) ganhaCount++;
+    else if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) perdidaCount++;
+    else {
+      if (e.includes('atendimento')) atendidos++;
+      if (e.includes('corretor')) corretorNomeado++;
+      if (e.includes('visita realizada')) visitasRealizadas++;
+      if (e.includes('analise')) analisesCredito++;
+      if (e.includes('negociacao')) negociacoes++;
+    }
+  }
+
   return {
-    totalCriados: uniqueLeads(records),
-    atendidos: uniqueInStage(records, 'atendimento'),
-    corretorNomeado: uniqueInStage(records, 'corretor'),
-    visitasRealizadas: uniqueInStage(records, 'visita realizada'),
-    analisesCredito: uniqueInStage(records, 'analise'),
-    negociacoes: uniqueInStage(records, 'negociacao'),
-    descartados: perdidaIds.size,
-    vendasFechadas: ganhaIds.size,
+    totalCriados: byLead.size,
+    atendidos,
+    corretorNomeado,
+    visitasRealizadas,
+    analisesCredito,
+    negociacoes,
+    descartados: perdidaCount,
+    vendasFechadas: ganhaCount,
   };
 }
 
@@ -235,7 +265,7 @@ function computeCicloEntries(records: LeadRecord[]): CicloEntry[] {
   const data = new Map<string, { createdAt: number; wonAt: number; produto: string; tags: string }>();
   for (const r of records) {
     const id = String(r.lead_id);
-    const created = parseDateBR(r.data_hora_criacao_lead ?? '');
+    const created = parseDateBR(((r.lead_criado_em as string) || (r.data_hora_criacao_lead as string) || ''));
     const evt = parseDateBR(r.data_hora_etapa ?? '');
     if (!data.has(id)) data.set(id, { createdAt: 0, wonAt: 0, produto: '', tags: '' });
     const d = data.get(id)!;
@@ -609,27 +639,39 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
 
 // ── Section II ─────────────────────────────────────────────────────────────
 function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
-  // Deriva etapas reais do pipeline — cada funil tem seus próprios estágios
   const { etapas, totalLeads, descartados, vendasFechadas } = (() => {
-    const stageMap = new Map<string, Set<string>>();
-    const ganhaIds = new Set<string>();
-    const perdidaIds = new Set<string>();
     const allIds = new Set<string>();
+    const stageLeads = new Map<string, Set<string>>();
+
     for (const r of records) {
       const id = String(r.lead_id);
       allIds.add(id);
-      const e = norm(r.etapa_nome ?? '');
-      if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) ganhaIds.add(id);
-      if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) perdidaIds.add(id);
-      const etapa = r.etapa_nome?.trim();
-      if (etapa && !ETAPAS_TERMINAL.some(t => norm(etapa).includes(norm(t)))) {
-        if (!stageMap.has(etapa)) stageMap.set(etapa, new Set());
-        stageMap.get(etapa)!.add(id);
+
+      const etapaNome = r.etapa_nome?.trim() ?? '';
+      if (!etapaNome) continue;
+
+      if (!stageLeads.has(etapaNome)) stageLeads.set(etapaNome, new Set());
+      stageLeads.get(etapaNome)!.add(id);
+    }
+
+    const ganhaIds = new Set<string>();
+    const perdidaIds = new Set<string>();
+    const stageMap = new Map<string, number>();
+
+    for (const [etapa, ids] of stageLeads.entries()) {
+      const e = norm(etapa);
+      if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) {
+        ids.forEach(id => ganhaIds.add(id));
+      } else if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) {
+        ids.forEach(id => perdidaIds.add(id));
+      } else if (!ETAPAS_TERMINAL.some(t => e.includes(norm(t)))) {
+        stageMap.set(etapa, ids.size);
       }
     }
+
     return {
       etapas: Array.from(stageMap.entries())
-        .map(([etapa, ids]) => ({ etapa, quantidade: ids.size }))
+        .map(([etapa, quantidade]) => ({ etapa, quantidade }))
         .sort((a, b) => b.quantidade - a.quantidade),
       totalLeads: allIds.size,
       descartados: perdidaIds.size,
@@ -922,23 +964,22 @@ export default function KoruVendas() {
 
   const filteredInterna = useMemo(() => {
     if (!rawDataInterna) return [];
-    return filterByDate(rawDataInterna, dateStart, dateEnd);
+    return filterLeadsCreatedInPeriod(rawDataInterna, dateStart, dateEnd);
   }, [rawDataInterna, dateStart, dateEnd]);
 
   const filteredExterna = useMemo(() => {
     if (!rawDataExterna) return [];
-    return filterByDate(rawDataExterna, dateStart, dateEnd);
+    return filterLeadsCreatedInPeriod(rawDataExterna, dateStart, dateEnd);
   }, [rawDataExterna, dateStart, dateEnd]);
 
   const metricasInterna = useMemo(() => computeMetricas(filteredInterna), [filteredInterna]);
   const metricasExterna = useMemo(() => computeMetricas(filteredExterna), [filteredExterna]);
 
-  // Seção III — usa o funil selecionado na tab para análise de investimento
-  const filteredRecords = useMemo(() => {
-    const data = activeTab === 'interna' ? rawDataInterna : rawDataExterna;
-    if (!data) return [];
-    return filterByDate(data, dateStart, dateEnd);
-  }, [rawDataInterna, rawDataExterna, activeTab, dateStart, dateEnd]);
+  // Seção III — usa o mesmo filtro por lead_criado_em da seção II
+  const filteredRecords = useMemo(
+    () => activeTab === 'interna' ? filteredInterna : filteredExterna,
+    [activeTab, filteredInterna, filteredExterna]
+  );
 
   const metricas = useMemo(() => computeMetricas(filteredRecords), [filteredRecords]);
 
