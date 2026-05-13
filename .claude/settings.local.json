@@ -7,7 +7,8 @@
       "Bash(mkdir -p \"C:\\\\Users\\\\lucas\\\\source\\\\repos\\\\lp-traffic-solutions\\\\src\\\\pages\\\\proposta-piazza-aldeota\\\\assets\")",
       "Bash(cd c:\\\\\\\\Users\\\\\\\\User\\\\\\\\source\\\\\\\\repos\\\\\\\\lp-traffic-solutions\\\\\\\\public\\\\\\\\data)",
       "Bash(python3)",
-      "Bash(chcp 65001)"
+      "Bash(chcp 65001)",
+      "Bash(find C:Userslucassourcereposlp-traffic-solutionssrc -type f -name *.tsx -o -name *.jsx)"
     ]
   }
 }
