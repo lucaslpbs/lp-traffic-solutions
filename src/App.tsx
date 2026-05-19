@@ -21,6 +21,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClientReport from "./pages/ClientReport";
 import WarRoom from "./pages/WarRoom";
+import GestaoClientes from "./pages/GestaoClientes";
 import OrcamentoLV3 from "./pages/OrcamentoLV3";
 import OrcamentoLuBrasil from "./pages/OrcamentoLuBrasil";
 import NpsDashboard from "./pages/NpsDashboard";
@@ -120,6 +121,7 @@ const AppRoutes = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="guerra" element={<WarRoom />} />
+          <Route path="gestao-clientes" element={<GestaoClientes />} />
           <Route path=":clientId" element={<ClientReport />} />
         </Route>
 

@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      gestao_clientes: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          nome_cliente: string
+          numero_conta_anuncio: string
+          numero_whatsapp_cliente: string
+          numero_grupo_whatsapp: string
+          valor_mensalidade: number
+          dia_vencimento: number
+          tipo_contrato: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+          limite_minimo_saldo: number
+          status: 'ativo' | 'pausado' | 'cancelado'
+          data_inicio: string
+          data_fim: string | null
+          observacoes: string | null
+          responsavel_interno: string | null
+          segmento: string | null
+          webhook_cadastro_disparado: boolean
+          fluxos_criados: boolean
+          ultimo_relatorio_enviado: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          nome_cliente: string
+          numero_conta_anuncio: string
+          numero_whatsapp_cliente: string
+          numero_grupo_whatsapp: string
+          valor_mensalidade: number
+          dia_vencimento: number
+          tipo_contrato?: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+          limite_minimo_saldo?: number
+          status?: 'ativo' | 'pausado' | 'cancelado'
+          data_inicio?: string
+          data_fim?: string | null
+          observacoes?: string | null
+          responsavel_interno?: string | null
+          segmento?: string | null
+          webhook_cadastro_disparado?: boolean
+          fluxos_criados?: boolean
+          ultimo_relatorio_enviado?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          nome_cliente?: string
+          numero_conta_anuncio?: string
+          numero_whatsapp_cliente?: string
+          numero_grupo_whatsapp?: string
+          valor_mensalidade?: number
+          dia_vencimento?: number
+          tipo_contrato?: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+          limite_minimo_saldo?: number
+          status?: 'ativo' | 'pausado' | 'cancelado'
+          data_inicio?: string
+          data_fim?: string | null
+          observacoes?: string | null
+          responsavel_interno?: string | null
+          segmento?: string | null
+          webhook_cadastro_disparado?: boolean
+          fluxos_criados?: boolean
+          ultimo_relatorio_enviado?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           created_at: string

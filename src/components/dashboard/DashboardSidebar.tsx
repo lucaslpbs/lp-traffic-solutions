@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Building2,
+  LogOut,
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Crosshair
+  Crosshair,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -111,6 +112,19 @@ export const DashboardSidebar = () => {
         >
           <Crosshair className="h-5 w-5 flex-shrink-0" />
           {!collapsed && <span className="font-medium">Quarto de Guerra</span>}
+        </Link>
+
+        <Link
+          to="/dashboard/gestao-clientes"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
+            location.pathname === '/dashboard/gestao-clientes'
+              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          <Users className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Gestão de Clientes</span>}
         </Link>
 
         {/* Clients Section */}
