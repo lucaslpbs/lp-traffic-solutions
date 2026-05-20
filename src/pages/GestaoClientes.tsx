@@ -44,6 +44,8 @@ import {
 
 type GestaoCliente = Tables<'gestao_clientes'>;
 
+type Parcela = { parcelas: string; valor: string; inicio: string };
+
 type FormData = {
   nome_cliente: string;
   numero_conta_anuncio: string;
@@ -58,7 +60,11 @@ type FormData = {
   data_fim: string;
   limite_minimo_saldo: string;
   observacoes: string;
+  plano_personalizado: boolean;
+  parcelas: Parcela[];
 };
+
+const EMPTY_PARCELA: Parcela = { parcelas: '', valor: '', inicio: new Date().toISOString().split('T')[0] };
 
 const EMPTY_FORM: FormData = {
   nome_cliente: '',
@@ -74,6 +80,8 @@ const EMPTY_FORM: FormData = {
   data_fim: '',
   limite_minimo_saldo: '58.00',
   observacoes: '',
+  plano_personalizado: false,
+  parcelas: [{ ...EMPTY_PARCELA }],
 };
 
 const inputCls =
@@ -225,6 +233,7 @@ export default function GestaoClientes() {
 
   const openEdit = (c: GestaoCliente) => {
     setEditingId(c.id);
+    const parcelasDetalhes = Array.isArray(c.parcelas_detalhes) ? (c.parcelas_detalhes as Parcela[]) : null;
     setForm({
       nome_cliente: c.nome_cliente,
       numero_conta_anuncio: c.numero_conta_anuncio,
@@ -239,12 +248,36 @@ export default function GestaoClientes() {
       data_fim: c.data_fim ?? '',
       limite_minimo_saldo: String(c.limite_minimo_saldo),
       observacoes: c.observacoes ?? '',
+      plano_personalizado: c.plano_personalizado ?? false,
+      parcelas: parcelasDetalhes ?? [{ ...EMPTY_PARCELA }],
     });
     setModalOpen(true);
   };
 
   const handleField = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleParcelaField = (index: number, field: keyof Parcela, value: string) => {
+    setForm((prev) => {
+      const updated = [...prev.parcelas];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, parcelas: updated };
+    });
+  };
+
+  const addParcela = () => {
+    setForm((prev) => ({
+      ...prev,
+      parcelas: [...prev.parcelas, { ...EMPTY_PARCELA }],
+    }));
+  };
+
+  const removeParcela = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      parcelas: prev.parcelas.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -263,6 +296,10 @@ export default function GestaoClientes() {
 
     setSubmitting(true);
     try {
+      const valorEfetivo = form.plano_personalizado
+        ? parseFloat(form.parcelas[0]?.valor || '0')
+        : parseFloat(form.valor_mensalidade);
+
       const payload = {
         nome_cliente: form.nome_cliente,
         numero_conta_anuncio: form.numero_conta_anuncio,
@@ -270,13 +307,15 @@ export default function GestaoClientes() {
         responsavel_interno: form.responsavel_interno || null,
         numero_whatsapp_cliente: form.numero_whatsapp_cliente,
         numero_grupo_whatsapp: form.numero_grupo_whatsapp,
-        valor_mensalidade: parseFloat(form.valor_mensalidade),
+        valor_mensalidade: valorEfetivo,
         tipo_contrato: form.tipo_contrato,
         dia_vencimento: parseInt(form.dia_vencimento),
         data_inicio: form.data_inicio,
         data_fim: form.data_fim || null,
         limite_minimo_saldo: parseFloat(form.limite_minimo_saldo) || 58,
         observacoes: form.observacoes || null,
+        plano_personalizado: form.plano_personalizado,
+        parcelas_detalhes: form.plano_personalizado ? form.parcelas : null,
       };
 
       if (editingId) {
@@ -315,6 +354,8 @@ export default function GestaoClientes() {
         data_inicio: nc.data_inicio,
         responsavel_interno: nc.responsavel_interno,
         segmento: nc.segmento,
+        plano_personalizado: form.plano_personalizado,
+        parcelas_detalhes: form.plano_personalizado ? form.parcelas : null,
       };
 
       try {
@@ -791,12 +832,18 @@ export default function GestaoClientes() {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={form.valor_mensalidade}
+                    readOnly={form.plano_personalizado}
+                    value={
+                      form.plano_personalizado
+                        ? form.parcelas[0]?.valor || ''
+                        : form.valor_mensalidade
+                    }
                     onChange={(e) =>
+                      !form.plano_personalizado &&
                       handleField('valor_mensalidade', e.target.value)
                     }
                     placeholder="1500.00"
-                    className={inputCls}
+                    className={`${inputCls} ${form.plano_personalizado ? 'opacity-60 cursor-not-allowed' : ''}`}
                   />
                 </div>
                 <div>
@@ -823,6 +870,154 @@ export default function GestaoClientes() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Toggle plano personalizado */}
+                <div className="col-span-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        plano_personalizado: !prev.plano_personalizado,
+                      }))
+                    }
+                    className="flex items-center gap-3 group"
+                  >
+                    <span
+                      className={`relative w-11 h-6 rounded-full transition-colors ${
+                        form.plano_personalizado ? 'bg-blue-500' : 'bg-white/20'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                          form.plano_personalizado ? 'translate-x-5' : ''
+                        }`}
+                      />
+                    </span>
+                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                      Plano de parcelas personalizado
+                    </span>
+                  </button>
+                </div>
+
+                {/* Painel de parcelas */}
+                {form.plano_personalizado && (
+                  <div className="col-span-2 space-y-3">
+                    {form.parcelas.map((p, i) => (
+                      <div
+                        key={i}
+                        className="border border-white/10 rounded-lg p-4"
+                      >
+                        <div className="grid grid-cols-3 gap-3 items-end">
+                          <div>
+                            <label className={labelCls}>Parcelas</label>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={p.parcelas}
+                              onChange={(e) =>
+                                handleParcelaField(i, 'parcelas', e.target.value)
+                              }
+                              placeholder="3"
+                              className={inputCls}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelCls}>Valor R$</label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={p.valor}
+                              onChange={(e) =>
+                                handleParcelaField(i, 'valor', e.target.value)
+                              }
+                              placeholder="500.00"
+                              className={inputCls}
+                            />
+                          </div>
+                          <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                              <label className={labelCls}>Início</label>
+                              <Input
+                                type="date"
+                                value={p.inicio}
+                                onChange={(e) =>
+                                  handleParcelaField(i, 'inicio', e.target.value)
+                                }
+                                className={inputCls}
+                              />
+                            </div>
+                            {form.parcelas.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeParcela(i)}
+                                className="mb-0.5 p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={addParcela}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm text-gray-400 hover:text-white hover:border-white/20 hover:bg-white/5 transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Adicionar grupo de parcelas
+                      </button>
+                    </div>
+
+                    {/* Linha do tempo */}
+                    {(() => {
+                      const grupos = form.parcelas.filter(
+                        (p) => p.parcelas && p.valor
+                      );
+                      if (grupos.length === 0) return null;
+                      const total = grupos.reduce(
+                        (acc, p) =>
+                          acc + parseInt(p.parcelas || '0') * parseFloat(p.valor || '0'),
+                        0
+                      );
+                      return (
+                        <div className="border border-white/10 rounded-lg p-4 space-y-2">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                            Linha do tempo:
+                          </p>
+                          {grupos.map((p, i) => {
+                            const data = p.inicio
+                              ? new Date(p.inicio + 'T00:00:00').toLocaleDateString('pt-BR')
+                              : '—';
+                            const val = parseFloat(p.valor || '0').toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            });
+                            return (
+                              <p key={i} className="text-sm text-gray-300">
+                                {p.parcelas}x de {val} — a partir de {data}
+                              </p>
+                            );
+                          })}
+                          <div className="pt-2 border-t border-white/10">
+                            <p className="text-sm font-semibold text-white">
+                              Total:{' '}
+                              {total.toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
                 <div>
                   <label className={labelCls}>
                     Dia de Vencimento <span className="text-red-400">*</span>

@@ -36,6 +36,8 @@ export type Database = {
           webhook_cadastro_disparado: boolean
           fluxos_criados: boolean
           ultimo_relatorio_enviado: string | null
+          plano_personalizado: boolean
+          parcelas_detalhes: Json | null
         }
         Insert: {
           id?: string
@@ -58,6 +60,8 @@ export type Database = {
           webhook_cadastro_disparado?: boolean
           fluxos_criados?: boolean
           ultimo_relatorio_enviado?: string | null
+          plano_personalizado?: boolean
+          parcelas_detalhes?: Json | null
         }
         Update: {
           id?: string
@@ -80,6 +84,8 @@ export type Database = {
           webhook_cadastro_disparado?: boolean
           fluxos_criados?: boolean
           ultimo_relatorio_enviado?: string | null
+          plano_personalizado?: boolean
+          parcelas_detalhes?: Json | null
         }
         Relationships: []
       }
