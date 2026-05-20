@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseGestao } from '@/integrations/supabase/clientGestao';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -183,7 +183,7 @@ export default function GestaoClientes() {
 
   const fetchClientes = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseGestao
       .from('gestao_clientes')
       .select('*')
       .order('created_at', { ascending: false });
@@ -319,7 +319,7 @@ export default function GestaoClientes() {
       };
 
       if (editingId) {
-        const { error } = await supabase
+        const { error } = await supabaseGestao
           .from('gestao_clientes')
           .update(payload)
           .eq('id', editingId);
@@ -330,7 +330,7 @@ export default function GestaoClientes() {
         return;
       }
 
-      const { data: novoCliente, error } = await supabase
+      const { data: novoCliente, error } = await supabaseGestao
         .from('gestao_clientes')
         .insert(payload)
         .select()
@@ -367,7 +367,7 @@ export default function GestaoClientes() {
             body: JSON.stringify(webhookPayload),
           }
         );
-        await supabase
+        await supabaseGestao
           .from('gestao_clientes')
           .update({ webhook_cadastro_disparado: true })
           .eq('id', nc.id);
@@ -391,7 +391,7 @@ export default function GestaoClientes() {
 
   const toggleStatus = async (c: GestaoCliente) => {
     const next: GestaoCliente['status'] = c.status === 'ativo' ? 'pausado' : 'ativo';
-    const { error } = await supabase
+    const { error } = await supabaseGestao
       .from('gestao_clientes')
       .update({ status: next })
       .eq('id', c.id);
