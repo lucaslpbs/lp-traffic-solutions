@@ -97,29 +97,34 @@ const WarRoom = () => {
 
       if (initMetrics) {
         // Load all metrics from API only (no localStorage)
-        let apiMetrics: Record<string, MetricConfig[]> = {};
-        if (metricsRes?.ok) {
-          try { apiMetrics = await metricsRes.json(); } catch {}
-        }
+let apiMetrics: Record<string, MetricConfig[]> = {};
+if (metricsRes?.ok) {
+try {
+  const raw = await metricsRes.text();
+  apiMetrics = JSON.parse(raw);
+} catch (e) {
+  console.error('GET METRICS ERROR:', e);
+}
+}
 
-        const availableIds = detectAvailableMetrics(currentData);
-        const globalOverrides = apiMetrics['global'] ?? [];
+const availableIds = detectAvailableMetrics(currentData);
+const globalOverrides = apiMetrics['global'] ?? [];
 
-        const newGlobal = availableIds.length > 0
-          ? buildMetricsFromIds(availableIds, globalOverrides)
-          : (globalOverrides.length > 0 ? globalOverrides : DEFAULT_METRICS);
-        setGlobalMetrics(newGlobal);
+// Se veio config salva do servidor, usa direto sem reconstruir
+const newGlobal = globalOverrides.length > 0
+  ? globalOverrides
+  : (availableIds.length > 0 ? buildMetricsFromIds(availableIds, []) : DEFAULT_METRICS);
+setGlobalMetrics(newGlobal);
 
-        // Per-client overrides from API response
-        const newClientMap: ClientMetricsMap = {};
-        const newClientObjMetrics: Record<string, Record<string, MetricConfig[]>> = {};
-        for (const client of currentData) {
-          const clientApi = apiMetrics[client.id];
-          if (clientApi) {
-            newClientMap[client.id] = availableIds.length > 0
-              ? buildMetricsFromIds(availableIds, clientApi)
-              : clientApi;
-          }
+// Per-client overrides from API response
+const newClientMap: ClientMetricsMap = {};
+const newClientObjMetrics: Record<string, Record<string, MetricConfig[]>> = {};
+for (const client of currentData) {
+  const clientApi = apiMetrics[client.id];
+  if (clientApi) {
+    // Se veio config salva do servidor, usa direto
+    newClientMap[client.id] = clientApi;
+  }
           // Per-client, per-tipo overrides (key: clientId__tipo)
           for (const tipoKey of TIPO_KEYS) {
             const apiKey = `${client.id}__${tipoKey}`;
