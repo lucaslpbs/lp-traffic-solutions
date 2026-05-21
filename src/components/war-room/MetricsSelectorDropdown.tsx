@@ -11,6 +11,8 @@ interface Props {
   onChange: (metrics: MetricConfig[]) => void;
 }
 
+
+
 function getThresholdPreview(m: MetricConfig): string {
   const fmtVal = (v: number) => {
     const n = v.toFixed(2).replace('.', ',');
@@ -44,6 +46,7 @@ export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
   const committedIdsRef = useRef<string[]>(metrics.map(m => m.id));
   const ref = useRef<HTMLDivElement>(null);
   const dragIdxRef = useRef<number | null>(null);
+  
 
   useEffect(() => {
     setLocalMetrics(metrics);

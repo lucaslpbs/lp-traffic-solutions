@@ -101,7 +101,20 @@ let apiMetrics: Record<string, MetricConfig[]> = {};
 if (metricsRes?.ok) {
 try {
   const raw = await metricsRes.text();
-  apiMetrics = JSON.parse(raw);
+  const parsed = JSON.parse(raw);
+  // Handle array format: [{clientId: "global", metrics: [...]}, ...]
+  // Handle object format: {global: [...], ...}
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      const key: string | undefined = item?.clientId ?? item?.client_id;
+      const val = item?.metrics;
+      if (key && Array.isArray(val)) {
+        apiMetrics[key] = val;
+      }
+    }
+  } else if (parsed && typeof parsed === 'object') {
+    apiMetrics = parsed as Record<string, MetricConfig[]>;
+  }
 } catch (e) {
   console.error('GET METRICS ERROR:', e);
 }
