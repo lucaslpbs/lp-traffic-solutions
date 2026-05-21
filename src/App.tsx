@@ -33,6 +33,7 @@ import LeadsDashboard from "./pages/LeadsDashboard";
 import LivetDashboard from "./pages/LivetDashboard.tsx";
 import NCSaudeDashboard from "./pages/NCSaudeDashboard.tsx";
 import ClaraFashionDashboard from "./pages/ClaraFashionDashboard.tsx";
+import FacanhaChickDashboard from "./pages/FacanhaChickDashboard.tsx";
 import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
 import Obrigado from "./pages/obrigado";
 
@@ -53,6 +54,7 @@ const HIDDEN_PATHS = [
   '/livet-dashboard',
   '/ncsaude-dashboard',
   '/clarafashion-dashboard',
+  '/facanha-dashboard',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -104,6 +106,7 @@ const AppRoutes = () => {
         <Route path="/livet-dashboard" element={<ProtectedRoute><LivetDashboard /></ProtectedRoute>} />
         <Route path="/ncsaude-dashboard" element={<ProtectedRoute><NCSaudeDashboard /></ProtectedRoute>} />
         <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
+        <Route path="/facanha-dashboard" element={<ProtectedRoute><FacanhaChickDashboard /></ProtectedRoute>} />
 
         <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
         <Route path="/obrigado" element={<Obrigado />} />

@@ -49,7 +49,7 @@ interface EtapaRow { etapa: string; quantidade: number }
 interface Metricas {
   totalCriados: number; atendidos: number; corretorNomeado: number;
   visitasRealizadas: number; analisesCredito: number; negociacoes: number;
-  descartados: number; vendasFechadas: number;
+  descartados: number; vendasFechadas: number; pastaRecebida: number;
 }
 
 // ── Utilities ──────────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ function computeMetricas(records: LeadRecord[]): Metricas {
 
   let ganhaCount = 0, perdidaCount = 0;
   let atendidos = 0, corretorNomeado = 0, visitasRealizadas = 0;
-  let analisesCredito = 0, negociacoes = 0;
+  let analisesCredito = 0, negociacoes = 0, pastaRecebida = 0;
 
   for (const events of byLead.values()) {
     const last = events.reduce((a, b) =>
@@ -123,6 +123,7 @@ function computeMetricas(records: LeadRecord[]): Metricas {
       if (e.includes('visita realizada')) visitasRealizadas++;
       if (e.includes('analise')) analisesCredito++;
       if (e.includes('negociacao')) negociacoes++;
+      if (e.includes('pasta')) pastaRecebida++;
     }
   }
 
@@ -135,6 +136,7 @@ function computeMetricas(records: LeadRecord[]): Metricas {
     negociacoes,
     descartados: perdidaCount,
     vendasFechadas: ganhaCount,
+    pastaRecebida,
   };
 }
 
@@ -797,8 +799,13 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
 }
 
 // ── Section III ────────────────────────────────────────────────────────────
-function SecaoInvestimento({ metricas, inv, ticket }: { metricas: Metricas; inv: number; ticket: number }) {
-  const costRows = [
+function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas; inv: number; ticket: number; tab: 'interna' | 'externa' }) {
+  const costRows = tab === 'externa' ? [
+    { label: 'Custo por Pasta Recebida',     qty: metricas.pastaRecebida },
+    { label: 'Custo por Análise de Crédito', qty: metricas.analisesCredito },
+    { label: 'Custo por Negociação',         qty: metricas.negociacoes },
+    { label: 'Custo por Venda Fechada',      qty: metricas.vendasFechadas },
+  ] : [
     { label: 'Custo por Lead Criado',             qty: metricas.totalCriados },
     { label: 'Custo por Lead Atendido',            qty: metricas.atendidos },
     { label: 'Custo por Lead c/ Corretor Nomeado', qty: metricas.corretorNomeado },
@@ -898,15 +905,20 @@ function SecaoInvestimento({ metricas, inv, ticket }: { metricas: Metricas; inv:
               </tr>
             </thead>
             <tbody>
-              {[
-                { n: 1, label: 'Total de Leads Criados',            qty: metricas.totalCriados },
-                { n: 2, label: 'Total de Leads Atendidos',          qty: metricas.atendidos },
+              {(tab === 'externa' ? [
+                { n: 1, label: 'Total de Pastas Recebidas',    qty: metricas.pastaRecebida },
+                { n: 2, label: 'Total de Análises de Crédito', qty: metricas.analisesCredito },
+                { n: 3, label: 'Total de Negociações',          qty: metricas.negociacoes },
+                { n: 4, label: 'Total de Vendas Fechadas',      qty: metricas.vendasFechadas },
+              ] : [
+                { n: 1, label: 'Total de Leads Criados',             qty: metricas.totalCriados },
+                { n: 2, label: 'Total de Leads Atendidos',           qty: metricas.atendidos },
                 { n: 3, label: 'Total de Leads c/ Corretor Nomeado', qty: metricas.corretorNomeado },
-                { n: 4, label: 'Total de Visitas Realizadas',        qty: metricas.visitasRealizadas },
-                { n: 5, label: 'Total de Análises de Crédito',       qty: metricas.analisesCredito },
-                { n: 6, label: 'Total de Vendas Fechadas',           qty: metricas.vendasFechadas },
-                { n: 7, label: 'Total de Leads Descartados',         qty: metricas.descartados },
-              ].map((row, i) => (
+                { n: 4, label: 'Total de Visitas Realizadas',         qty: metricas.visitasRealizadas },
+                { n: 5, label: 'Total de Análises de Crédito',        qty: metricas.analisesCredito },
+                { n: 6, label: 'Total de Vendas Fechadas',            qty: metricas.vendasFechadas },
+                { n: 7, label: 'Total de Leads Descartados',          qty: metricas.descartados },
+              ]).map((row, i) => (
                 <tr key={row.n} style={{ background: i % 2 === 0 ? D.card : D.cardHover, borderTop: `1px solid ${D.border}` }}>
                   <td className="px-4 py-3 font-bold" style={{ color: D.textMuted }}>{row.n}</td>
                   <td className="px-4 py-3" style={{ color: D.text }}>{row.label}</td>
@@ -1143,7 +1155,7 @@ export default function KoruVendas() {
           ) : rawData === null ? (
             <ErrBanner msg="Aguardando dados da API para calcular métricas." />
           ) : (
-            <SecaoInvestimento metricas={metricas} inv={inv} ticket={ticket} />
+            <SecaoInvestimento metricas={metricas} inv={inv} ticket={ticket} tab={activeTab} />
           )}
         </Card>
 
