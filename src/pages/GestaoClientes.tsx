@@ -54,7 +54,7 @@ type FormData = {
   numero_whatsapp_cliente: string;
   numero_grupo_whatsapp: string;
   valor_mensalidade: string;
-  tipo_contrato: 'mensal' | 'trimestral' | 'semestral' | 'anual';
+  tipo_contrato: 'semanal' | 'mensal' | 'trimestral' | 'semestral' | 'anual';
   dia_vencimento: string;
   data_inicio: string;
   data_fim: string;
@@ -510,6 +510,7 @@ export default function GestaoClientes() {
           </SelectTrigger>
           <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
             <SelectItem value="todos">Todos contratos</SelectItem>
+            <SelectItem value="semanal">Semanal</SelectItem>
             <SelectItem value="mensal">Mensal</SelectItem>
             <SelectItem value="trimestral">Trimestral</SelectItem>
             <SelectItem value="semestral">Semestral</SelectItem>
@@ -863,6 +864,7 @@ export default function GestaoClientes() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+                      <SelectItem value="semanal">Semanal</SelectItem>
                       <SelectItem value="mensal">Mensal</SelectItem>
                       <SelectItem value="trimestral">Trimestral</SelectItem>
                       <SelectItem value="semestral">Semestral</SelectItem>
