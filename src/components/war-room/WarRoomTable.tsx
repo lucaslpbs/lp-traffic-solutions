@@ -14,6 +14,7 @@ interface Props {
   clientMetricsMap: Record<string, MetricConfig[]>;
   // per-client, per-objective overrides: clientId -> objective -> MetricConfig[]
   clientObjectiveMap: Record<string, Record<string, MetricConfig[]>>;
+  globalMetrics: MetricConfig[];
   alertsOnly: boolean;
   onOpenClientSettings: (clientId: string) => void;
   previousMetricsMap?: Record<string, Record<string, number | null>>;
@@ -407,7 +408,7 @@ const ClientRow = ({
 
 const NAME_COL_STORAGE_KEY = 'war-room-name-col-width';
 
-export const WarRoomTable = ({ data, clientMetricsMap, clientObjectiveMap, alertsOnly, onOpenClientSettings, previousMetricsMap }: Props) => {
+export const WarRoomTable = ({ data, clientMetricsMap, clientObjectiveMap, globalMetrics, alertsOnly, onOpenClientSettings, previousMetricsMap }: Props) => {
   const [nameColWidth, setNameColWidth] = useState(() => {
     const stored = localStorage.getItem(NAME_COL_STORAGE_KEY);
     return stored ? parseInt(stored, 10) : 300;
@@ -439,22 +440,25 @@ export const WarRoomTable = ({ data, clientMetricsMap, clientObjectiveMap, alert
     const seen = new Set<string>();
     const ids: string[] = [];
     const add = (m: MetricConfig) => { if (!seen.has(m.id)) { seen.add(m.id); ids.push(m.id); } };
+    // Global metrics define the base order; per-client/per-objective extras are appended after
+    globalMetrics.forEach(add);
     for (const client of data) {
       (clientMetricsMap[client.id] ?? []).forEach(add);
       Object.values(clientObjectiveMap[client.id] ?? {}).forEach((ms: MetricConfig[]) => ms.forEach(add));
     }
     return ids;
-  }, [data, clientMetricsMap, clientObjectiveMap]);
+  }, [data, clientMetricsMap, clientObjectiveMap, globalMetrics]);
 
   const metricLabelMap = useMemo(() => {
     const map: Record<string, string> = {};
     const add = (m: MetricConfig) => { if (!map[m.id]) map[m.id] = m.label; };
+    globalMetrics.forEach(add);
     for (const client of data) {
       (clientMetricsMap[client.id] ?? []).forEach(add);
       Object.values(clientObjectiveMap[client.id] ?? {}).forEach((ms: MetricConfig[]) => ms.forEach(add));
     }
     return map;
-  }, [data, clientMetricsMap, clientObjectiveMap]);
+  }, [data, clientMetricsMap, clientObjectiveMap, globalMetrics]);
 
   return (
     <div className="overflow-x-auto rounded-lg border border-white/10">

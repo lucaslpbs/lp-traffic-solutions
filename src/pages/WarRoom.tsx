@@ -437,6 +437,7 @@ for (const client of currentData) {
           data={filteredData}
           clientMetricsMap={effectiveMetricsMap}
           clientObjectiveMap={clientObjectiveMetrics}
+          globalMetrics={globalMetrics}
           alertsOnly={alertsOnly}
           onOpenClientSettings={id => setSettingsClientId(id)}
           previousMetricsMap={previousMetricsMap}
