@@ -381,6 +381,7 @@ export default function GestaoClientes() {
       setModalOpen(false);
       fetchClientes();
     } catch (err: unknown) {
+      console.error('Erro completo Supabase:', JSON.stringify(err, null, 2), err);
       toast.error(
         err instanceof Error ? err.message : 'Erro ao salvar cliente.'
       );

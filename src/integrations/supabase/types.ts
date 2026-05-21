@@ -25,7 +25,7 @@ export type Database = {
           numero_grupo_whatsapp: string
           valor_mensalidade: number
           dia_vencimento: number
-          tipo_contrato: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+          tipo_contrato: 'semanal' | 'mensal' | 'trimestral' | 'semestral' | 'anual'
           limite_minimo_saldo: number
           status: 'ativo' | 'pausado' | 'cancelado'
           data_inicio: string
@@ -49,7 +49,7 @@ export type Database = {
           numero_grupo_whatsapp: string
           valor_mensalidade: number
           dia_vencimento: number
-          tipo_contrato?: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+          tipo_contrato?: 'semanal' | 'mensal' | 'trimestral' | 'semestral' | 'anual'
           limite_minimo_saldo?: number
           status?: 'ativo' | 'pausado' | 'cancelado'
           data_inicio?: string
@@ -73,7 +73,7 @@ export type Database = {
           numero_grupo_whatsapp?: string
           valor_mensalidade?: number
           dia_vencimento?: number
-          tipo_contrato?: 'mensal' | 'trimestral' | 'semestral' | 'anual'
+          tipo_contrato?: 'semanal' | 'mensal' | 'trimestral' | 'semestral' | 'anual'
           limite_minimo_saldo?: number
           status?: 'ativo' | 'pausado' | 'cancelado'
           data_inicio?: string
