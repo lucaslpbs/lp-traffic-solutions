@@ -38,6 +38,8 @@ export type Database = {
           ultimo_relatorio_enviado: string | null
           plano_personalizado: boolean
           parcelas_detalhes: Json | null
+          status_cobranca: string | null
+          ultimo_contato_cobranca: string | null
         }
         Insert: {
           id?: string
@@ -62,6 +64,8 @@ export type Database = {
           ultimo_relatorio_enviado?: string | null
           plano_personalizado?: boolean
           parcelas_detalhes?: Json | null
+          status_cobranca?: string | null
+          ultimo_contato_cobranca?: string | null
         }
         Update: {
           id?: string
@@ -86,6 +90,8 @@ export type Database = {
           ultimo_relatorio_enviado?: string | null
           plano_personalizado?: boolean
           parcelas_detalhes?: Json | null
+          status_cobranca?: string | null
+          ultimo_contato_cobranca?: string | null
         }
         Relationships: []
       }

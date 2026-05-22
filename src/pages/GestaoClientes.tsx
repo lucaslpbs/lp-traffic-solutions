@@ -114,6 +114,28 @@ function StatusBadge({ status }: { status: GestaoCliente['status'] }) {
   );
 }
 
+function CobrancaBadge({ status }: { status: string | null | undefined }) {
+  if (status === 'enviada') {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+        Enviada
+      </span>
+    );
+  }
+  if (!status || status === 'pendente') {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+        Pendente
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30">
+      {status}
+    </span>
+  );
+}
+
 function FluxosBadge({ criados }: { criados: boolean }) {
   return criados ? (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">
@@ -544,6 +566,8 @@ export default function GestaoClientes() {
                   'Valor',
                   'Vencimento',
                   'Status',
+                  'Último Contato',
+                  'Cobrança',
                   'Fluxos',
                   'Ações',
                 ].map((h) => (
@@ -559,13 +583,13 @@ export default function GestaoClientes() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
                     Carregando...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
                     Nenhum cliente encontrado.
                   </td>
                 </tr>
@@ -599,6 +623,20 @@ export default function GestaoClientes() {
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={c.status} />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
+                        {c.ultimo_contato_cobranca
+                          ? new Date(c.ultimo_contato_cobranca).toLocaleString('pt-BR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <CobrancaBadge status={c.status_cobranca} />
                       </td>
                       <td className="px-4 py-3">
                         <FluxosBadge criados={c.fluxos_criados} />
@@ -666,7 +704,7 @@ export default function GestaoClientes() {
                     </tr>
                     {expandedId === c.id && (
                       <tr key={`${c.id}-detail`} className="bg-white/3 border-b border-white/5">
-                        <td colSpan={9} className="px-6 py-4">
+                        <td colSpan={11} className="px-6 py-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <p className="text-gray-500 text-xs mb-1">ID do Grupo WhatsApp</p>
