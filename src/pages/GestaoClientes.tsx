@@ -4,7 +4,6 @@ import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +36,6 @@ import {
   TrendingUp,
   DollarSign,
   Calendar,
-  ChevronDown,
   ChevronUp,
   X,
 } from 'lucide-react';
@@ -282,13 +280,25 @@ export default function GestaoClientes() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Quando plano_personalizado está ativo, o valor vive em parcelas[0].valor —
+    // form.valor_mensalidade fica vazio propositalmente (o input é readOnly).
+    const valorPreenchido = form.plano_personalizado
+      ? !!form.parcelas[0]?.valor
+      : !!form.valor_mensalidade;
+
+    // Contratos semanais não têm dia-do-mês de vencimento; o campo é opcional
+    // para esse tipo e recebe default 1 no payload.
+    const diaVencimentoPreenchido =
+      form.tipo_contrato === 'semanal' || !!form.dia_vencimento;
+
     if (
       !form.nome_cliente ||
       !form.numero_conta_anuncio ||
       !form.numero_whatsapp_cliente ||
       !form.numero_grupo_whatsapp ||
-      !form.valor_mensalidade ||
-      !form.dia_vencimento
+      !valorPreenchido ||
+      !diaVencimentoPreenchido
     ) {
       toast.error('Preencha todos os campos obrigatórios.');
       return;
@@ -309,7 +319,7 @@ export default function GestaoClientes() {
         numero_grupo_whatsapp: form.numero_grupo_whatsapp,
         valor_mensalidade: valorEfetivo,
         tipo_contrato: form.tipo_contrato,
-        dia_vencimento: parseInt(form.dia_vencimento),
+        dia_vencimento: parseInt(form.dia_vencimento) || 1,
         data_inicio: form.data_inicio,
         data_fim: form.data_fim || null,
         limite_minimo_saldo: parseFloat(form.limite_minimo_saldo) || 58,
