@@ -3,7 +3,7 @@ import {
   Users, ShoppingCart, TrendingUp, Search, RefreshCw,
   ChevronDown, ChevronUp, MessageSquare, Star, AlertCircle,
   CheckCircle2, Clock, XCircle, ThumbsUp, ThumbsDown, ArrowRight,
-  UserCheck, Smartphone,
+  UserCheck, Smartphone, ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ interface ResumoLead {
   fez_followup: boolean | null;
   nome_lead?: string;
   telefone_lead?: string;
+  conversa_compacta?: string | null;
 }
 
 interface VendedorData {
@@ -59,6 +60,35 @@ const parseJsonArray = (val: string | null): string[] => {
 
 const qualidadeColor = (q: number) =>
   q >= 8 ? '#10b981' : q >= 5 ? '#f59e0b' : '#ef4444';
+
+interface MensagemConversa {
+  timestamp: string;
+  sender: 'LEAD' | 'VENDEDOR';
+  lines: string[];
+}
+
+const parseConversa = (conversa: string): MensagemConversa[] => {
+  const rawLines = conversa.split('\n');
+  const messages: MensagemConversa[] = [];
+  const headerRegex = /^\[(\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2})\] (LEAD|VENDEDOR): (.*)/;
+
+  for (const line of rawLines) {
+    const match = line.match(headerRegex);
+    if (match) {
+      const content = match[3].trim();
+      messages.push({
+        timestamp: match[1],
+        sender: match[2] as 'LEAD' | 'VENDEDOR',
+        lines: content ? [content] : [],
+      });
+    } else if (messages.length > 0) {
+      const trimmed = line.trim();
+      if (trimmed) messages[messages.length - 1].lines.push(trimmed);
+    }
+  }
+
+  return messages;
+};
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
@@ -457,6 +487,40 @@ export default function FacanhaChickDashboard() {
                       {isExpanded && (
                         <tr key={`${r.id}-detail`} className="border-b border-white/5 bg-white/[0.02]">
                           <td colSpan={9} className="px-6 py-5">
+                            {r.conversa_compacta && (
+                              <div className="mb-6">
+                                <h4 className="text-xs font-semibold text-gray-400 uppercase mb-3 flex items-center gap-1.5">
+                                  <MessageSquare className="h-3.5 w-3.5" /> Conversa
+                                </h4>
+                                <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+                                  {parseConversa(r.conversa_compacta).map((msg, i) => {
+                                    const isVendedor = msg.sender === 'VENDEDOR';
+                                    return (
+                                      <div key={i} className={`flex flex-col ${isVendedor ? 'items-end' : 'items-start'}`}>
+                                        <span className="text-[10px] text-gray-600 mb-0.5 px-1">{msg.timestamp}</span>
+                                        <div
+                                          className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                                            isVendedor
+                                              ? 'bg-orange-500/20 text-orange-100 rounded-tr-sm'
+                                              : 'bg-white/[0.07] text-gray-200 rounded-tl-sm'
+                                          }`}
+                                        >
+                                          {msg.lines.map((line, j) =>
+                                            line === '[Imagem]' ? (
+                                              <span key={j} className="flex items-center gap-1 text-gray-400 italic text-xs">
+                                                <ImageIcon className="h-3 w-3" /> Imagem
+                                              </span>
+                                            ) : (
+                                              <p key={j}>{line}</p>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div>
                                 <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2 flex items-center gap-1.5">
