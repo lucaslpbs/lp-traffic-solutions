@@ -1,23 +1,52 @@
+import { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  TrendingUp, 
-  Search, 
-  Users, 
-  Globe, 
-  BarChart3, 
-  Zap,
+import {
+  TrendingUp,
+  Search,
+  Users,
+  Globe,
+  BarChart3,
   CheckCircle,
   ArrowRight,
   Target,
   Smartphone,
-  MessageSquare,
-  Camera
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+function useScrollReveal(ref: React.RefObject<HTMLElement>) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target
+              .querySelectorAll(".animate-on-scroll")
+              .forEach((child, i) => {
+                (child as HTMLElement).style.transitionDelay = `${i * 0.1}s`;
+                child.classList.add("is-visible");
+              });
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+}
+
 export default function Services() {
+  const servicesRef = useRef<HTMLElement>(null);
+  const packagesRef = useRef<HTMLElement>(null);
+  const processRef = useRef<HTMLElement>(null);
+
+  useScrollReveal(servicesRef as React.RefObject<HTMLElement>);
+  useScrollReveal(packagesRef as React.RefObject<HTMLElement>);
+  useScrollReveal(processRef as React.RefObject<HTMLElement>);
+
   const services = [
     {
       icon: TrendingUp,
@@ -28,12 +57,11 @@ export default function Services() {
         "Análise de palavras-chave estratégicas",
         "Segmentação avançada de audiência",
         "Relatórios de performance em tempo real",
-        "A/B testing contínuo de anúncios"
+        "A/B testing contínuo de anúncios",
       ],
-      price: "",
-      popular: true
+      popular: true,
     },
-        {
+    {
       icon: Smartphone,
       title: "Tráfego Orgânico (SOCIAL MEDIA)",
       description: "Gestão estratégica de redes sociais para engajamento e vendas",
@@ -42,9 +70,8 @@ export default function Services() {
         "Criação de posts e stories",
         "Gestão de comunidade",
         "Campanhas de influenciadores",
-        "Relatórios de engajamento"
+        "Relatórios de engajamento",
       ],
-      price: ""
     },
     {
       icon: Search,
@@ -55,9 +82,8 @@ export default function Services() {
         "Otimização on-page e técnica",
         "Criação de conteúdo otimizado",
         "Link building estratégico",
-        "Monitoramento de rankings"
+        "Monitoramento de rankings",
       ],
-      price: ""
     },
     {
       icon: Users,
@@ -68,9 +94,8 @@ export default function Services() {
         "Automação de e-mail marketing",
         "Fluxos de nutrição de leads",
         "Integração com vendas",
-        "Análise de funil completa"
+        "Análise de funil completa",
       ],
-      price: ""
     },
     {
       icon: Globe,
@@ -81,9 +106,8 @@ export default function Services() {
         "Otimização para conversão",
         "Integração com ferramentas de marketing",
         "Performance e velocidade otimizada",
-        "Manutenção e suporte inclusos"
+        "Manutenção e suporte inclusos",
       ],
-      price: ""
     },
     {
       icon: BarChart3,
@@ -94,16 +118,14 @@ export default function Services() {
         "Relatórios automatizados",
         "Análise de ROI detalhada",
         "Insights de comportamento",
-        "Previsões e tendências"
+        "Previsões e tendências",
       ],
-      price: ""
-    }
+    },
   ];
 
   const packages = [
     {
       name: "Starter",
-      price: "Contrate",
       period: "/mês",
       description: "Ideal para pequenas empresas que querem começar",
       features: [
@@ -111,13 +133,12 @@ export default function Services() {
         "Landing Page Otimizada",
         "Relatórios Mensais",
         "Suporte via WhatsApp",
-        "Consultoria Estratégica"
+        "Consultoria Estratégica",
       ],
-      popular: false
+      popular: false,
     },
     {
       name: "Growth",
-      price: "Contrate",
       period: "/mês",
       description: "Para empresas prontas para escalar rapidamente",
       features: [
@@ -126,13 +147,12 @@ export default function Services() {
         "CRM e Automação",
         "Social Media",
         "Relatórios Semanais",
-        "Consultoria Quinzenal"
+        "Consultoria Quinzenal",
       ],
-      popular: true
+      popular: true,
     },
     {
       name: "Enterprise",
-      price: "Contrate",
       period: "/mês",
       description: "Solução completa para grandes empresas",
       features: [
@@ -141,84 +161,100 @@ export default function Services() {
         "Multi-canais Premium",
         "Gerente Dedicado",
         "Relatórios Personalizados",
-        "Consultoria Semanal"
+        "Consultoria Semanal",
       ],
-      popular: false
-    }
+      popular: false,
+    },
+  ];
+
+  const steps = [
+    { step: "01", title: "Diagnóstico", desc: "Análise completa do seu negócio e concorrência" },
+    { step: "02", title: "Estratégia", desc: "Criação do plano personalizado de marketing" },
+    { step: "03", title: "Execução", desc: "Implementação coordenada de todas as ações" },
+    { step: "04", title: "Otimização", desc: "Monitoramento e melhoria contínua dos resultados" },
   ];
 
   return (
     <div className="min-h-screen pt-20">
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-hero relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/60"></div>
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <Badge variant="outline" className="mb-6 border-primary-glow text-primary-glow bg-white/10 backdrop-blur-sm
-          px-6 py-2 text-lg">
+      {/* HERO */}
+      <section className="bg-foreground py-24 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, hsl(217 91% 60% / 0.4) 1px, transparent 0)",
+            backgroundSize: "36px 36px",
+          }}
+        />
+        <div className="relative z-10 container mx-auto px-6 text-center">
+          <span className="inline-block text-primary-glow text-xs font-semibold tracking-widest uppercase mb-5 border border-primary-glow/30 rounded-full px-4 py-1.5">
             Nossos Serviços
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-            Soluções Completas de 
+          </span>
+          <h1 className="font-display text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
+            Soluções Completas de
             <span className="block text-primary-glow">Marketing Digital</span>
           </h1>
-          <p className="text-xl text-white/90 max-w-3xl mx-auto">
-            Combinamos estratégia, tecnologia e execução para transformar 
-            seu negócio em uma máquina de vendas automatizada
+          <p className="text-white/60 text-lg max-w-2xl mx-auto">
+            Combinamos estratégia, tecnologia e execução para transformar
+            seu negócio em uma máquina de vendas automatizada.
           </p>
+        </div>
+        {/* Diagonal separator */}
+        <div className="absolute bottom-0 left-0 right-0 overflow-hidden leading-none">
+          <svg viewBox="0 0 1200 60" preserveAspectRatio="none" className="w-full h-12 block">
+            <polygon points="0,60 1200,0 1200,60" fill="hsl(var(--background))" />
+          </svg>
         </div>
       </section>
 
-      {/* Services Grid */}
-      <section className="py-20 bg-gradient-subtle">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Cada Serviço é uma <span className="text-primary">Peça do Puzzle</span>
+      {/* SERVICES GRID */}
+      <section ref={servicesRef as React.RefObject<HTMLElement>} className="py-24 bg-background">
+        <div className="container mx-auto px-6">
+          <div className="animate-on-scroll text-center mb-16">
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Cada Serviço é uma{" "}
+              <span className="text-primary">Peça do Puzzle</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Não trabalhamos com soluções isoladas. Cada serviço se integra perfeitamente 
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Não trabalhamos com soluções isoladas. Cada serviço se integra perfeitamente
               para criar um ecossistema de marketing que gera resultados exponenciais.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service, index) => {
               const Icon = service.icon;
               return (
-                <Card 
-                  key={index} 
-                  className={`relative overflow-hidden group hover:shadow-modern transition-all duration-300 hover:-translate-y-2 ${
-                    service.popular ? 'ring-2 ring-primary shadow-glow' : ''
+                <Card
+                  key={index}
+                  className={`animate-on-scroll relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 border border-border/40 hover:border-primary/30 bg-card ${
+                    service.popular ? "border-l-4 border-l-primary" : ""
                   }`}
                 >
                   {service.popular && (
-                    <Badge className="absolute top-4 right-4 bg-primary text-white">
+                    <span className="absolute top-4 right-4 text-xs font-semibold bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5">
                       Mais Popular
-                    </Badge>
+                    </span>
                   )}
-                  
-                  <CardHeader className="pb-4">
-                    <div className="bg-primary/10 rounded-xl w-16 h-16 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <Icon className="h-8 w-8 text-primary" />
+                  <CardHeader className="pb-3">
+                    <div className="bg-primary/10 rounded-xl w-14 h-14 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                      <Icon className="h-7 w-7 text-primary" />
                     </div>
-                    <CardTitle className="text-xl mb-2">{service.title}</CardTitle>
-                    <p className="text-muted-foreground">{service.description}</p>
+                    <CardTitle className="text-lg mb-1">{service.title}</CardTitle>
+                    <p className="text-muted-foreground text-sm">{service.description}</p>
                   </CardHeader>
-                  
                   <CardContent>
-                    <div className="space-y-3 mb-6">
-                      {service.features.map((feature, featureIndex) => (
-                        <div key={featureIndex} className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <div className="space-y-2.5 mb-6">
+                      {service.features.map((feature, fi) => (
+                        <div key={fi} className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <span className="text-sm text-muted-foreground">{feature}</span>
                         </div>
                       ))}
                     </div>
-                    
                     <div className="border-t pt-4">
-                      <div className="text-2xl font-bold text-primary mb-4">{service.price}</div>
                       <Link to="/contato">
-                        <Button className="w-full bg-primary hover:bg-primary-dark text-white">
+                        <Button className="w-full bg-primary hover:bg-primary-dark text-white" size="sm">
                           Contratar Agora
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
@@ -232,64 +268,55 @@ export default function Services() {
         </div>
       </section>
 
-      {/* Packages Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-6 text-primary border-primary">
+      {/* PACKAGES */}
+      <section ref={packagesRef as React.RefObject<HTMLElement>} className="py-24 bg-muted/30">
+        <div className="container mx-auto px-6">
+          <div className="animate-on-scroll text-center mb-16">
+            <span className="inline-block text-primary text-xs font-semibold tracking-widest uppercase mb-4 border border-primary/30 rounded-full px-4 py-1.5">
               Pacotes Completos
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Escolha o Pacote Ideal para 
-              <span className="text-primary block">Seu Momento de Crescimento</span>
+            </span>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Escolha o Pacote Ideal para{" "}
+              <span className="text-primary">Seu Crescimento</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Pacotes estratégicos que combinam nossos melhores serviços 
-              para acelerar seus resultados com economia garantida.
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Pacotes estratégicos que combinam nossos melhores serviços
+              para acelerar seus resultados.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {packages.map((pkg, index) => (
-              <Card 
+              <Card
                 key={index}
-                className={`relative overflow-hidden transition-all duration-300 hover:shadow-modern hover:-translate-y-2 ${
-                  pkg.popular ? 'ring-2 ring-primary shadow-glow scale-105' : ''
+                className={`animate-on-scroll relative overflow-hidden transition-all duration-300 hover:-translate-y-1 border border-border/40 hover:border-primary/30 bg-card ${
+                  pkg.popular ? "border-t-4 border-t-primary" : ""
                 }`}
               >
-                {pkg.popular && (
-                  <div className="absolute top-0 left-0 right-0 bg-primary text-white text-center py-2 font-semibold">
-                    🏆 Mais Escolhido
+                <CardHeader className="text-center pb-4">
+                  {pkg.popular && (
+                    <span className="inline-block text-xs font-semibold bg-primary/10 text-primary border border-primary/20 rounded-full px-3 py-0.5 mb-3 mx-auto">
+                      Mais Escolhido
+                    </span>
+                  )}
+                  <CardTitle className="text-2xl mb-1">{pkg.name}</CardTitle>
+                  <div className="mb-1">
+                    <span className="text-3xl font-bold text-primary">Contrate</span>
                   </div>
-                )}
-                
-                <CardHeader className={`text-center ${pkg.popular ? 'pt-12' : ''}`}>
-                  <CardTitle className="text-2xl mb-2">{pkg.name}</CardTitle>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-primary">{pkg.price}</span>
-                    <span className="text-muted-foreground">{pkg.period}</span>
-                  </div>
-                  <p className="text-muted-foreground">{pkg.description}</p>
+                  <p className="text-xs text-muted-foreground">Sob consulta</p>
+                  <p className="text-muted-foreground text-sm mt-2">{pkg.description}</p>
                 </CardHeader>
-                
                 <CardContent>
                   <div className="space-y-3 mb-6">
-                    {pkg.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                        <span className="text-muted-foreground">{feature}</span>
+                    {pkg.features.map((feature, fi) => (
+                      <div key={fi} className="flex items-start gap-3">
+                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground text-sm">{feature}</span>
                       </div>
                     ))}
                   </div>
-                  
                   <Link to="/contato">
-                    <Button 
-                      className={`w-full ${
-                        pkg.popular 
-                          ? 'bg-primary hover:bg-primary-dark text-white shadow-glow' 
-                          : 'bg-primary hover:bg-primary-dark text-white'
-                      }`}
-                    >
+                    <Button className="w-full bg-primary hover:bg-primary-dark text-white">
                       Escolher {pkg.name}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -301,53 +328,58 @@ export default function Services() {
         </div>
       </section>
 
-      {/* Process Section */}
-      <section className="py-20 bg-gradient-subtle">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Como Trabalhamos: <span className="text-primary">Metodologia Comprovada</span>
+      {/* PROCESS */}
+      <section ref={processRef as React.RefObject<HTMLElement>} className="py-24 bg-background">
+        <div className="container mx-auto px-6">
+          <div className="animate-on-scroll text-center mb-16">
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Como Trabalhamos:{" "}
+              <span className="text-primary">Metodologia Comprovada</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { step: "01", title: "Diagnóstico", desc: "Análise completa do seu negócio e concorrência" },
-              { step: "02", title: "Estratégia", desc: "Criação do plano personalizado de marketing" },
-              { step: "03", title: "Execução", desc: "Implementação coordenada de todas as ações" },
-              { step: "04", title: "Otimização", desc: "Monitoramento e melhoria contínua dos resultados" }
-            ].map((process, index) => (
-              <div key={index} className="text-center">
-                <div className="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                  {process.step}
+          <div className="relative grid grid-cols-1 md:grid-cols-4 gap-8">
+            {steps.map((process, index) => (
+              <div key={index} className="animate-on-scroll relative text-center">
+                {/* Connector line (except last) */}
+                {index < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-8 left-[calc(50%+2rem)] right-[calc(-50%+2rem)] h-px bg-border z-0" />
+                )}
+                <div className="relative z-10 w-16 h-16 border-2 border-primary text-primary rounded-full flex items-center justify-center mx-auto mb-4 bg-background">
+                  <span className="font-display font-bold text-sm">{process.step}</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{process.title}</h3>
-                <p className="text-muted-foreground">{process.desc}</p>
+                <h3 className="font-semibold text-base mb-2">{process.title}</h3>
+                <p className="text-muted-foreground text-sm">{process.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-hero relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/60"></div>
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
-            Pronto para Transformar seus 
-            <span className="block text-primary-glow">Resultados de Marketing?</span>
+      {/* CTA */}
+      <section
+        className="py-28 bg-foreground relative overflow-hidden"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, hsl(217 91% 35% / 0.15) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      >
+        <div className="relative z-10 container mx-auto px-6 text-center max-w-2xl">
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4 text-white">
+            Pronto para transformar seus{" "}
+            <span className="text-primary-glow">resultados?</span>
           </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
-            Não perca mais tempo com estratégias que não funcionam. 
-            Comece hoje mesmo com uma consultoria gratuita e personalizada.
+          <p className="text-white/60 mb-8">
+            Comece hoje com uma consultoria gratuita e personalizada.
           </p>
           <Link to="/contato">
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary-dark text-white px-8 py-6 text-xl shadow-glow hover:scale-105 transition-all duration-300"
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary-dark text-white px-10 py-6 text-base font-semibold hover:scale-105 transition-all duration-300 group"
             >
               Começar Minha Transformação
-              <ArrowRight className="ml-2 h-6 w-6" />
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </div>

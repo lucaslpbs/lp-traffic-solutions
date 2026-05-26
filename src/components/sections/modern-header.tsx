@@ -9,14 +9,13 @@ export function Header() {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
+  const isHome = location.pathname === "/";
 
   const navItems = [
     { path: "/", label: "Início" },
@@ -26,107 +25,108 @@ export function Header() {
     { path: "/contato", label: "Contato" },
   ];
 
-  const isHome = location.pathname === "/";
+  return (
+    <header
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/95 backdrop-blur-md shadow-elegant h-16"
+          : "bg-transparent h-20"
+      }`}
+    >
+      <div className="container mx-auto px-6 h-full">
+        <div className="flex items-center justify-between h-full">
 
-return (
-  <header
-    className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-      isScrolled
-        ? "bg-white/95 backdrop-blur-sm shadow-elegant"
-        : "bg-transparent"
-    }`}
-  >
-    <div className="container mx-auto px-4">
-      <div className="flex items-center justify-between h-16 md:h-20">
-        {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <div className="text-2xl md:text-3xl font-bold transition-colors">
+          {/* Logo */}
+          <Link to="/" className="flex items-center font-display font-bold text-2xl">
             <span
-              className={
+              className={`transition-colors duration-300 ${
                 isHome
-                  ? isScrolled
-                    ? "text-gray-900" // quando estiver na home e scrollado
-                    : "text-white"     // quando estiver no topo da home
-                  : "text-gray-900"   // quando estiver em outras páginas
-              }
+                  ? isScrolled ? "text-foreground" : "text-white"
+                  : "text-foreground"
+              }`}
             >
               Traffic
             </span>
             <span className="text-primary"> Solutions</span>
-          </div>
-        </Link>
+          </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`transition-all hover:text-primary font-medium ${
+                className={`relative font-medium text-sm transition-colors duration-200 group ${
                   isActive(item.path)
                     ? "text-primary"
-                    : isScrolled
-                    ? "text-foreground"
-                    : "text-blue-300"
+                    : isScrolled || !isHome
+                    ? "text-foreground hover:text-primary"
+                    : "text-white/80 hover:text-white"
                 }`}
               >
                 {item.label}
+                <span
+                  className={`absolute -bottom-0.5 left-0 h-px bg-primary transition-all duration-300 ${
+                    isActive(item.path) ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                />
               </Link>
             ))}
           </nav>
 
-          {/* CTA Button */}
+          {/* CTA */}
           <div className="hidden md:block">
             <Link to="/contato">
-              <Button className="bg-primary hover:bg-primary-dark text-white shadow-modern hover:shadow-glow transition-all duration-300 hover:scale-105">
+              <Button
+                className="bg-primary hover:bg-primary-dark text-white font-semibold hover:scale-105 transition-all duration-300 ring-2 ring-primary/0 hover:ring-primary/30"
+              >
                 Começar Agora
               </Button>
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`md:hidden p-2 transition-colors ${
-              isScrolled ? "text-foreground" : "text-white"
+              isScrolled || !isHome ? "text-foreground" : "text-white"
             }`}
+            aria-label="Menu"
           >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-white/95 backdrop-blur-sm border-t shadow-elegant">
-            <nav className="py-4 space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block w-full text-left px-4 py-2 transition-colors font-medium ${
-                    isActive(item.path)
-                      ? "text-primary bg-primary/10"
-                      : "text-foreground hover:bg-primary/10 hover:text-primary"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <div className="px-4 pt-2">
-                <Link to="/contato" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full bg-primary hover:bg-primary-dark text-white">
-                    Começar Agora
-                  </Button>
-                </Link>
-              </div>
-            </nav>
+      {/* Mobile menu — slide down */}
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 bg-white/97 backdrop-blur-md border-t border-border/40 ${
+          isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <nav className="py-4 space-y-1 container mx-auto px-6">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive(item.path)
+                  ? "text-primary bg-primary/8"
+                  : "text-foreground hover:bg-primary/5 hover:text-primary"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <div className="pt-2">
+            <Link to="/contato" onClick={() => setIsMobileMenuOpen(false)}>
+              <Button className="w-full bg-primary hover:bg-primary-dark text-white font-semibold">
+                Começar Agora
+              </Button>
+            </Link>
           </div>
-        )}
+        </nav>
       </div>
     </header>
   );
