@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { Header } from "@/components/sections/modern-header";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -36,7 +37,7 @@ import ClaraFashionDashboard from "./pages/ClaraFashionDashboard.tsx";
 import FacanhaChickDashboard from "./pages/FacanhaChickDashboard.tsx";
 import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
 import Obrigado from "./pages/obrigado";
-import DanielmaiaAutomacoes from "./pages/DanielmaiaAutomacoes";
+const DanielmaiaAutomacoes = lazy(() => import("./pages/DanielmaiaAutomacoes"));
 
 const queryClient = new QueryClient();
 
@@ -110,7 +111,7 @@ const AppRoutes = () => {
         <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
         <Route path="/facanha-dashboard" element={<ProtectedRoute><FacanhaChickDashboard /></ProtectedRoute>} />
 
-        <Route path="/danielmaiaautomacoes" element={<DanielmaiaAutomacoes />} />
+        <Route path="/danielmaiaautomacoes" element={<Suspense fallback={null}><DanielmaiaAutomacoes /></Suspense>} />
         <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
         <Route path="/obrigado" element={<Obrigado />} />
 
