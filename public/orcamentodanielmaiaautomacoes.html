@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta — Advocacia Daniel Maia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d0d0e;
+  --paper: #f7f4ee;
+  --paper2: #f0ece3;
+  --muted: #7a7468;
+  --border: #ddd9d0;
+  --gold: #b8913a;
+  --gold-light: #f5eed8;
+  --gold-dim: rgba(184,145,58,.15);
+  --dark: #141412;
+  --dark2: #1c1b18;
+  --warn: #7a3b0e;
+  --warn-bg: #fdf0e3;
+  --warn-border: #e8b87a;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Syne', system-ui, sans-serif;
+  --r: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1000; opacity: .5;
+}
+
+/* ── ADENDO BANNER GLOBAL ── */
+.adendo-banner {
+  background: var(--warn-bg);
+  border-bottom: 2px solid var(--warn-border);
+  padding: .85rem 5rem;
+}
+.adendo-banner-inner {
+  display: flex; align-items: flex-start; gap: 10px;
+  max-width: 900px;
+}
+.ab-icon {
+  font-size: 14px; flex-shrink: 0; margin-top: 1px; color: var(--warn);
+}
+.ab-text {
+  font-size: 12px; color: var(--warn); line-height: 1.6;
+}
+.ab-text strong { font-weight: 700; }
+
+/* ── LETTERHEAD ── */
+.letterhead {
+  padding: 3.5rem 5rem 2.5rem;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  border-bottom: 1px solid var(--border); position: relative;
+}
+.letterhead::after {
+  content: ''; position: absolute; bottom: -3px; left: 5rem; right: 5rem;
+  height: 1px; background: var(--gold); opacity: .4;
+}
+.lh-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: .5rem; }
+.lh-to { font-family: var(--serif); font-size: 2rem; font-weight: 300; color: var(--ink); letter-spacing: -.01em; line-height: 1.2; }
+.lh-to strong { font-weight: 600; }
+.lh-cnpj { font-size: 11px; color: var(--muted); margin-top: .3rem; letter-spacing: .04em; }
+.lh-right { text-align: right; }
+.lh-date { font-size: 12px; color: var(--muted); letter-spacing: .05em; margin-bottom: .25rem; }
+.lh-ref { font-size: 11px; color: var(--muted); opacity: .6; }
+.lh-badge {
+  display: inline-block; margin-top: .75rem;
+  font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--gold); border: 1px solid var(--gold); padding: 4px 12px; border-radius: 20px;
+}
+
+/* ── INTRO ── */
+.intro { padding: 3.5rem 5rem; max-width: 720px; }
+.intro-text { font-family: var(--serif); font-size: 1.25rem; color: var(--ink); line-height: 1.75; font-weight: 300; }
+.intro-text strong { font-weight: 500; }
+
+/* ── SECTION ── */
+.section { padding: 3rem 5rem; }
+.section.alt { background: var(--paper2); }
+.section.dark { background: var(--dark); color: #f7f4ee; }
+
+.section-tag {
+  font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-tag::before { content: ''; width: 24px; height: 1px; background: var(--gold); }
+.section-title { font-family: var(--serif); font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 400; letter-spacing: -.015em; line-height: 1.1; color: inherit; margin-bottom: 1rem; }
+.section-sub { font-size: 13px; color: var(--muted); max-width: 560px; line-height: 1.7; }
+.dark .section-sub { color: rgba(247,244,238,.45); }
+
+/* ── SEPARATOR ── */
+.sep { margin: 0 5rem; height: 1px; background: var(--border); }
+.sep.gold { background: var(--gold); opacity: .25; }
+
+/* ── ADENDO INLINE (dentro dos cards) ── */
+.inline-adendo {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  padding: .6rem .85rem;
+  margin-top: .85rem;
+}
+.ia-icon { font-size: 11px; color: var(--warn); flex-shrink: 0; margin-top: 1px; }
+.ia-text { font-size: 11px; color: var(--warn); line-height: 1.5; }
+.ia-text strong { font-weight: 700; }
+
+/* ── OPTIONS GRID ── */
+.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2.5rem; }
+.option-card {
+  border-radius: var(--r); border: 1px solid var(--border); overflow: hidden;
+  position: relative; transition: border-color .25s, box-shadow .25s;
+}
+.option-card:hover { border-color: var(--gold); box-shadow: 0 8px 32px rgba(184,145,58,.12); }
+.option-card.featured { border-color: var(--gold); }
+.option-badge {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  background: var(--gold); color: #fff; padding: 3px 10px; border-radius: 20px;
+}
+.option-header { padding: 1.75rem 1.75rem 1.25rem; background: var(--paper2); border-bottom: 1px solid var(--border); }
+.option-card.featured .option-header { background: var(--gold-light); border-bottom-color: rgba(184,145,58,.2); }
+.option-label { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: .6rem; }
+.option-name { font-family: var(--serif); font-size: 1.5rem; font-weight: 500; color: var(--ink); line-height: 1.2; margin-bottom: .4rem; }
+.option-tagline { font-size: 13px; color: var(--muted); }
+
+.option-price-area { padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--border); }
+.option-price-main { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.price-value { font-family: var(--serif); font-size: 2.8rem; font-weight: 500; color: var(--ink); line-height: 1; letter-spacing: -.02em; }
+.price-unit { font-size: 13px; color: var(--muted); }
+.price-total { margin-top: .4rem; font-size: 12px; color: var(--muted); }
+.price-total strong { color: var(--ink); font-weight: 600; }
+.price-caveat { font-size: 10px; color: var(--warn); margin-top: .3rem; display: flex; align-items: center; gap: 5px; }
+.price-caveat::before { content: '⚠'; }
+
+.option-timeline { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.tl-item { display: flex; align-items: center; gap: 6px; }
+.tl-num { font-family: var(--serif); font-size: 1.4rem; font-weight: 500; color: var(--gold); line-height: 1; }
+.tl-label { font-size: 11px; color: var(--muted); line-height: 1.3; }
+.tl-caveat { font-size: 10px; color: var(--warn); font-style: italic; }
+
+.option-body { padding: 1.5rem 1.75rem; }
+.option-features { list-style: none; display: flex; flex-direction: column; gap: .75rem; }
+.option-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--ink); line-height: 1.5; }
+.feat-icon { width: 18px; height: 18px; border-radius: 50%; background: var(--gold-dim); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0; margin-top: 1px; }
+.option-card.featured .feat-icon { background: rgba(184,145,58,.18); }
+
+.highlight-box { background: var(--gold-light); border: 1px solid rgba(184,145,58,.3); border-radius: var(--r); padding: 1.5rem 1.75rem; margin-top: 1.5rem; }
+.hbox-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: .6rem; }
+.hbox-text { font-size: 13px; color: #5c4b1a; line-height: 1.65; }
+
+/* ── ESCOPO ── */
+.scope-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem; }
+.scope-card { background: rgba(247,244,238,.06); border: 1px solid rgba(247,244,238,.1); border-radius: var(--r); padding: 1.25rem; }
+.scope-num { font-family: var(--serif); font-size: 2.2rem; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: .4rem; }
+.scope-label { font-size: 12px; color: rgba(247,244,238,.5); line-height: 1.4; }
+
+/* ── TIMELINE ── */
+.timeline-track { display: flex; gap: 0; margin-top: 2rem; overflow-x: auto; padding-bottom: .5rem; }
+.ttrack-phase { flex: 1; min-width: 160px; padding: 1.25rem 1.5rem; position: relative; }
+.ttrack-phase::after { content: '→'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: rgba(247,244,238,.2); font-size: 16px; z-index: 2; }
+.ttrack-phase:last-child::after { display: none; }
+.ttrack-phase.ph1 { background: rgba(184,145,58,.1); border-radius: var(--r) 0 0 var(--r); }
+.ttrack-phase.ph2 { background: rgba(184,145,58,.16); }
+.ttrack-phase.ph3 { background: rgba(184,145,58,.22); border-radius: 0 var(--r) var(--r) 0; }
+.tph-tag { font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: .5rem; }
+.tph-title { font-size: 13px; font-weight: 600; color: rgba(247,244,238,.9); margin-bottom: .35rem; }
+.tph-desc { font-size: 11px; color: rgba(247,244,238,.45); line-height: 1.5; }
+
+/* ── ADENDO BLOCO PRINCIPAL (dark) ── */
+.adendo-block {
+  background: rgba(253,240,227,.07); border: 1px solid rgba(232,184,122,.25);
+  border-radius: var(--r); padding: 1.75rem 2rem; margin-top: 2.5rem;
+  display: flex; gap: 1.25rem; align-items: flex-start;
+}
+.adendo-icon {
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%;
+  border: 1px solid rgba(232,184,122,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: #e8b87a; margin-top: 2px;
+}
+.adendo-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #e8b87a; margin-bottom: .5rem; }
+.adendo-text { font-size: 13px; color: rgba(247,244,238,.6); line-height: 1.7; }
+.adendo-text strong { color: rgba(247,244,238,.9); font-weight: 600; }
+.adendo-list { list-style: none; margin-top: .75rem; display: flex; flex-direction: column; gap: .4rem; }
+.adendo-list li { font-size: 12px; color: rgba(247,244,238,.5); padding-left: 14px; position: relative; line-height: 1.5; }
+.adendo-list li::before { content: '→'; position: absolute; left: 0; color: #e8b87a; font-size: 10px; top: 2px; }
+
+/* ── CLOSING ── */
+.closing { padding: 3.5rem 5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+.closing-text { font-family: var(--serif); font-size: 1.5rem; font-weight: 300; line-height: 1.6; color: var(--ink); margin-bottom: 1.5rem; }
+.sig-name { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; color: var(--ink); }
+.next-steps { display: flex; flex-direction: column; gap: 1rem; }
+.ns-item { display: flex; gap: 1rem; align-items: flex-start; }
+.ns-num { font-family: var(--serif); font-size: 1.8rem; color: var(--gold); line-height: 1; flex-shrink: 0; width: 36px; text-align: right; opacity: .6; }
+.ns-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.ns-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ── ADENDO FINAL ── */
+.adendo-final {
+  margin: 0 5rem 3rem;
+  background: var(--warn-bg);
+  border: 1.5px solid var(--warn-border);
+  border-radius: var(--r);
+  padding: 1.75rem 2rem;
+  display: flex; gap: 1.25rem; align-items: flex-start;
+}
+.af-icon {
+  font-size: 22px; flex-shrink: 0; line-height: 1; margin-top: 2px;
+}
+.af-title { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--warn); margin-bottom: .6rem; }
+.af-text { font-size: 13px; color: var(--warn); line-height: 1.7; }
+.af-text strong { font-weight: 700; }
+.af-items { list-style: none; margin-top: .75rem; display: flex; flex-direction: column; gap: .35rem; }
+.af-items li { font-size: 12px; color: #9b4d15; padding-left: 16px; position: relative; line-height: 1.5; }
+.af-items li::before { content: '→'; position: absolute; left: 0; color: var(--warn); font-size: 10px; top: 2px; }
+
+/* ── FOOTER ── */
+.footer-gold { width: 100%; height: 3px; background: linear-gradient(90deg, var(--gold) 0%, transparent 100%); }
+footer { padding: 2rem 5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .adendo-banner, .letterhead, .section, .intro, .closing, footer, .adendo-final { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .sep { margin-left: 1.5rem; margin-right: 1.5rem; }
+  .options-grid { grid-template-columns: 1fr; }
+  .closing { grid-template-columns: 1fr; }
+  .letterhead { flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+  .lh-right { text-align: left; }
+  .adendo-final { margin-left: 1.5rem; margin-right: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ADENDO BANNER GLOBAL -->
+<div class="adendo-banner">
+  <div class="adendo-banner-inner">
+    <span class="ab-icon">⚠</span>
+    <span class="ab-text"><strong>Proposta preliminar:</strong> Todos os valores, prazos e escopos apresentados são estimativas iniciais e estão sujeitos a revisão após análise presencial com a equipe do escritório.</span>
+  </div>
+</div>
+
+<!-- LETTERHEAD -->
+<div class="letterhead">
+  <div class="lh-left">
+    <div class="lh-eyebrow">Proposta Comercial</div>
+    <div class="lh-to">Advocacia <strong>Daniel Maia</strong></div>
+    <div class="lh-cnpj">CNPJ do escritório</div>
+  </div>
+  <div class="lh-right">
+    <div class="lh-date">Junho de 2025</div>
+    <div class="lh-ref">Referência: Automação & IA Jurídica</div>
+    <div class="lh-badge">Confidencial</div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<div class="intro">
+  <p class="intro-text">
+    Dr. Daniel, esta proposta apresenta <strong>dois caminhos</strong> para a transformação digital do escritório —
+    uma jornada de consultoria contínua de 10 meses com total flexibilidade, ou um projeto completo com escopo
+    fechado e prazo definido. Os números aqui são uma base de partida — o refinamento acontece juntos.
+  </p>
+</div>
+
+<div class="sep"></div>
+
+<!-- OPTIONS -->
+<div class="section">
+  <div class="section-tag">As propostas</div>
+  <h2 class="section-title">Dois caminhos, um destino</h2>
+  <p class="section-sub">Ambas as opções entregam a transformação completa. O que muda é o modelo de engajamento, a forma de investimento — e o que a análise conjunta pode revelar sobre os números abaixo.</p>
+
+  <div class="options-grid">
+
+    <!-- OPÇÃO A: CONSULTORIA -->
+    <div class="option-card">
+      <div class="option-header">
+        <div class="option-label">Opção A</div>
+        <div class="option-name">Consultoria Contínua</div>
+        <div class="option-tagline">Flexibilidade total, sem escopo engessado</div>
+      </div>
+      <div class="option-price-area">
+        <div class="option-price-main">
+          <div class="price-value">R$ 6.000</div>
+          <div class="price-unit">/ mês</div>
+        </div>
+        <div class="price-total">Total em 10 meses: <strong>R$ 60.000</strong></div>
+        <div class="price-caveat">Valor sujeito a revisão após análise do projeto real</div>
+        <div class="option-timeline">
+          <div class="tl-item">
+            <div class="tl-num">10</div>
+            <div class="tl-label">meses de<br>vigência <span class="tl-caveat">*estimativa</span></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-num">∞</div>
+            <div class="tl-label">demandas sem<br>custo extra</div>
+          </div>
+        </div>
+        <div class="inline-adendo">
+          <span class="ia-icon">⚠</span>
+          <span class="ia-text">O prazo de 10 meses e o valor mensal podem ser ajustados para cima ou para baixo conforme a dimensão real das demandas identificadas na análise inicial.</span>
+        </div>
+      </div>
+      <div class="option-body">
+        <ul class="option-features">
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Qualquer demanda da Advocacia Daniel Maia (CNPJ) atendida dentro do contrato, sem cobranças adicionais por escopo</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>1 desenvolvedor dedicado exclusivamente às demandas do escritório</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Orquestração de todas as demandas, análise de processos e ponto de contato estratégico</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Mapeamento contínuo de oportunidades de melhoria ao longo do engajamento</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Priorização ágil das entregas conforme necessidades reais do escritório</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Reuniões de alinhamento periódicas para garantir direção e resultado</span>
+          </li>
+        </ul>
+        <div class="highlight-box">
+          <div class="hbox-label">Diferencial desta opção</div>
+          <div class="hbox-text">
+            Sem lista de entregáveis pré-definida. O escritório guia as prioridades mês a mês — seja uma nova automação, ajuste em algo já entregue ou uma demanda completamente nova que surgir ao longo do tempo.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPÇÃO B: PROJETO -->
+    <div class="option-card featured">
+      <div class="option-badge">Escopo Completo</div>
+      <div class="option-header">
+        <div class="option-label">Opção B</div>
+        <div class="option-name">Projeto Fechado</div>
+        <div class="option-tagline">37 automações, prazo definido, resultado garantido</div>
+      </div>
+      <div class="option-price-area">
+        <div class="option-price-main">
+          <div class="price-value">R$ 51.000</div>
+          <div class="price-unit">total</div>
+        </div>
+        <div class="price-total">Investimento único · parcelamento a combinar</div>
+        <div class="price-caveat">Valor sujeito a revisão após análise do projeto real</div>
+        <div class="option-timeline">
+          <div class="tl-item">
+            <div class="tl-num">2</div>
+            <div class="tl-label">meses de<br>implementação <span class="tl-caveat">*estimativa</span></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-num">+1</div>
+            <div class="tl-label">mês de<br>homologação <span class="tl-caveat">*estimativa</span></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-num">~3</div>
+            <div class="tl-label">meses no<br>total</div>
+          </div>
+        </div>
+        <div class="inline-adendo">
+          <span class="ia-icon">⚠</span>
+          <span class="ia-text">Os <strong>2 meses de implementação + 1 de homologação</strong> são uma estimativa baseada no mapeamento atual. O prazo real só pode ser confirmado após análise presencial dos fluxos e sistemas do escritório.</span>
+        </div>
+      </div>
+      <div class="option-body">
+        <ul class="option-features">
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Implementação completa das 37 automações mapeadas nos 10 setores do escritório</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Pipeline completo de 6 agentes de IA para geração e revisão de contratos</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Portal do cliente, assinatura digital, monitor de processos e RAG jurídico</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Mês de homologação em paralelo com a fase final de implementação</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Treinamento da equipe e documentação completa de todos os sistemas entregues</span>
+          </li>
+          <li>
+            <div class="feat-icon">✓</div>
+            <span>Stack completa: n8n, Supabase, Evolution API, D4Sign, DataJud e Claude API</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="sep gold"></div>
+
+<!-- ESCOPO DO PROJETO (DARK) -->
+<div class="section dark">
+  <div class="section-tag">Projeto fechado — o que está incluído</div>
+  <h2 class="section-title" style="color:#f7f4ee;">37 automações em ~3 meses</h2>
+  <p class="section-sub">Escopo completo cobre todos os setores críticos do escritório. Números com "~" indicam estimativa sujeita a validação.</p>
+
+  <div class="scope-grid">
+    <div class="scope-card">
+      <div class="scope-num">~37</div>
+      <div class="scope-label">Automações — pode variar após análise real</div>
+    </div>
+    <div class="scope-card">
+      <div class="scope-num">10</div>
+      <div class="scope-label">Setores do escritório mapeados</div>
+    </div>
+    <div class="scope-card">
+      <div class="scope-num">6</div>
+      <div class="scope-label">Agentes de IA para contratos</div>
+    </div>
+    <div class="scope-card">
+      <div class="scope-num">~3</div>
+      <div class="scope-label">Meses estimados de execução</div>
+    </div>
+  </div>
+
+  <div class="timeline-track">
+    <div class="ttrack-phase ph1">
+      <div class="tph-tag">~Semanas 1–4</div>
+      <div class="tph-title">Quick Wins</div>
+      <div class="tph-desc">Cobrança automática, agendamento 24/7, onboarding de clientes, controle de prazos</div>
+    </div>
+    <div class="ttrack-phase ph2">
+      <div class="tph-tag">~Semanas 5–8</div>
+      <div class="tph-title">Core + Agentes IA</div>
+      <div class="tph-desc">DataJud, triagem de WhatsApp, pipeline de contratos, portal do cliente</div>
+    </div>
+    <div class="ttrack-phase ph3">
+      <div class="tph-tag">~Semanas 9–12</div>
+      <div class="tph-title">Inteligência & Homologação</div>
+      <div class="tph-desc">RAG jurídico, LGPD completo, rentabilidade, testes com a equipe</div>
+    </div>
+  </div>
+
+  <div class="adendo-block">
+    <div class="adendo-icon">⚠</div>
+    <div>
+      <div class="adendo-label">Por que os prazos são estimativas</div>
+      <div class="adendo-text">
+        O cronograma acima foi construído com base no mapeamento das 37 automações — mas <strong>cada escritório tem sua própria realidade operacional.</strong> Integrações com sistemas já em uso, resistências da equipe, volume de dados legados, qualidade das informações existentes e decisões de priorização ao longo do projeto podem encurtar ou alongar cada fase.
+      </div>
+      <ul class="adendo-list">
+        <li>Volume e qualidade dos dados existentes no escritório</li>
+        <li>Sistemas já em uso que precisam de integração (jurídico, financeiro)</li>
+        <li>Velocidade de adoção e treinamento da equipe</li>
+        <li>Mudanças de prioridade ao longo do projeto</li>
+        <li>Complexidades técnicas descobertas durante a implementação</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="sep"></div>
+
+<!-- CLOSING -->
+<div class="closing">
+  <div class="closing-left">
+    <div class="section-tag">Próximos passos</div>
+    <p class="closing-text">
+      O caminho mais natural é uma conversa — para entender o momento do escritório
+      e qual das duas opções faz mais sentido agora.
+    </p>
+    <div style="margin-top:2rem;">
+      <div class="sig-name">Qualquer dúvida, estou à disposição.</div>
+      <div style="margin-top:.5rem; color: var(--muted); font-size:12px;">
+        Esta proposta tem validade de 30 dias a partir da data de emissão.
+      </div>
+    </div>
+  </div>
+  <div class="closing-right">
+    <div class="next-steps">
+      <div class="ns-item">
+        <div class="ns-num">1</div>
+        <div>
+          <div class="ns-title">Escolher o modelo</div>
+          <div class="ns-desc">Consultoria contínua ou projeto fechado — definir qual faz mais sentido para o momento atual</div>
+        </div>
+      </div>
+      <div class="ns-item">
+        <div class="ns-num">2</div>
+        <div>
+          <div class="ns-title">Reunião de análise profunda</div>
+          <div class="ns-desc">Sessão com a equipe para mapear fluxos reais, prioridades e <strong>confirmar ou revisar</strong> os números desta proposta</div>
+        </div>
+      </div>
+      <div class="ns-item">
+        <div class="ns-num">3</div>
+        <div>
+          <div class="ns-title">Proposta final e contrato</div>
+          <div class="ns-desc">Com base na análise, os valores e prazos são confirmados ou ajustados — e aí sim formalizamos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADENDO FINAL DESTACADO -->
+<div class="adendo-final">
+  <div class="af-icon">⚠</div>
+  <div>
+    <div class="af-title">Nota sobre os valores e prazos desta proposta</div>
+    <div class="af-text">
+      <strong>Todos os números apresentados — valores mensais, total do investimento e cronograma de fases — são estimativas preliminares.</strong> Eles foram construídos a partir do mapeamento das 37 automações e da experiência em projetos similares, mas não substituem a análise real do escritório. Os seguintes fatores podem impactar o orçamento e o prazo final:
+    </div>
+    <ul class="af-items">
+      <li>Dimensão real das integrações com sistemas já em uso no escritório</li>
+      <li>Volume e complexidade dos dados existentes que precisarão ser migrados ou organizados</li>
+      <li>Número de colaboradores envolvidos no treinamento e adoção</li>
+      <li>Demandas adicionais identificadas durante a análise presencial</li>
+      <li>Ajustes de escopo solicitados ao longo do projeto</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer-gold"></div>
+<footer>
+  <span>Advocacia Daniel Maia · Proposta Confidencial</span>
+  <span>Junho 2025</span>
+</footer>
+
+</body>
+</html>
