@@ -36,6 +36,7 @@ import ClaraFashionDashboard from "./pages/ClaraFashionDashboard.tsx";
 import FacanhaChickDashboard from "./pages/FacanhaChickDashboard.tsx";
 import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
 import Obrigado from "./pages/obrigado";
+import DanielMaiaAutomacoes from "./pages/DanielMaiaAutomacoes";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const HIDDEN_PATHS = [
   '/leads-dashboard',
   '/proposta-piazza-aldeota',
   '/obrigado',
+  '/danielmaiaautomacoes',
   // Dashboards por cliente
   '/livet-dashboard',
   '/ncsaude-dashboard',
@@ -110,6 +112,7 @@ const AppRoutes = () => {
 
 <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
         <Route path="/obrigado" element={<Obrigado />} />
+        <Route path="/danielmaiaautomacoes" element={<DanielMaiaAutomacoes />} />
 
         <Route path="/login" element={<Login />} />
 
