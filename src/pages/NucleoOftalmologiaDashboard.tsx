@@ -121,7 +121,7 @@ export default function NucleoOftalmologiaDashboard() {
   const pagamentoData = snapshot ? toChartData(snapshot.por_pagamento) : [];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-8">
+    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-8 overflow-x-hidden">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -207,7 +207,7 @@ export default function NucleoOftalmologiaDashboard() {
 
           {/* Row 1: Leads por Mês + Leads por Pipeline */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 min-w-0 overflow-hidden">
               <h3 className="text-sm font-semibold text-gray-300 mb-4">Leads por Mês</h3>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
@@ -222,7 +222,7 @@ export default function NucleoOftalmologiaDashboard() {
               </div>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 min-w-0 overflow-hidden">
               <h3 className="text-sm font-semibold text-gray-300 mb-4">Leads por Pipeline</h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -249,7 +249,7 @@ export default function NucleoOftalmologiaDashboard() {
 
           {/* Row 2: Top 10 Etapas + Especialidade */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 min-w-0 overflow-hidden">
               <h3 className="text-sm font-semibold text-gray-300 mb-4">Top 10 Etapas</h3>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
@@ -271,7 +271,7 @@ export default function NucleoOftalmologiaDashboard() {
               </div>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 min-w-0 overflow-hidden">
               <h3 className="text-sm font-semibold text-gray-300 mb-4">Por Especialidade</h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -298,13 +298,13 @@ export default function NucleoOftalmologiaDashboard() {
 
           {/* Row 3: Motivos de Perda + UTM Source */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 min-w-0 overflow-hidden">
               <h3 className="text-sm font-semibold text-gray-300 mb-4">Motivos de Perda</h3>
-              <div className="h-56">
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={motivoPerdaData}>
+                  <BarChart data={motivoPerdaData} margin={{ bottom: 60 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} angle={-40} textAnchor="end" interval={0} />
                     <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Bar dataKey="value" fill="#ef4444" radius={[6, 6, 0, 0]} />
@@ -313,7 +313,7 @@ export default function NucleoOftalmologiaDashboard() {
               </div>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 min-w-0 overflow-hidden">
               <h3 className="text-sm font-semibold text-gray-300 mb-4">Origem (UTM Source)</h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -339,14 +339,14 @@ export default function NucleoOftalmologiaDashboard() {
           </div>
 
           {/* Row 4: Tipo de Pagamento (full width) */}
-          <div className="mb-8">
+          <div className="mb-8 min-w-0 overflow-hidden">
             <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
               <h3 className="text-sm font-semibold text-gray-300 mb-4">Tipo de Pagamento</h3>
-              <div className="h-56">
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={pagamentoData}>
+                  <BarChart data={pagamentoData} margin={{ bottom: 60 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} angle={-40} textAnchor="end" interval={0} />
                     <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} />
