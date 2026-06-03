@@ -109,8 +109,62 @@
   .ft-brand span { color:var(--acento-ciano); }
   .ft-ts { font-size:11px; color:var(--txt3); }
 
-  @media(max-width:1100px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } .g21,.g3,.g2 { grid-template-columns:1fr; } }
-  @media(max-width:600px) { .wrap { padding:0 16px 40px; } header { flex-direction:column; align-items:flex-start; gap:16px; } .kpi-grid { grid-template-columns:1fr 1fr; } }
+  @media(max-width:1100px) {
+    .kpi-grid { grid-template-columns:repeat(2,1fr); }
+    .g21,.g3,.g2 { grid-template-columns:1fr; }
+  }
+
+  @media(max-width:600px) {
+    .wrap { padding:0 12px 40px; }
+
+    /* Header */
+    header { flex-direction:column; align-items:flex-start; gap:14px; padding:20px 0 28px; margin-bottom:24px; }
+    .hright { flex-wrap:wrap; gap:8px; }
+    .pill-neutral { font-size:11px; padding:5px 12px; }
+    .pill-live { font-size:11px; padding:5px 12px; }
+    .htitle { font-size:18px; }
+
+    /* KPI grid: 2 colunas compactas */
+    .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:24px; }
+    .kpi { padding:14px 12px; border-radius:12px; }
+    .kpi-ico { width:30px; height:30px; font-size:14px; margin-bottom:10px; }
+    .kpi-val { font-size:24px; letter-spacing:-.5px; }
+    .kpi-lbl { font-size:11px; }
+    .kpi-delta { font-size:10px; margin-top:8px; }
+
+    /* Cards */
+    .cc { padding:16px 14px; border-radius:12px; }
+    .cc-title { font-size:13px; }
+    .cc-badge { font-size:10px; padding:3px 8px; }
+
+    /* Big stat */
+    .big-stat .num { font-size:40px; }
+
+    /* Funil bars */
+    .fb-nome { min-width:110px; font-size:11px; }
+    .fb-pct { font-size:11px; min-width:36px; }
+
+    /* Atendentes */
+    .att-nome { font-size:12px; }
+    .att-meta { font-size:10px; }
+
+    /* Tempo */
+    .tempo-lbl { font-size:11px; }
+    .tempo-val { font-size:12px; }
+
+    /* Alertas */
+    .alerta { padding:10px 12px; }
+    .alerta-title { font-size:11px; }
+    .alerta-num { font-size:13px; }
+    .alerta-desc { font-size:10px; }
+
+    /* Seções */
+    .sec { font-size:10px; margin-bottom:12px; }
+
+    /* Footer */
+    .dash-footer { flex-direction:column; gap:6px; align-items:flex-start; }
+    .ft-ts { font-size:10px; }
+  }
 </style>
 </head>
 <body>
@@ -160,7 +214,7 @@
       <span class="leg-i"><span class="leg-dot" style="background:#00E59B"></span>Agendados</span>
       <span class="leg-i"><span class="leg-dot" style="background:#FF6B6B"></span>Perdidos</span>
     </div>
-    <div style="position:relative;height:240px;"><canvas id="cMensal"></canvas></div>
+    <div id="wMensal" style="position:relative;height:240px;"><canvas id="cMensal"></canvas></div>
   </div>
   <div class="cc">
     <div class="cc-head"><div><div class="cc-title">Taxa de Conversão</div><div class="cc-sub">% convertidos por mês</div></div></div>
@@ -168,7 +222,7 @@
       <div class="num" style="background:linear-gradient(135deg,#00D4FF,#00E59B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">86,0%</div>
       <div class="lbl">Conversão Real</div>
     </div>
-    <div style="position:relative;height:150px;margin-top:8px;"><canvas id="cConv"></canvas></div>
+    <div id="wConv" style="position:relative;height:150px;margin-top:8px;"><canvas id="cConv"></canvas></div>
   </div>
 </div>
 
@@ -182,7 +236,7 @@
     <span class="leg-i"><span class="leg-dot" style="background:#00D4FF"></span>Leads na semana</span>
     <span class="leg-i"><span class="leg-dot" style="background:#00E59B"></span>Agendados</span>
   </div>
-  <div style="position:relative;height:200px;"><canvas id="cSemanal"></canvas></div>
+  <div id="wSemanal" style="position:relative;height:200px;"><canvas id="cSemanal"></canvas></div>
 </div>
 
 <!-- ATENDENTES + FUNIS + ETAPAS -->
@@ -217,7 +271,7 @@
       </div>
       <div style="font-size:13px;font-weight:700;color:#00E59B;">78,6%</div>
     </div>
-    <div style="position:relative;height:180px;margin-top:20px;"><canvas id="cAtt"></canvas></div>
+    <div id="wAtt" style="position:relative;height:180px;margin-top:20px;"><canvas id="cAtt"></canvas></div>
   </div>
 
   <div class="cc">
@@ -247,12 +301,12 @@
       <div class="fb-bg"><div class="fb-fill" style="width:3%;background:#FF6B6B;"></div></div>
       <div class="fb-pct" style="color:#FF6B6B;">0%</div>
     </div>
-    <div style="position:relative;height:160px;margin-top:16px;"><canvas id="cFunil"></canvas></div>
+    <div id="wFunil" style="position:relative;height:160px;margin-top:16px;"><canvas id="cFunil"></canvas></div>
   </div>
 
   <div class="cc">
     <div class="cc-head"><div><div class="cc-title">Etapas dos Leads</div><div class="cc-sub">Distribuição por status atual</div></div></div>
-    <div style="position:relative;height:220px;"><canvas id="cEtapas"></canvas></div>
+    <div id="wEtapas" style="position:relative;height:220px;"><canvas id="cEtapas"></canvas></div>
     <div style="margin-top:14px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;color:var(--txt2);">Agendados/Confirmados</span><span style="font-size:12px;font-weight:600;color:#00E59B;">3.287 (86,0%)</span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;color:var(--txt2);">Perdidos</span><span style="font-size:12px;font-weight:600;color:#FF6B6B;">248 (6,5%)</span></div>
@@ -266,11 +320,11 @@
 <div class="g2">
   <div class="cc">
     <div class="cc-head"><div><div class="cc-title">Leads por Dia da Semana</div><div class="cc-sub">Concentração de demanda – Seg a Dom</div></div></div>
-    <div style="position:relative;height:220px;"><canvas id="cDias"></canvas></div>
+    <div id="wDias" style="position:relative;height:220px;"><canvas id="cDias"></canvas></div>
   </div>
   <div class="cc">
     <div class="cc-head"><div><div class="cc-title">Leads por Hora do Dia</div><div class="cc-sub">Horários de pico de contato dos pacientes</div></div></div>
-    <div style="position:relative;height:220px;"><canvas id="cHoras"></canvas></div>
+    <div id="wHoras" style="position:relative;height:220px;"><canvas id="cHoras"></canvas></div>
   </div>
 </div>
 
@@ -286,7 +340,7 @@
       <div class="tempo-item"><div class="tempo-lbl">🔴 25% mais lentos</div><div class="tempo-val" style="color:#FF6B6B;">mais de 72 horas</div></div>
       <div class="tempo-item"><div class="tempo-lbl">🏆 Mais rápido registrado</div><div class="tempo-val" style="color:#00D4FF;">3 minutos</div></div>
     </div>
-    <div style="position:relative;height:130px;"><canvas id="cTempo"></canvas></div>
+    <div id="wTempo" style="position:relative;height:130px;"><canvas id="cTempo"></canvas></div>
   </div>
 
   <div class="cc">
@@ -324,7 +378,7 @@
     <span class="leg-i"><span class="leg-dot" style="background:#00D4FF"></span>Total leads (eixo esq.)</span>
     <span class="leg-i"><span class="leg-dot" style="background:#00E59B"></span>Taxa de conversão %</span>
   </div>
-  <div style="position:relative;height:240px;"><canvas id="cComparativo"></canvas></div>
+  <div id="wComparativo" style="position:relative;height:240px;"><canvas id="cComparativo"></canvas></div>
 </div>
 
 <div class="dash-footer">
@@ -334,6 +388,20 @@
 </div>
 
 <script>
+const isMobile = window.innerWidth <= 600;
+
+if (isMobile) {
+  const sizes = {
+    wMensal:160, wConv:120, wSemanal:160, wAtt:150,
+    wFunil:150, wEtapas:180, wDias:180, wHoras:180,
+    wTempo:120, wComparativo:180
+  };
+  Object.entries(sizes).forEach(([id, h]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.height = h + 'px';
+  });
+}
+
 Chart.defaults.color = 'rgba(255,255,255,0.55)';
 Chart.defaults.font.family = "'Inter',sans-serif";
 Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
