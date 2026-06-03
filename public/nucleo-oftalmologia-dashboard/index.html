@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard CRM Kommo – Núcleo de Oftalmologia</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --azul-escuro: #0B1E3D;
+    --acento-ciano: #00D4FF;
+    --acento-verde: #00E59B;
+    --acento-amarelo: #FFD166;
+    --acento-coral: #FF6B6B;
+    --acento-roxo: #9B59FF;
+    --txt1: #FFFFFF;
+    --txt2: rgba(255,255,255,0.65);
+    --txt3: rgba(255,255,255,0.38);
+    --surf: rgba(255,255,255,0.04);
+    --surf2: rgba(255,255,255,0.07);
+    --borda: rgba(255,255,255,0.08);
+    --r-md: 14px;
+    --r-lg: 20px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#050E1C; color:var(--txt1); font-family:'Inter',sans-serif; font-size:14px; line-height:1.6; overflow-x:hidden; }
+  body::before { content:''; position:fixed; top:-30%; left:-20%; width:70%; height:70%; background:radial-gradient(ellipse,rgba(26,74,138,0.25) 0%,transparent 70%); pointer-events:none; z-index:0; }
+  body::after { content:''; position:fixed; bottom:-20%; right:-15%; width:55%; height:55%; background:radial-gradient(ellipse,rgba(155,89,255,0.12) 0%,transparent 70%); pointer-events:none; z-index:0; }
+  .wrap { position:relative; z-index:1; max-width:1400px; margin:0 auto; padding:0 32px 60px; }
+
+  header { display:flex; align-items:center; justify-content:space-between; padding:32px 0 40px; border-bottom:1px solid var(--borda); margin-bottom:40px; }
+  .hlogo { width:48px; height:48px; background:linear-gradient(135deg,var(--acento-ciano),var(--acento-roxo)); border-radius:14px; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:800; font-size:18px; flex-shrink:0; }
+  .htitle { font-family:'Syne',sans-serif; font-weight:700; font-size:22px; letter-spacing:-.3px; }
+  .hsub { font-size:12px; color:var(--txt3); letter-spacing:.08em; text-transform:uppercase; margin-top:1px; }
+  .hright { display:flex; align-items:center; gap:12px; }
+  .pill-neutral { background:var(--surf); border:1px solid var(--borda); border-radius:30px; padding:6px 16px; font-size:12px; color:var(--txt2); }
+  .pill-neutral span { color:var(--acento-ciano); font-weight:500; }
+  .pill-live { display:flex; align-items:center; gap:7px; background:rgba(0,229,155,0.08); border:1px solid rgba(0,229,155,0.2); border-radius:30px; padding:6px 14px; font-size:12px; color:var(--acento-verde); font-weight:500; }
+  .dot-live { width:7px; height:7px; border-radius:50%; background:var(--acento-verde); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+
+  .sec { font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--txt3); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .sec::after { content:''; flex:1; height:1px; background:var(--borda); }
+
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:40px; }
+  .kpi { background:var(--surf); border:1px solid var(--borda); border-radius:var(--r-lg); padding:24px; position:relative; overflow:hidden; transition:border-color .2s,background .2s; }
+  .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .kpi.c1::before { background:linear-gradient(90deg,var(--acento-ciano),transparent); }
+  .kpi.c2::before { background:linear-gradient(90deg,var(--acento-verde),transparent); }
+  .kpi.c3::before { background:linear-gradient(90deg,var(--acento-coral),transparent); }
+  .kpi.c4::before { background:linear-gradient(90deg,var(--acento-amarelo),transparent); }
+  .kpi.c5::before { background:linear-gradient(90deg,var(--acento-roxo),transparent); }
+  .kpi:hover { background:var(--surf2); border-color:rgba(255,255,255,.13); }
+  .kpi-ico { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:16px; }
+  .ic1 { background:rgba(0,212,255,.1); } .ic2 { background:rgba(0,229,155,.1); } .ic3 { background:rgba(255,107,107,.1); } .ic4 { background:rgba(255,209,102,.1); } .ic5 { background:rgba(155,89,255,.1); }
+  .kpi-val { font-family:'Syne',sans-serif; font-size:36px; font-weight:700; line-height:1; margin-bottom:6px; letter-spacing:-1px; }
+  .kpi-lbl { font-size:12px; color:var(--txt2); }
+  .kpi-delta { margin-top:12px; font-size:11px; }
+  .up { color:var(--acento-verde); } .dn { color:var(--acento-coral); } .nt { color:var(--txt3); }
+
+  .g21 { display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-bottom:20px; }
+  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:20px; }
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+  .cc { background:var(--surf); border:1px solid var(--borda); border-radius:var(--r-lg); padding:24px; }
+  .cc-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; }
+  .cc-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:600; }
+  .cc-sub { font-size:11px; color:var(--txt3); margin-top:2px; }
+  .cc-badge { font-size:11px; padding:3px 10px; border-radius:20px; background:rgba(0,212,255,.1); color:var(--acento-ciano); border:1px solid rgba(0,212,255,.2); white-space:nowrap; margin-top:2px; }
+
+  .leg { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:14px; }
+  .leg-i { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--txt2); }
+  .leg-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+
+  .big-stat { text-align:center; padding:20px 0; }
+  .big-stat .num { font-family:'Syne',sans-serif; font-size:56px; font-weight:800; letter-spacing:-2px; line-height:1; }
+  .big-stat .lbl { font-size:12px; color:var(--txt3); margin-top:6px; text-transform:uppercase; letter-spacing:.1em; }
+
+  .att-item { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .av { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; flex-shrink:0; }
+  .att-info { flex:1; }
+  .att-nome { font-size:13px; font-weight:500; }
+  .att-meta { font-size:11px; color:var(--txt3); }
+  .pb-bg { height:4px; background:rgba(255,255,255,.06); border-radius:2px; margin-top:5px; }
+  .pb { height:100%; border-radius:2px; }
+
+  .fb-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .fb-nome { font-size:12px; color:var(--txt2); min-width:145px; }
+  .fb-bg { flex:1; height:7px; background:rgba(255,255,255,.06); border-radius:4px; overflow:hidden; }
+  .fb-fill { height:100%; border-radius:4px; }
+  .fb-pct { font-size:12px; font-weight:600; min-width:42px; text-align:right; }
+
+  .tempo-item { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .tempo-lbl { font-size:12px; color:var(--txt2); }
+  .tempo-val { font-size:13px; font-weight:600; }
+
+  .alerta { padding:12px 16px; border-radius:10px; margin-bottom:10px; border:1px solid; }
+  .alerta-red { background:rgba(255,107,107,.06); border-color:rgba(255,107,107,.18); }
+  .alerta-yellow { background:rgba(255,209,102,.06); border-color:rgba(255,209,102,.18); }
+  .alerta-green { background:rgba(0,229,155,.06); border-color:rgba(0,229,155,.18); }
+  .alerta-blue { background:rgba(0,212,255,.06); border-color:rgba(0,212,255,.18); }
+  .alerta-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+  .alerta-title { font-size:12px; font-weight:600; }
+  .alerta-num { font-size:14px; font-weight:700; }
+  .alerta-desc { font-size:11px; color:var(--txt3); }
+
+  .dash-footer { margin-top:48px; padding-top:24px; border-top:1px solid var(--borda); display:flex; align-items:center; justify-content:space-between; }
+  .ft-brand { font-family:'Syne',sans-serif; font-size:13px; font-weight:600; color:var(--txt3); }
+  .ft-brand span { color:var(--acento-ciano); }
+  .ft-ts { font-size:11px; color:var(--txt3); }
+
+  @media(max-width:1100px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } .g21,.g3,.g2 { grid-template-columns:1fr; } }
+  @media(max-width:600px) { .wrap { padding:0 16px 40px; } header { flex-direction:column; align-items:flex-start; gap:16px; } .kpi-grid { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="hlogo">👁</div>
+    <div>
+      <div class="htitle">Dashboard CRM Kommo</div>
+      <div class="hsub">Núcleo de Oftalmologia – Leads &amp; Conversão</div>
+    </div>
+  </div>
+  <div class="hright">
+    <div class="pill-neutral">Período: <span>27 mar – 02 jun 2026</span></div>
+    <div class="pill-live"><div class="dot-live"></div>3.824 leads únicos</div>
+  </div>
+</header>
+
+<!-- KPIs LINHA 1 -->
+<div class="sec">Indicadores Principais</div>
+<div class="kpi-grid">
+  <div class="kpi c1"><div class="kpi-ico ic1">🥊</div><div class="kpi-val">3.824</div><div class="kpi-lbl">Total de Leads Únicos</div><div class="kpi-delta up">▲ +215% em Maio vs Março</div></div>
+  <div class="kpi c2"><div class="kpi-ico ic2">📅</div><div class="kpi-val">3.287</div><div class="kpi-lbl">Agendados / Ganhos</div><div class="kpi-delta up">▲ 86,0% de conversão</div></div>
+  <div class="kpi c3"><div class="kpi-ico ic3">✖</div><div class="kpi-val">248</div><div class="kpi-lbl">Leads Perdidos</div><div class="kpi-delta dn">▼ 6,5% da base total</div></div>
+  <div class="kpi c4"><div class="kpi-ico ic4">⏳</div><div class="kpi-val">2.733</div><div class="kpi-lbl">Leads Não Fechados</div><div class="kpi-delta nt">71,5% ainda em aberto</div></div>
+</div>
+
+<!-- KPIs LINHA 2 -->
+<div class="kpi-grid" style="margin-top:-24px;">
+  <div class="kpi c2"><div class="kpi-ico ic2">⚡</div><div class="kpi-val">86,0<small style="font-size:22px">%</small></div><div class="kpi-lbl">Taxa de Conversão Real</div><div class="kpi-delta up">▲ Acima da média do setor</div></div>
+  <div class="kpi c1"><div class="kpi-ico ic1">🕐</div><div class="kpi-val">9,9<small style="font-size:18px">h</small></div><div class="kpi-lbl">Tempo Médio de Resposta</div><div class="kpi-delta dn">▼ Mediana · Meta: &lt;1h</div></div>
+  <div class="kpi c5"><div class="kpi-ico ic5">👥</div><div class="kpi-val">3</div><div class="kpi-lbl">Atendentes Ativos</div><div class="kpi-delta nt">Lucas · Carina · Jeane</div></div>
+  <div class="kpi c4"><div class="kpi-ico ic4">📊</div><div class="kpi-val">5</div><div class="kpi-lbl">Funis Ativos no Kommo</div><div class="kpi-delta nt">Confirmações · Jeane · Carina…</div></div>
+</div>
+
+<!-- EVOLUÇÃO TEMPORAL -->
+<div class="sec" style="margin-top:8px;">Evolução Temporal</div>
+<div class="g21">
+  <div class="cc">
+    <div class="cc-head">
+      <div><div class="cc-title">Volume de Leads por Mês</div><div class="cc-sub">Total recebido e convertidos em agendamento</div></div>
+      <div class="cc-badge">Mar–Jun 2026</div>
+    </div>
+    <div class="leg">
+      <span class="leg-i"><span class="leg-dot" style="background:#00D4FF"></span>Total de leads</span>
+      <span class="leg-i"><span class="leg-dot" style="background:#00E59B"></span>Agendados</span>
+      <span class="leg-i"><span class="leg-dot" style="background:#FF6B6B"></span>Perdidos</span>
+    </div>
+    <div style="position:relative;height:240px;"><canvas id="cMensal"></canvas></div>
+  </div>
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Taxa de Conversão</div><div class="cc-sub">% convertidos por mês</div></div></div>
+    <div class="big-stat">
+      <div class="num" style="background:linear-gradient(135deg,#00D4FF,#00E59B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">86,0%</div>
+      <div class="lbl">Conversão Real</div>
+    </div>
+    <div style="position:relative;height:150px;margin-top:8px;"><canvas id="cConv"></canvas></div>
+  </div>
+</div>
+
+<!-- SEMANAL -->
+<div class="cc" style="margin-bottom:20px;">
+  <div class="cc-head">
+    <div><div class="cc-title">Volume Semanal de Leads</div><div class="cc-sub">Total de leads por semana – últimas 10 semanas</div></div>
+    <div class="cc-badge">Tendência crescente ▲</div>
+  </div>
+  <div class="leg">
+    <span class="leg-i"><span class="leg-dot" style="background:#00D4FF"></span>Leads na semana</span>
+    <span class="leg-i"><span class="leg-dot" style="background:#00E59B"></span>Agendados</span>
+  </div>
+  <div style="position:relative;height:200px;"><canvas id="cSemanal"></canvas></div>
+</div>
+
+<!-- ATENDENTES + FUNIS + ETAPAS -->
+<div class="sec">Performance por Atendente &amp; Funil</div>
+<div class="g3">
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Performance por Atendente</div><div class="cc-sub">Leads, agendamentos e conversão</div></div></div>
+    <div class="att-item">
+      <div class="av" style="background:rgba(0,212,255,.15);color:#00D4FF;">LP</div>
+      <div class="att-info">
+        <div class="att-nome">Lucas Paulino</div>
+        <div class="att-meta">1.786 leads · 1.606 agendados</div>
+        <div class="pb-bg"><div class="pb" style="width:89.9%;background:#00D4FF;"></div></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#00D4FF;">89,9%</div>
+    </div>
+    <div class="att-item">
+      <div class="av" style="background:rgba(155,89,255,.15);color:#9B59FF;">CA</div>
+      <div class="att-info">
+        <div class="att-nome">Carina</div>
+        <div class="att-meta">1.080 leads · 930 agendados</div>
+        <div class="pb-bg"><div class="pb" style="width:86.1%;background:#9B59FF;"></div></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#9B59FF;">86,1%</div>
+    </div>
+    <div class="att-item">
+      <div class="av" style="background:rgba(0,229,155,.15);color:#00E59B;">JE</div>
+      <div class="att-info">
+        <div class="att-nome">Jeane</div>
+        <div class="att-meta">956 leads · 751 agendados</div>
+        <div class="pb-bg"><div class="pb" style="width:78.6%;background:#00E59B;"></div></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#00E59B;">78,6%</div>
+    </div>
+    <div style="position:relative;height:180px;margin-top:20px;"><canvas id="cAtt"></canvas></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Performance por Funil</div><div class="cc-sub">Volume e taxa de conversão</div></div></div>
+    <div class="fb-item">
+      <div class="fb-nome">Confirmações amigo</div>
+      <div class="fb-bg"><div class="fb-fill" style="width:96.3%;background:linear-gradient(90deg,#00E59B,#00D4FF);"></div></div>
+      <div class="fb-pct" style="color:#00E59B;">96,3%</div>
+    </div>
+    <div class="fb-item">
+      <div class="fb-nome">Funil Carina</div>
+      <div class="fb-bg"><div class="fb-fill" style="width:86.9%;background:linear-gradient(90deg,#9B59FF,#00D4FF);"></div></div>
+      <div class="fb-pct" style="color:#9B59FF;">86,9%</div>
+    </div>
+    <div class="fb-item">
+      <div class="fb-nome">Funil Jeane</div>
+      <div class="fb-bg"><div class="fb-fill" style="width:79.4%;background:linear-gradient(90deg,#00D4FF,#9B59FF);"></div></div>
+      <div class="fb-pct" style="color:#00D4FF;">79,4%</div>
+    </div>
+    <div class="fb-item">
+      <div class="fb-nome">Funil Números novos</div>
+      <div class="fb-bg"><div class="fb-fill" style="width:67.6%;background:linear-gradient(90deg,#FFD166,#FF6B6B);"></div></div>
+      <div class="fb-pct" style="color:#FFD166;">67,6%</div>
+    </div>
+    <div class="fb-item">
+      <div class="fb-nome">Funil de vendas</div>
+      <div class="fb-bg"><div class="fb-fill" style="width:3%;background:#FF6B6B;"></div></div>
+      <div class="fb-pct" style="color:#FF6B6B;">0%</div>
+    </div>
+    <div style="position:relative;height:160px;margin-top:16px;"><canvas id="cFunil"></canvas></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Etapas dos Leads</div><div class="cc-sub">Distribuição por status atual</div></div></div>
+    <div style="position:relative;height:220px;"><canvas id="cEtapas"></canvas></div>
+    <div style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;color:var(--txt2);">Agendados/Confirmados</span><span style="font-size:12px;font-weight:600;color:#00E59B;">3.287 (86,0%)</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;color:var(--txt2);">Perdidos</span><span style="font-size:12px;font-weight:600;color:#FF6B6B;">248 (6,5%)</span></div>
+      <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:var(--txt2);">Não fechados (abertos)</span><span style="font-size:12px;font-weight:600;color:#FFD166;">289 (7,6%)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- DIAS + HORAS -->
+<div class="sec">Padrões de Demanda</div>
+<div class="g2">
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Leads por Dia da Semana</div><div class="cc-sub">Concentração de demanda – Seg a Dom</div></div></div>
+    <div style="position:relative;height:220px;"><canvas id="cDias"></canvas></div>
+  </div>
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Leads por Hora do Dia</div><div class="cc-sub">Horários de pico de contato dos pacientes</div></div></div>
+    <div style="position:relative;height:220px;"><canvas id="cHoras"></canvas></div>
+  </div>
+</div>
+
+<!-- TEMPO RESPOSTA + ALERTAS -->
+<div class="sec">Eficiência &amp; Alertas</div>
+<div class="g2">
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Análise de Tempo de Resposta</div><div class="cc-sub">Distribuição do tempo de atualização dos leads</div></div></div>
+    <div style="margin-bottom:16px;">
+      <div class="tempo-item"><div class="tempo-lbl">⚡ Média geral</div><div class="tempo-val" style="color:#FF6B6B;">104 horas</div></div>
+      <div class="tempo-item"><div class="tempo-lbl">📍 Mediana (50% dos leads)</div><div class="tempo-val" style="color:#FFD166;">9,9 horas</div></div>
+      <div class="tempo-item"><div class="tempo-lbl">✅ 25% mais rápidos</div><div class="tempo-val" style="color:#00E59B;">até 3,4 horas</div></div>
+      <div class="tempo-item"><div class="tempo-lbl">🔴 25% mais lentos</div><div class="tempo-val" style="color:#FF6B6B;">mais de 72 horas</div></div>
+      <div class="tempo-item"><div class="tempo-lbl">🏆 Mais rápido registrado</div><div class="tempo-val" style="color:#00D4FF;">3 minutos</div></div>
+    </div>
+    <div style="position:relative;height:130px;"><canvas id="cTempo"></canvas></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-head"><div><div class="cc-title">Alertas &amp; Oportunidades</div><div class="cc-sub">Pontos críticos que exigem ação</div></div></div>
+    <div class="alerta alerta-red">
+      <div class="alerta-head"><span class="alerta-title" style="color:#FF6B6B;">🚨 Leads não fechados</span><span class="alerta-num" style="color:#FF6B6B;">2.733</span></div>
+      <div class="alerta-desc">71,5% da base nunca teve um fechamento registrado</div>
+    </div>
+    <div class="alerta alerta-yellow">
+      <div class="alerta-head"><span class="alerta-title" style="color:#FFD166;">⚠️ Tempo de resposta alto</span><span class="alerta-num" style="color:#FFD166;">104h</span></div>
+      <div class="alerta-desc">Média acima de 4 dias – meta ideal é abaixo de 1 hora</div>
+    </div>
+    <div class="alerta alerta-yellow">
+      <div class="alerta-head"><span class="alerta-title" style="color:#FFD166;">📉 Funil de vendas zerado</span><span class="alerta-num" style="color:#FFD166;">0%</span></div>
+      <div class="alerta-desc">45 leads no "Funil de vendas" com 0% de conversão</div>
+    </div>
+    <div class="alerta alerta-green">
+      <div class="alerta-head"><span class="alerta-title" style="color:#00E59B;">✅ Crescimento acelerado</span><span class="alerta-num" style="color:#00E59B;">+215%</span></div>
+      <div class="alerta-desc">Volume de Mai 2.535 vs 121 em Março – crescimento explosivo</div>
+    </div>
+    <div class="alerta alerta-blue">
+      <div class="alerta-head"><span class="alerta-title" style="color:#00D4FF;">🏆 Melhor funil</span><span class="alerta-num" style="color:#00D4FF;">96,3%</span></div>
+      <div class="alerta-desc">"Confirmações amigo" – 1.235 de 1.283 leads convertidos</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARATIVO FINAL -->
+<div class="sec" style="margin-top:8px;">Visão Consolidada Mensal</div>
+<div class="cc">
+  <div class="cc-head">
+    <div><div class="cc-title">Evolução da Taxa de Conversão e Volume por Mês</div><div class="cc-sub">Leads únicos (barras) e % de conversão (linha)</div></div>
+  </div>
+  <div class="leg">
+    <span class="leg-i"><span class="leg-dot" style="background:#00D4FF"></span>Total leads (eixo esq.)</span>
+    <span class="leg-i"><span class="leg-dot" style="background:#00E59B"></span>Taxa de conversão %</span>
+  </div>
+  <div style="position:relative;height:240px;"><canvas id="cComparativo"></canvas></div>
+</div>
+
+<div class="dash-footer">
+  <div class="ft-brand">Dashboard <span>CRM Kommo</span> – Núcleo de Oftalmologia</div>
+  <div class="ft-ts">Dados extraídos em 03/06/2026 · 3.824 leads únicos · Período: Mar–Jun 2026</div>
+</div>
+</div>
+
+<script>
+Chart.defaults.color = 'rgba(255,255,255,0.55)';
+Chart.defaults.font.family = "'Inter',sans-serif";
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+const grd = { color:'rgba(255,255,255,0.06)' };
+const tck = { color:'rgba(255,255,255,0.45)', font:{ size:11 } };
+const meses = ['Mar 2026','Abr 2026','Mai 2026','Jun 2026'];
+
+new Chart(document.getElementById('cMensal'),{type:'bar',data:{labels:meses,datasets:[
+  {label:'Total leads',data:[121,910,2535,258],backgroundColor:'rgba(0,212,255,0.25)',borderColor:'#00D4FF',borderWidth:2,borderRadius:6,barPercentage:.55},
+  {label:'Agendados',data:[97,790,2223,177],backgroundColor:'rgba(0,229,155,0.25)',borderColor:'#00E59B',borderWidth:2,borderRadius:6,barPercentage:.55},
+  {label:'Perdidos',data:[9,80,153,6],backgroundColor:'rgba(255,107,107,0.25)',borderColor:'#FF6B6B',borderWidth:2,borderRadius:6,barPercentage:.55}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:tck},y:{grid:grd,ticks:tck}}}});
+
+new Chart(document.getElementById('cConv'),{type:'line',data:{labels:meses,datasets:[{label:'Conversão %',data:[80.2,86.8,87.7,68.6],borderColor:'#00E59B',backgroundColor:'rgba(0,229,155,0.1)',pointBackgroundColor:'#00E59B',pointRadius:5,fill:true,tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:tck},y:{grid:grd,ticks:{...tck,callback:v=>v+'%'},min:60,max:100}}}});
+
+new Chart(document.getElementById('cSemanal'),{type:'bar',data:{labels:['S1(mar)','S2(abr)','S3(abr)','S4(abr)','S5(abr)','S6(mai)','S7(mai)','S8(mai)','S9(mai)','S10(jun)'],datasets:[
+  {label:'Total',data:[203,65,322,92,363,657,655,610,598,258],backgroundColor:'rgba(0,212,255,0.2)',borderColor:'#00D4FF',borderWidth:1.5,borderRadius:5,barPercentage:.6},
+  {label:'Agendados',data:[170,51,297,85,284,588,567,544,524,177],backgroundColor:'rgba(0,229,155,0.2)',borderColor:'#00E59B',borderWidth:1.5,borderRadius:5,barPercentage:.6}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:{...tck,autoSkip:false,maxRotation:35}},y:{grid:grd,ticks:tck}}}});
+
+new Chart(document.getElementById('cAtt'),{type:'bar',data:{labels:['Lucas Paulino','Carina','Jeane'],datasets:[
+  {label:'Total',data:[1786,1080,956],backgroundColor:['rgba(0,212,255,.2)','rgba(155,89,255,.2)','rgba(0,229,155,.2)'],borderColor:['#00D4FF','#9B59FF','#00E59B'],borderWidth:2,borderRadius:6},
+  {label:'Agendados',data:[1606,930,751],backgroundColor:['rgba(0,212,255,.5)','rgba(155,89,255,.5)','rgba(0,229,155,.5)'],borderColor:['#00D4FF','#9B59FF','#00E59B'],borderWidth:2,borderRadius:6}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:tck},y:{grid:grd,ticks:tck}}}});
+
+new Chart(document.getElementById('cFunil'),{type:'doughnut',data:{labels:['Confirmações amigo','Funil Jeane','Funil Carina','Números novos','Funil de vendas'],datasets:[{data:[1283,1275,1110,111,45],backgroundColor:['rgba(0,229,155,.75)','rgba(0,212,255,.75)','rgba(155,89,255,.75)','rgba(255,209,102,.75)','rgba(255,107,107,.75)'],borderColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}});
+
+new Chart(document.getElementById('cEtapas'),{type:'doughnut',data:{labels:['Agend. Confirmado','Venda ganha','Agendado','Consulta confirm.','Não confirmado','Venda perdida','Outros'],datasets:[{data:[978,835,363,550,239,241,618],backgroundColor:['rgba(0,229,155,.8)','rgba(0,212,255,.8)','rgba(0,229,155,.5)','rgba(155,89,255,.7)','rgba(255,209,102,.7)','rgba(255,107,107,.8)','rgba(136,135,128,.5)'],borderColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
+
+new Chart(document.getElementById('cDias'),{type:'bar',data:{labels:['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'],datasets:[{label:'Leads',data:[885,950,799,597,550,29,14],backgroundColor:['rgba(0,229,155,.6)','rgba(0,212,255,.8)','rgba(0,229,155,.5)','rgba(155,89,255,.5)','rgba(155,89,255,.4)','rgba(136,135,128,.3)','rgba(136,135,128,.2)'],borderColor:['#00E59B','#00D4FF','#00E59B','#9B59FF','#9B59FF','rgba(136,135,128,.6)','rgba(136,135,128,.4)'],borderWidth:1.5,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:{...tck,autoSkip:false}},y:{grid:grd,ticks:tck}}}});
+
+const horasData=[6,0,83,1186,3,2,18,269,220,294,383,274,153,140,239,170,174,94,41,19,30,10,9,7];
+const horasCor=horasData.map(v=>v>=400?'rgba(0,212,255,.9)':v>=250?'rgba(0,212,255,.65)':v>=100?'rgba(155,89,255,.6)':v>=20?'rgba(155,89,255,.35)':'rgba(136,135,128,.25)');
+new Chart(document.getElementById('cHoras'),{type:'bar',data:{labels:Array.from({length:24},(_,i)=>i+'h'),datasets:[{label:'Leads',data:horasData,backgroundColor:horasCor,borderColor:horasCor,borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:{...tck,autoSkip:true,maxRotation:0,font:{size:10}}},y:{grid:grd,ticks:tck}}}});
+
+new Chart(document.getElementById('cTempo'),{type:'bar',data:{labels:['25% mais rápidos','50% (mediana)','75% quartil','Máximo (outlier)'],datasets:[{label:'Horas',data:[3.4,9.9,72,1540],backgroundColor:['rgba(0,229,155,.6)','rgba(255,209,102,.6)','rgba(255,107,107,.5)','rgba(255,107,107,.8)'],borderColor:['#00E59B','#FFD166','#FF6B6B','#FF6B6B'],borderWidth:1.5,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:{...tck,callback:v=>v+'h'},type:'logarithmic'},y:{grid:{display:false},ticks:{...tck,font:{size:11}}}}}});
+
+new Chart(document.getElementById('cComparativo'),{type:'bar',data:{labels:meses,datasets:[
+  {type:'bar',label:'Total de leads',data:[121,910,2535,258],backgroundColor:'rgba(0,212,255,.15)',borderColor:'#00D4FF',borderWidth:1.5,borderRadius:6,yAxisID:'y1'},
+  {type:'line',label:'Taxa de conversão %',data:[80.2,86.8,87.7,68.6],borderColor:'#00E59B',backgroundColor:'rgba(0,229,155,.08)',pointBackgroundColor:'#00E59B',pointRadius:6,fill:true,tension:.4,yAxisID:'y2'}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:grd,ticks:tck},y1:{grid:grd,ticks:tck,position:'left'},y2:{grid:{display:false},ticks:{...tck,callback:v=>v+'%'},position:'right',min:60,max:100}}}});
+</script>
+</body>
+</html>
