@@ -114,7 +114,7 @@ const AppRoutes = () => {
         <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
         <Route path="/facanha-dashboard" element={<ProtectedRoute><FacanhaChickDashboard /></ProtectedRoute>} />
         <Route path="/nucleo-oftalmologia" element={<ProtectedRoute><NucleoOftalmologiaDashboard /></ProtectedRoute>} />
-        <Route path="/nucleo-oftalmologia-dashboard" element={<ProtectedRoute><NucleoOftalmologiaDashboardKommo /></ProtectedRoute>} />
+        <Route path="/nucleo-oftalmologia-dashboard" element={<NucleoOftalmologiaDashboardKommo />} />
 
 <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
         <Route path="/obrigado" element={<Obrigado />} />
