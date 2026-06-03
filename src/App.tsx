@@ -37,6 +37,7 @@ import FacanhaChickDashboard from "./pages/FacanhaChickDashboard.tsx";
 import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
 import Obrigado from "./pages/obrigado";
 import DanielMaiaAutomacoes from "./pages/DanielMaiaAutomacoes";
+import SandellyAutomacoes from "./pages/SandellyAutomacoes";
 import NucleoOftalmologiaDashboard from "./pages/NucleoOftalmologiaDashboard";
 import NucleoOftalmologiaDashboardKommo from "./pages/NucleoOftalmologiaDashboardKommo";
 
@@ -54,6 +55,7 @@ const HIDDEN_PATHS = [
   '/proposta-piazza-aldeota',
   '/obrigado',
   '/danielmaiaautomacoes',
+  '/sandelly-automacoes',
   // Dashboards por cliente
   '/livet-dashboard',
   '/ncsaude-dashboard',
@@ -119,6 +121,7 @@ const AppRoutes = () => {
 <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
         <Route path="/obrigado" element={<Obrigado />} />
         <Route path="/danielmaiaautomacoes" element={<DanielMaiaAutomacoes />} />
+        <Route path="/sandelly-automacoes" element={<SandellyAutomacoes />} />
 
         <Route path="/login" element={<Login />} />
 
