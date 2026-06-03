@@ -38,6 +38,7 @@ import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
 import Obrigado from "./pages/obrigado";
 import DanielMaiaAutomacoes from "./pages/DanielMaiaAutomacoes";
 import NucleoOftalmologiaDashboard from "./pages/NucleoOftalmologiaDashboard";
+import NucleoOftalmologiaDashboardKommo from "./pages/NucleoOftalmologiaDashboardKommo";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const HIDDEN_PATHS = [
   '/clarafashion-dashboard',
   '/facanha-dashboard',
   '/nucleo-oftalmologia',
+  '/nucleo-oftalmologia-dashboard',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -112,6 +114,7 @@ const AppRoutes = () => {
         <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
         <Route path="/facanha-dashboard" element={<ProtectedRoute><FacanhaChickDashboard /></ProtectedRoute>} />
         <Route path="/nucleo-oftalmologia" element={<ProtectedRoute><NucleoOftalmologiaDashboard /></ProtectedRoute>} />
+        <Route path="/nucleo-oftalmologia-dashboard" element={<ProtectedRoute><NucleoOftalmologiaDashboardKommo /></ProtectedRoute>} />
 
 <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
         <Route path="/obrigado" element={<Obrigado />} />
