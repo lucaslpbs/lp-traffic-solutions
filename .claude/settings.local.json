@@ -10,7 +10,11 @@
       "Bash(chcp 65001)",
       "Bash(find C:Userslucassourcereposlp-traffic-solutionssrc -type f -name *.tsx -o -name *.jsx)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\gabri\\\\source\\\\repos\\\\lp-traffic-solutions\\\\src\\\\components\\\\ui\\\\\" -File | Select-Object Name)",
-      "Bash(Get-Date -Format \"yyyyMMddHHmmss\")"
+      "Bash(Get-Date -Format \"yyyyMMddHHmmss\")",
+      "Bash(cp \"/mnt/c/Users/User/Downloads/sandelly-automacoes-v3.html\" \"/mnt/c/Users/User/source/repos/lp-traffic-solutions/public/sandelly-automacoes.html\")"
+    ],
+    "additionalDirectories": [
+      "\\mnt\\c\\Users\\User\\Downloads"
     ]
   }
 }

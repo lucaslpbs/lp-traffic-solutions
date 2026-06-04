@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandelly DP — Automações n8n v2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e4475e;--red-pale:#fdeaed;--red-dark:#b8304a;--navy:#1a1a2e;--beige:#f4f2ee;--beige2:#eae7e0;--white:#fff;--t2:#5a5a7a;--t3:#9090aa;--green:#2faa7a;--amber:#e8a030;--purple:#6050b0;--green-pale:#e3f5ee;--amber-pale:#fef3e0;--purple-pale:#eceaff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--beige);color:var(--navy);min-height:100vh;overflow-x:hidden;}
+header{background:var(--navy);padding:26px 52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.logo{background:var(--red);padding:8px 18px;border-radius:6px;font-size:19px;font-weight:700;letter-spacing:.2em;color:var(--navy);text-transform:uppercase;}
+.hsub{font-size:12px;color:rgba(255,255,255,.4);border-left:1px solid rgba(255,255,255,.12);padding-left:22px;line-height:1.6;margin-left:18px;}
+.hsub strong{display:block;color:rgba(255,255,255,.82);font-size:14px;font-weight:500;margin-bottom:1px;}
+
+.legend{display:flex;gap:16px;}
+.leg{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.4);}
+.leg-dot{width:8px;height:8px;border-radius:50%;}
+.filterbar{background:var(--white);border-bottom:1px solid var(--beige2);padding:11px 52px;display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.fl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-right:4px;}
+.fbtn{padding:5px 15px;border-radius:100px;border:1.5px solid var(--beige2);background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;transition:all .18s;position:relative;}
+.fbtn:hover{border-color:var(--red);color:var(--red);}
+.fbtn.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+.hero{background:var(--navy);margin:44px 52px 0;border-radius:18px;padding:38px 52px;display:grid;grid-template-columns:repeat(4,1fr);}
+.hi{text-align:center;position:relative;}
+.hi:not(:last-child)::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:rgba(255,255,255,.1);}
+.hn{font-family:'DM Serif Display',serif;font-size:50px;color:#fff;display:block;line-height:1;margin-bottom:5px;}
+
+.hl{font-size:12px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;}
+.hb{width:30px;height:2px;background:var(--red);margin:9px auto 0;}
+main{max-width:1340px;margin:0 auto;padding:52px 52px 100px;}
+.section{margin-bottom:56px;}
+.sh{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+.pbadge{display:inline-flex;align-items:center;gap:7px;padding:5px 14px 5px 10px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.pd{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.alta{background:var(--red-pale);color:var(--red-dark);}
+.media{background:var(--amber-pale);color:#a06010;}
+.baixa{background:var(--green-pale);color:#1a7a55;}
+.futura{background:var(--purple-pale);color:var(--purple);}
+.stitle{font-size:19px;font-weight:600;}
+.scount{font-size:14px;font-weight:400;color:var(--t3);margin-left:2px;}
+.alert{background:linear-gradient(135deg,rgba(228,71,94,.05),rgba(26,26,46,.03));border:1.5px solid rgba(228,71,94,.17);border-radius:13px;padding:15px 20px;margin-bottom:22px;display:flex;gap:13px;align-items:flex-start;}
+.ai{font-size:20px;flex-shrink:0;margin-top:1px;}
+.at h4{font-size:13px;font-weight:700;margin-bottom:4px;}
+.at p{font-size:12.5px;color:var(--t2);line-height:1.6;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(334px,1fr));gap:13px;}
+.card{background:var(--white);border-radius:15px;border:1.5px solid var(--beige2);overflow:hidden;cursor:pointer;transition:box-shadow .22s,transform .22s,border-color .22s;}
+.card:hover{border-color:var(--red);box-shadow:0 8px 28px rgba(228,71,94,.09),0 2px 8px rgba(0,0,0,.04);transform:translateY(-2px);}
+.card.open{border-color:var(--navy);box-shadow:0 10px 40px rgba(26,26,46,.12);}
+
+.stripe{height:3px;}
+.stripe.alta{background:linear-gradient(90deg,var(--red),#f07088);}
+.stripe.media{background:linear-gradient(90deg,var(--amber),#f0be60);}
+.stripe.baixa{background:linear-gradient(90deg,var(--green),#5abf97);}
+.stripe.futura{background:linear-gradient(90deg,var(--purple),#9070d0);}
+.ct{padding:17px 20px 13px;display:flex;align-items:flex-start;gap:11px;}
+.ci{font-size:24px;flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:var(--beige);border-radius:11px;}
+.cinfo{flex:1;min-width:0;}
+.cname{font-size:14px;font-weight:600;line-height:1.35;margin-bottom:6px;}
+.ctags{display:flex;flex-wrap:wrap;gap:4px;}
+.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+.tint{background:var(--green-pale);color:#1a7a55;}
+.text{background:var(--red-pale);color:var(--red-dark);}
+.tpar{background:var(--amber-pale);color:#a06010;}
+.ttool{background:#ede8ff;color:#5030a0;}
+
+
+.chev{color:var(--t3);font-size:15px;transition:transform .28s;flex-shrink:0;margin-top:3px;}
+.card.open .chev{transform:rotate(180deg);}
+.cprev{padding:0 20px 15px;border-top:1px solid var(--beige2);padding-top:12px;font-size:13px;color:var(--t2);line-height:1.65;}
+.cbody{display:none;padding:0 20px 20px;}
+.card.open .cbody{display:block;}
+.blabel{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-top:16px;margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--beige2);}
+.why{font-size:13px;color:var(--t2);line-height:1.72;}
+.how{background:var(--beige);border-radius:10px;padding:13px 15px;display:flex;flex-direction:column;}
+.hs{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;color:var(--t2);padding:6px 0;border-bottom:1px dashed var(--beige2);line-height:1.55;}
+.hs:last-child{border-bottom:none;}
+.hn2{width:19px;height:19px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.needs{display:flex;flex-direction:column;gap:5px;}
+.need{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--t2);padding:7px 11px;border-radius:8px;border-left:3px solid var(--beige2);background:var(--beige);line-height:1.55;}
+.nok{border-color:var(--green);background:var(--green-pale);}
+.nwarn{border-color:var(--amber);background:var(--amber-pale);}
+.nblock{border-color:var(--red);background:var(--red-pale);}
+.ni{flex-shrink:0;font-size:13px;}
+.iw{background:var(--beige);border-radius:10px;padding:11px 13px;}
+.im{display:flex;gap:9px;margin-top:9px;}
+.imx{flex:1;text-align:center;background:var(--white);border-radius:8px;padding:7px 5px;border:1px solid var(--beige2);}
+.iv{font-size:15px;font-weight:700;display:block;margin-bottom:1px;}
+.il{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;}
+.div{height:1px;background:var(--beige2);margin:56px 0;position:relative;}
+.div::after{content:'';position:absolute;left:0;top:0;height:1px;width:56px;background:var(--red);}
+.stbtn{position:fixed;bottom:26px;right:26px;width:42px;height:42px;border-radius:50%;background:var(--navy);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.17);transition:all .18s;z-index:99;}
+.stbtn:hover{background:var(--red);transform:translateY(-3px);}
+.stbtn svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.section{animation:fu .5s ease both;}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.11s}.section:nth-child(3){animation-delay:.17s}.section:nth-child(4){animation-delay:.23s}
+@media(max-width:800px){header{padding:16px 20px;flex-direction:column;gap:12px;align-items:flex-start;}.legend{display:none;}.filterbar{padding:9px 20px;overflow-x:auto;}.hero{margin:32px 20px 0;padding:26px 18px;grid-template-columns:repeat(2,1fr);}.hi:nth-child(2)::after{display:none;}main{padding:32px 20px 80px;}}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center">
+    <div class="logo">Sandelly</div>
+    <div class="hsub"><strong>Proposta de Automações</strong>Departamento Pessoal · n8n</div>
+  </div>
+  <div class="legend">
+    <div class="leg"><span class="leg-dot" style="background:var(--green)"></span>Integração interna</div>
+    <div class="leg"><span class="leg-dot" style="background:var(--red)"></span>Parceiro externo</div>
+    <div class="leg"><span class="leg-dot" style="background:var(--amber)"></span>Config. adicional</div>
+  </div>
+</header>
+
+<div class="filterbar">
+  <span class="fl">Ver</span>
+  <button class="fbtn on" onclick="filter('all',this)">Todas</button>
+  <button class="fbtn" onclick="filter('alta',this)">Alta prioridade</button>
+  <button class="fbtn" onclick="filter('media',this)">Média prioridade</button>
+  <button class="fbtn" onclick="filter('baixa',this)">Baixa prioridade</button>
+  <button class="fbtn" onclick="filter('futura',this)">Planejamento futuro</button>
+  <button class="fbtn" onclick="filter('ext',this)">Parceiro externo</button>
+</div>
+
+<div class="hero">
+  <div class="hi"><span class="hn">25</span><span class="hl">Total de automações</span><div class="hb"></div></div>
+  <div class="hi"><span class="hn">9</span><span class="hl">Alta prioridade</span><div class="hb"></div></div>
+  <div class="hi"><span class="hn">19</span><span class="hl">Prontas p/ implementar</span><div class="hb"></div></div>
+  <div class="hi"><span class="hn">4</span><span class="hl">Parceiros externos</span><div class="hb"></div></div>
+</div>
+
+<main>
+
+<!-- ALTA -->
+<div class="section" data-p="alta">
+  <div class="sh">
+    <span class="pbadge alta"><span class="pd"></span>Alta prioridade</span>
+    <span class="stitle">Implementar primeiro <span class="scount">— 9 automações</span></span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">🏖️</div><div class="cinfo"><div class="cname">Alerta de férias vencendo</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Avisa os gerentes com antecedência quando colaboradores estão com férias prestes a vencer — antes que virem passivo trabalhista.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Férias não concedidas no prazo geram multa e passivo trabalhista. Com 14 lojas e dezenas de colaboradores, é impossível acompanhar manualmente sem falhas. A automação faz essa vigilância 24h.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Todo dia verifica quais colaboradores têm férias vencendo nos próximos 30 ou 60 dias</div><div class="hs"><span class="hn2">2</span>Classifica por urgência: "Atenção" (60 dias) e "Urgente" (30 dias)</div><div class="hs"><span class="hn2">3</span>Envia lista organizada por loja para o gerente responsável via WhatsApp ou e-mail</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Dados de férias já registrados no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar canal de notificação</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Impacto</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">📋</div><div class="cinfo"><div class="cname">Alerta de contratos de experiência</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Notifica o DP e os gerentes antes do vencimento de cada fase do contrato de experiência — evitando conversão automática indesejada para CLT.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Se o contrato de experiência não for renovado ou encerrado no prazo certo, ele vira automaticamente contrato por prazo indeterminado — mudando direitos e custos. O prazo varia por colaborador e é fácil perder sem controle automatizado.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Diariamente calcula o prazo restante de cada contrato de experiência em vigor</div><div class="hs"><span class="hn2">2</span>Dispara alertas nos marcos de 15, 7 e 1 dia antes do vencimento</div><div class="hs"><span class="hn2">3</span>Envia ao DP e ao gerente da loja: nome do colaborador, cargo e data exata</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Contratos já cadastrados no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar canal de notificação</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Impacto legal</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">📢</div><div class="cinfo"><div class="cname">Alerta de aviso prévio encerrando</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Avisa o DP quando um colaborador está encerrando o aviso prévio — para que o processo de desligamento seja acionado na hora certa, sem atrasos ou autuações.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O aviso prévio tem data definida para terminar. Se o DP não acionar as etapas de desligamento (rescisão, FGTS, devolução de documentos) no momento certo, a empresa pode enfrentar multas e processos trabalhistas.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Diariamente verifica os avisos prévios com encerramento próximo (5, 3 e 1 dia)</div><div class="hs"><span class="hn2">2</span>Notifica o DP com nome, loja, tipo de aviso e data exata de saída</div><div class="hs"><span class="hn2">3</span>Opcionalmente inicia o checklist de desligamento no sistema</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Avisos prévios registrados com datas no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar canal de notificação para o DP</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Crítico</span><span class="il">Risco jurídico</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">✅</div><div class="cinfo"><div class="cname">Lembretes de aprovação mensal</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Após a data de corte, cobra automaticamente as lojas que ainda não aprovaram a folha do mês — escalando os lembretes até o prazo final.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Sem a aprovação de todas as lojas, a contabilidade não consegue fechar a folha. Hoje o DP precisa ligar ou mandar mensagem manualmente para 14 lojas todo mês acompanhando quem aprovou e quem não aprovou.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Assim que a data de corte passa, verifica quais lojas ainda não enviaram a aprovação</div><div class="hs"><span class="hn2">2</span>Envia lembretes automáticos que aumentam de tom ao longo dos dias (gentil → urgente → escalona ao DP)</div><div class="hs"><span class="hn2">3</span>Quando a loja aprova, notifica automaticamente a contabilidade de que os dados estão prontos</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Datas de corte e registros de aprovação já no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar mensagens para cada nível de urgência</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Operacional</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">🚨</div><div class="cinfo"><div class="cname">Workflow de ocorrências</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Tempo real</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Cada ocorrência registrada dispara automaticamente as notificações certas para as pessoas certas — com ações diferentes por tipo de ocorrência.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Hoje uma falta ou atestado é lançado no sistema, mas ninguém é notificado automaticamente. Um atestado longo pode exigir encaminhamento ao INSS sem que o DP saiba. Uma falta reincidente pode passar despercebida.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>No momento em que uma ocorrência é lançada, identifica o tipo (falta, atestado, advertência…)</div><div class="hs"><span class="hn2">2</span>Notifica as pessoas certas: gerente da loja e DP, com mensagem adequada para aquele tipo</div><div class="hs"><span class="hn2">3</span>Ocorrências sem resolução há mais de 7 dias geram lembrete automático ao responsável</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Ocorrências registradas com tipo e status no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Definir fluxo de notificação por tipo de ocorrência</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Cobertura total</span></div><div class="imx"><span class="iv">Média</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">🩺</div><div class="cinfo"><div class="cname">Controle de exames médicos (ASO periódico)</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Monitora os exames periódicos de todos os colaboradores e avisa o RH antes do vencimento — cumprindo obrigação legal e evitando autuações fiscais.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O exame periódico (ASO) é obrigação legal e vence a cada 12 meses. Empresa com exames vencidos pode ser autuada pela fiscalização do trabalho. Com dezenas de colaboradores em 14 lojas, controlar manualmente é inviável.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Mensalmente verifica a data do último exame de cada colaborador ativo</div><div class="hs"><span class="hn2">2</span>Identifica quem está com exame vencido ou vencendo nos próximos 30 dias</div><div class="hs"><span class="hn2">3</span>Envia lista organizada por loja para o RH tomar providências</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Campo ultimo_exame_medico já cadastrado no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Definir prazo por função (12 meses padrão ou 6 meses para funções de risco)</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Obrigação legal</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 7 -->
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">📆</div><div class="cinfo"><div class="cname">Alerta de escala não lançada antes do mês</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Três dias antes do início de cada competência, avisa gerentes sobre colaboradores ativos sem nenhum dia de escala lançado — evitando que VT/VA e folha comecem com dados incompletos.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O cálculo de VT/VA depende dos dias trabalhados registrados na escala. Se a escala começa vazia, o valor de benefício fica errado e a folha fecha incompleta. Com 14 lojas, basta uma esquecer para afetar o fechamento de toda a competência. O alerta semanal cobre a semana corrente — este cobre o mês inteiro antes de ele começar, que é o momento certo para agir.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>D-3 antes do início da competência (baseado em datas_corte) verifica cada loja</div><div class="hs"><span class="hn2">2</span>Identifica colaboradores ativos sem nenhum dia de escala lançado para o período que se inicia</div><div class="hs"><span class="hn2">3</span>Envia lista ao gerente da loja e cópia ao DP — separando quem não lançou nada de quem está parcialmente incompleto</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Tabelas escalas e datas_corte já no sistema</div><div class="need nok"><span class="ni">✅</span>Colaboradores ativos identificados por loja_id</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar notificação por loja para gerente e DP</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Folha + VT/VA</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 8 -->
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">⏰</div><div class="cinfo"><div class="cname">Aviso de corte de competência via push</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Com 3 dias de antecedência da data de corte, empurra uma notificação ativa para todos os gerentes via WhatsApp ou e-mail — sem depender de eles abrirem o sistema para ver o banner do dashboard.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O sistema já exibe um banner de aviso dentro do dashboard quando faltam 3 dias para o corte — mas isso só funciona se o gerente abrir o sistema. Na prática, gerente de varejo não abre o sistema todo dia. O n8n resolve isso empurrando o aviso para o canal que o gerente usa de verdade: WhatsApp ou e-mail. Sem mudança no sistema, só uma nova camada de notificação ativa sobre uma regra que já existe.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Cron diário verifica se hoje é igual a data_fim − 3 dias para qualquer competência ativa em datas_corte</div><div class="hs"><span class="hn2">2</span>Monta mensagem por loja: "Faltam 3 dias para o corte de [mês/ano]. Certifique-se de lançar e aprovar as ocorrências"</div><div class="hs"><span class="hn2">3</span>Envia para o canal de cada gerente — repete em D-1 com tom mais urgente</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Tabela datas_corte com data_fim de cada competência já no sistema</div><div class="need nok"><span class="ni">✅</span>Usuários e lojas vinculadas já cadastrados</div><div class="need nwarn"><span class="ni">⚙️</span>Canal de notificação ativa (WhatsApp Business ou e-mail SMTP)</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Fechamento mensal</span></div><div class="imx"><span class="iv">Muito baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 9 -->
+    <div class="card" data-tags="alta int" onclick="toggle(this)">
+      <div class="stripe alta"></div>
+      <div class="ct"><div class="ci">🔬</div><div class="cinfo"><div class="cname">ASO de retorno após afastamento longo</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Tempo real</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Quando um colaborador volta de atestado médico com mais de 30 dias, avisa o RH que o ASO de retorno é obrigatório antes do retorno — risco não coberto pelo alerta de ASO periódico.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O alerta de ASO periódico (12 meses) não cobre o ASO de retorno. A NR-7 exige exame de retorno obrigatório quando o afastamento por doença ultrapassa 30 dias consecutivos. A empresa que deixa o colaborador trabalhar sem ele está sujeita a autuação. Os dados para detectar esse cenário já existem: tipo atestado_medico + data + data_fim nas ocorrências.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Webhook detecta ocorrência do tipo atestado_medico com data_fim definida</div><div class="hs"><span class="hn2">2</span>Calcula a duração do afastamento — se ultrapassar 30 dias corridos, aciona o alerta</div><div class="hs"><span class="hn2">3</span>Notifica o RH com 3 dias de antecedência da data de retorno: "ASO de retorno obrigatório antes do início do turno (NR-7)"</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Ocorrências com tipo atestado_medico e campo data_fim já no sistema</div><div class="need nok"><span class="ni">✅</span>Loja e gerente vinculados via loja_id</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar notificação para RH/DP com dados do colaborador e data de retorno</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Crítico</span><span class="il">Obrigação NR-7</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="div"></div>
+
+<!-- MÉDIA -->
+<div class="section" data-p="media">
+  <div class="sh">
+    <span class="pbadge media"><span class="pd"></span>Média prioridade</span>
+    <span class="stitle">Próxima fase <span class="scount">— 9 automações</span></span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-tags="media ext" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">📊</div><div class="cinfo"><div class="cname">Envio automático para o sistema de folha</div><div class="ctags"><span class="tag text">Parceiro externo</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Assim que a folha do mês é aprovada, envia automaticamente todos os dados para o sistema contábil — eliminando o lançamento manual e seus erros.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Hoje, após a aprovação mensal, alguém do DP precisa relançar manualmente no sistema de folha todas as horas extras, comissões, vales e benefícios — mês a mês, para todas as lojas. Processo repetitivo, demorado e propenso a erros que afetam o salário do colaborador.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>No momento da aprovação mensal de uma loja, a automação é acionada</div><div class="hs"><span class="hn2">2</span>Organiza todos os dados do mês no formato exigido pelo sistema contábil</div><div class="hs"><span class="hn2">3</span>Envia automaticamente para o sistema de folha — sem digitação manual</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Dados de folha registrados e aprovados no sistema</div><div class="need nblock"><span class="ni">🔗</span>Integração com o sistema de folha contábil (Domínio, Senior, TOTVS)</div><div class="need nwarn"><span class="ni">⚙️</span>Mapeamento do formato de importação exigido pelo sistema contábil</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Máximo</span><span class="il">Elimina retrabalho</span></div><div class="imx"><span class="iv">Média</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">API ext.</span><span class="il">Dependência</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="media int" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">🎂</div><div class="cinfo"><div class="cname">Aniversariantes e datas de empresa</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">No começo de cada mês, cada gerente recebe a lista de aniversariantes da sua loja. No dia do aniversário, o colaborador recebe uma mensagem de parabéns.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Reconhecimento gera engajamento e reduz rotatividade. Com 14 lojas e muitos colaboradores, nenhum gerente consegue lembrar todos os aniversários — e esse detalhe faz diferença na relação com o time.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>No primeiro dia do mês envia para cada gerente a lista de aniversariantes daquele mês na sua loja</div><div class="hs"><span class="hn2">2</span>No dia do aniversário envia mensagem personalizada ao colaborador pelo WhatsApp</div><div class="hs"><span class="hn2">3</span>Também registra aniversários de empresa (tempo de casa) para valorização do colaborador</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Data de nascimento e celular dos colaboradores já no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>WhatsApp Business configurado para mensagens ativas</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Engajamento</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="media int" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">👥</div><div class="cinfo"><div class="cname">Pipeline de recrutamento automatizado</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Tempo real</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Candidatos recebem confirmações e atualizações automaticamente em cada etapa do processo seletivo — sem esforço manual do RH para comunicar cada um.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Candidatos sem retorno desistem ou ficam com má impressão da empresa. Hoje o RH precisa comunicar manualmente cada candidato a cada mudança de etapa — a automação cuida dessa comunicação, liberando o RH para avaliar os candidatos.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Quando um candidato se inscreve, recebe confirmação automática e o RH é notificado</div><div class="hs"><span class="hn2">2</span>A cada mudança de etapa (entrevista, aprovação, reprovação), o candidato recebe a mensagem correspondente</div><div class="hs"><span class="hn2">3</span>Vagas paradas sems candidatos por 2 semanas geram alerta automático para o gestor</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Vagas e candidatos já cadastrados no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>WhatsApp Business para comunicação com candidatos</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Experiência candidato</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="media ext" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">🚌</div><div class="cinfo"><div class="cname">Recarga automática de VT e VA</div><div class="ctags"><span class="tag text">Parceiro externo</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Calcula automaticamente o VT e VA de cada colaborador e envia o pedido de recarga diretamente à operadora — sem planilha manual todo mês.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Todo mês alguém precisa calcular VT e VA de cada colaborador, montar uma planilha e enviar para a operadora. É um trabalho repetitivo e sujeito a erros que afetam o saldo do cartão do colaborador.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Após a aprovação mensal, calcula automaticamente o VT e VA de cada colaborador</div><div class="hs"><span class="hn2">2</span>Considera dias trabalhados, faltas e configuração de cada colaborador (conduções por dia, cidade)</div><div class="hs"><span class="hn2">3</span>Envia o pedido de recarga no formato da operadora (ValeCard, Ticket, Alelo, Sodexo)</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Configurações de VT/VA e escalas dos colaboradores já no sistema</div><div class="need nblock"><span class="ni">🔗</span>Integração com a operadora de benefícios utilizada</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Elimina planilha</span></div><div class="imx"><span class="iv">Média</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">API ext.</span><span class="il">Dependência</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="media int" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">📅</div><div class="cinfo"><div class="cname">Relatório semanal de escalas para gerentes</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Toda sexta-feira, cada gerente recebe o resumo da escala da semana seguinte da sua loja — sem precisar abrir o sistema.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Com 14 lojas e escalas montadas para dezenas de colaboradores, é comum que alguém fique sem turno definido para a semana. O colaborador aparece para trabalhar sem horário, ou não aparece porque achava que estava de folga. A automação previne esse tipo de falha.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Toda sexta-feira à tarde consulta a escala da semana seguinte de cada loja</div><div class="hs"><span class="hn2">2</span>Organiza os dados por colaborador: dias, horários, folgas e status especiais</div><div class="hs"><span class="hn2">3</span>Envia resumo para o gerente — inclui alerta se algum colaborador estiver sem turno lançado</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Colaboradores e escalas já registrados no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar canal de notificação para os gerentes</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Prevenção operacional</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 10 -->
+    <div class="card" data-tags="media int" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">📈</div><div class="cinfo"><div class="cname">Relatório mensal de headcount para diretoria</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">No primeiro dia de cada mês, a diretoria recebe automaticamente o consolidado da rede: admissões, demissões, colaboradores ativos por loja e índice de turnover do período anterior.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">A diretoria de uma rede com 14 lojas precisa de visibilidade sobre o quadro de pessoal para decisões de expansão, reposição e controle de custo. Hoje esse número só existe se alguém do DP montar uma planilha manualmente. Com alta rotatividade característica do varejo cearense, o turnover mensal é um indicador crítico que precisa chegar automaticamente à gestão.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>No primeiro dia do mês consolida os dados do mês anterior: colaboradores ativos por loja, admissões e demissões do período</div><div class="hs"><span class="hn2">2</span>Calcula o índice de turnover: (admissões + demissões) ÷ 2 ÷ headcount médio × 100</div><div class="hs"><span class="hn2">3</span>Envia relatório por e-mail para a diretoria — com comparativo ao mês anterior quando disponível</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Colaboradores com data_admissao e ativo=true/false já no sistema</div><div class="need nok"><span class="ni">✅</span>Tabelas admissoes e demissoes com datas registradas</div><div class="need nwarn"><span class="ni">⚙️</span>Configurar lista de destinatários da diretoria</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Visibilidade gestão</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 11 -->
+    <div class="card" data-tags="media int" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">☑️</div><div class="cinfo"><div class="cname">Monitoramento de checklists de admissão e demissão</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Monitora os checklists em aberto e alerta o DP quando itens críticos estão pendentes há mais de 3 dias — o checklist existe no sistema, mas sem cobrança automática ele é decorativo.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O sistema tem checklists de admissão e demissão com itens como ASO, documentos, CTPS, acesso ao sistema, uniforme, rescisão, FGTS. Mas não há nenhuma automação que monitore esses itens. Na prática: a admissão fica como "pendente" e ninguém percebe que o colaborador começou a trabalhar sem ASO admissional. Na demissão, o mesmo risco: documentos não entregues, FGTS não calculado.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Diariamente verifica admissoes e demissoes com status "pendente" criadas há mais de 3 dias</div><div class="hs"><span class="hn2">2</span>Lê o campo checklist (JSONB) e identifica itens com concluido = false</div><div class="hs"><span class="hn2">3</span>Envia ao DP a lista de itens pendentes por processo — com nome do colaborador, loja e dias em aberto</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Tabelas admissoes e demissoes com checklist JSONB já no sistema</div><div class="need nok"><span class="ni">✅</span>Status pendente/concluido já estruturado</div><div class="need nwarn"><span class="ni">⚙️</span>Definir quais itens são críticos (ASO, CTPS) vs. secundários</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Risco operacional</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 12 -->
+    <div class="card" data-tags="media int" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">🔄</div><div class="cinfo"><div class="cname">Aviso prévio indenizado: alerta para retirar da escala</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Tempo real</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Quando um aviso prévio é registrado como indenizado ou dispensa, notifica imediatamente o gerente para retirar o colaborador das escalas futuras — evitando que ele apareça na grade após a saída.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O sistema tem uma regra clara: aviso prévio "trabalhado" mantém o colaborador na escala; "indenizado" ou "dispensa" devem remover o colaborador dos turnos futuros. Mas essa regra hoje depende do gerente perceber a mudança. Na prática: o aviso é registrado no DP, o gerente não é avisado, e o colaborador continua na escala da semana seguinte — gerando confusão operacional.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Webhook detecta INSERT em avisos_previos com tipo "indenizado" ou "dispensa"</div><div class="hs"><span class="hn2">2</span>Notifica imediatamente o gerente da loja: "Aviso prévio indenizado registrado para [colaborador]. Remova-o das escalas a partir de [data_inicio]"</div><div class="hs"><span class="hn2">3</span>Versão avançada: remove automaticamente os registros de escala futuros do colaborador via API Supabase</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Tabela avisos_previos com campo tipo já no sistema</div><div class="need nok"><span class="ni">✅</span>Loja e gerente vinculados via loja_id</div><div class="need nwarn"><span class="ni">⚙️</span>Definir se a remoção da escala será manual (notificação) ou automática</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Operacional</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 13 -->
+    <div class="card" data-tags="media int" onclick="toggle(this)">
+      <div class="stripe media"></div>
+      <div class="ct"><div class="ci">⏳</div><div class="cinfo"><div class="cname">Candidatos parados no pipeline</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Alerta o RH sobre candidatos em "em_processo" há mais de 7 dias sem atualização — antes que percam o interesse e aceitem outra oferta.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">A automação de pipeline existente cobre vagas sem candidatos por 14 dias. Mas o problema mais comum no varejo é o oposto: o candidato se inscreveu, está em "em_processo" e ninguém avançou com ele. No varejo com alta concorrência por mão de obra, candidato sem retorno por mais de uma semana já buscou outro emprego. O dado está na tabela candidatos: updated_at mostra a última vez que o registro foi tocado.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Semanalmente verifica candidatos com status "em_processo" cujo updated_at é há mais de 7 dias</div><div class="hs"><span class="hn2">2</span>Agrupa por vaga e loja — mostra quantos candidatos estão parados em cada processo seletivo</div><div class="hs"><span class="hn2">3</span>Notifica o RH responsável: "X candidatos aguardam retorno há mais de 7 dias na vaga [cargo] — [loja]"</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Tabela candidatos com status e updated_at já no sistema</div><div class="need nok"><span class="ni">✅</span>Vagas vinculadas às lojas via loja_id</div><div class="need nwarn"><span class="ni">⚙️</span>Definir responsável por cada processo para notificação direcionada</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Taxa de conversão</span></div><div class="imx"><span class="iv">Muito baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="div"></div>
+
+<!-- BAIXA -->
+<div class="section" data-p="baixa">
+  <div class="sh">
+    <span class="pbadge baixa"><span class="pd"></span>Baixa prioridade</span>
+    <span class="stitle">Implementar quando viável <span class="scount">— 4 automações</span></span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-tags="baixa par" onclick="toggle(this)">
+      <div class="stripe baixa"></div>
+      <div class="ct"><div class="ci">⏱️</div><div class="cinfo"><div class="cname">Banco de horas automatizado</div><div class="ctags"><span class="tag tpar">Config. adicional</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Controla o saldo acumulado de horas extras de cada colaborador e avisa quando o limite legal está próximo — evitando passivo trabalhista.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Horas extras acumuladas além do limite legal geram obrigação de pagamento ou compensação. Sem controle automático do saldo, é fácil perder o limite e criar passivo trabalhista.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>A cada mês aprovado, atualiza o saldo acumulado de horas de cada colaborador</div><div class="hs"><span class="hn2">2</span>Monitora o limite legal conforme acordo coletivo da categoria</div><div class="hs"><span class="hn2">3</span>Alerta o DP quando algum colaborador está se aproximando do limite</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nwarn"><span class="ni">⚙️</span>Criar estrutura de saldo acumulado no sistema (expansão do cadastro atual)</div><div class="need nwarn"><span class="ni">⚙️</span>Definir regra de compensação conforme acordo coletivo vigente</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Impacto</span></div><div class="imx"><span class="iv">Média</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Expansão</span><span class="il">Necessária</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="baixa int" onclick="toggle(this)">
+      <div class="stripe baixa"></div>
+      <div class="ct"><div class="ci">👶</div><div class="cinfo"><div class="cname">Revisão anual de salário família</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Lembra o DP anualmente para revisar quais colaboradores ainda têm direito ao salário família — já que o benefício cessa quando o filho completa 14 anos.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O salário família é concedido para colaboradores com filhos de até 14 anos. Quando o filho completa 14 anos, o benefício deve ser suspenso. Sem controle automático, a empresa pode continuar pagando indevidamente.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Uma vez por ano identifica colaboradores que recebem salário família (filhos_ate_14 maior que zero)</div><div class="hs"><span class="hn2">2</span>Envia ao DP lista para revisão manual do benefício de cada um</div><div class="hs"><span class="hn2">3</span>Com data de nascimento dos filhos cadastrada: alerta preciso no mês do aniversário de 14 anos</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Campo filhos_ate_14 já existente no cadastro de colaboradores</div><div class="need nwarn"><span class="ni">⚙️</span>Para automação precisa: registrar data de nascimento dos filhos</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Baixo-médio</span><span class="il">Prevenção de erro</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 14 -->
+    <div class="card" data-tags="baixa int" onclick="toggle(this)">
+      <div class="stripe baixa"></div>
+      <div class="ct"><div class="ci">🎓</div><div class="cinfo"><div class="cname">Alerta preciso de filho completando 14 anos</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Avisa o DP no mês exato em que o filho de um colaborador completa 14 anos — momento certo para suspender o salário família, substituindo a revisão anual genérica por uma notificação pontual e precisa.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">A revisão anual de salário família envia uma lista genérica para o DP revisar — útil, mas imprecisa. Se a data de nascimento dos filhos estiver cadastrada, dá para fazer melhor: notificar no mês certo, para o colaborador certo. Isso elimina tanto o pagamento indevido quanto o risco de o DP esquecer de revisar a lista anual. Depende de um campo adicional no cadastro de colaboradores.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Mensalmente verifica colaboradores com filhos cuja data de nascimento corresponde a completar 14 anos naquele mês</div><div class="hs"><span class="hn2">2</span>Notifica o DP: "Filho de [colaborador] completa 14 anos em [data]. Suspender salário família a partir do mês seguinte"</div><div class="hs"><span class="hn2">3</span>Opcionalmente atualiza o campo filhos_ate_14 para zero quando não houver mais filhos elegíveis</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nwarn"><span class="ni">⚙️</span>Adicionar campo de data de nascimento dos filhos no cadastro (1 campo)</div><div class="need nok"><span class="ni">✅</span>Campo filhos_ate_14 já existe para identificar quem recebe o benefício</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Precisão legal</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">1 campo</span><span class="il">Expansão mínima</span></div></div></div>
+      </div>
+    </div>
+
+    <!-- NOVO 15 -->
+    <div class="card" data-tags="baixa int" onclick="toggle(this)">
+      <div class="stripe baixa"></div>
+      <div class="ct"><div class="ci">📋</div><div class="cinfo"><div class="cname">Relatório mensal consolidado de saúde ocupacional</div><div class="ctags"><span class="tag tint">Integração interna</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Todo mês, envia ao RH um único relatório com ASOs vencidos, vencendo em 30 dias, afastamentos por saúde do período e ASOs de retorno pendentes — a visão completa de saúde ocupacional da rede em um só documento.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O sistema tem alertas separados de ASO periódico e ASO de retorno. Mas o RH de uma rede com 14 lojas precisa de uma visão consolidada mensal — não alertas pontuais que chegam em momentos diferentes e precisam ser correlacionados manualmente. Esse documento pode ser enviado ao médico do trabalho terceirizado ou ao SESMT responsável pela rede como parte da documentação obrigatória.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>No primeiro dia do mês cruza ultimo_exame_medico com a data atual para identificar situações críticas</div><div class="hs"><span class="hn2">2</span>Lista afastamentos por atestado_medico com mais de 30 dias ocorridos no mês anterior (candidatos a ASO de retorno)</div><div class="hs"><span class="hn2">3</span>Envia relatório consolidado ao RH e, opcionalmente, ao médico do trabalho responsável pela rede</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nok"><span class="ni">✅</span>Campo ultimo_exame_medico e ocorrencias tipo atestado_medico já no sistema</div><div class="need nwarn"><span class="ni">⚙️</span>Definir destinatários (RH, médico do trabalho, diretoria)</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Médio</span><span class="il">Conformidade NR</span></div><div class="imx"><span class="iv">Baixa</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Nenhum</span><span class="il">Custo externo</span></div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="div"></div>
+
+<!-- FUTURA -->
+<div class="section" data-p="futura">
+  <div class="sh">
+    <span class="pbadge futura"><span class="pd"></span>Planejamento futuro</span>
+    <span class="stitle">Alta complexidade ou dependência externa <span class="scount">— 3 automações</span></span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-tags="futura ext" onclick="toggle(this)">
+      <div class="stripe futura"></div>
+      <div class="ct"><div class="ci">📄</div><div class="cinfo"><div class="cname">Holerites via WhatsApp</div><div class="ctags"><span class="tag text">Parceiro externo</span><span class="tag ttool">Automático</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Após o fechamento da folha, cada colaborador recebe o holerite do mês diretamente no WhatsApp — sem precisar ir à loja buscar ou pedir ao gerente.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Distribuir holerites em papel ou por e-mail é trabalhoso e muitos colaboradores ficam sem acesso fácil. Enviar pelo WhatsApp chega direto no celular de cada um, com confirmação de entrega — modernizando a relação da empresa com o time.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Após fechamento da folha no sistema contábil, busca os holerites gerados</div><div class="hs"><span class="hn2">2</span>Armazena os PDFs com segurança no Supabase Storage</div><div class="hs"><span class="hn2">3</span>Envia para cada colaborador via WhatsApp com link seguro de acesso individual</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nblock"><span class="ni">🔗</span>Integração com o sistema de folha de pagamento contábil</div><div class="need nblock"><span class="ni">🔗</span>WhatsApp Business configurado para envios em massa individuais</div><div class="need nwarn"><span class="ni">⚙️</span>Estrutura de armazenamento seguro dos holerites por colaborador</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Experiência colaborador</span></div><div class="imx"><span class="iv">Alta</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Múltiplos</span><span class="il">Parceiros</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="futura ext" onclick="toggle(this)">
+      <div class="stripe futura"></div>
+      <div class="ct"><div class="ci">🏛️</div><div class="cinfo"><div class="cname">eSocial automatizado</div><div class="ctags"><span class="tag text">Parceiro externo</span><span class="tag ttool">Orquestração</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">Eventos obrigatórios ao governo (admissão, demissão, afastamento) são enviados automaticamente ao eSocial no momento certo — reduzindo risco de multa por atraso.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">O eSocial exige que a empresa envie eventos dentro de prazos legais. A automação aciona o envio automaticamente quando os eventos ocorrem no sistema, reduzindo o risco de multas por descumprimento de prazo.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Quando uma admissão, demissão ou afastamento é registrado, a automação é acionada</div><div class="hs"><span class="hn2">2</span>Encaminha os dados ao sistema de folha contábil que faz a transmissão oficial ao eSocial</div><div class="hs"><span class="hn2">3</span>Confirma o envio e alerta o DP em caso de erro ou rejeição</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nblock"><span class="ni">🔗</span>Sistema de folha homologado para transmissão ao eSocial (Domínio, Senior, TOTVS)</div><div class="need nblock"><span class="ni">🔗</span>Certificado digital da empresa (A1 ou A3)</div><div class="need nwarn"><span class="ni">⚙️</span>Mapeamento dos eventos e prazos obrigatórios por tipo de ocorrência</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Obrigação legal</span></div><div class="imx"><span class="iv">Alta</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Múltiplos</span><span class="il">Parceiros</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-tags="futura ext" onclick="toggle(this)">
+      <div class="stripe futura"></div>
+      <div class="ct"><div class="ci">🤖</div><div class="cinfo"><div class="cname">Chatbot de RH no WhatsApp</div><div class="ctags"><span class="tag text">Parceiro externo</span><span class="tag ttool">IA</span></div></div><div class="chev">▾</div></div>
+      <div class="cprev">O colaborador tira dúvidas diretamente pelo WhatsApp — saldo de férias, próximo turno, benefícios — sem precisar ligar para o RH ou perguntar ao gerente.</div>
+      <div class="cbody">
+        <div class="blabel">Por que implementar</div><p class="why">Gerentes e DP recebem diariamente perguntas repetitivas dos colaboradores: "quando são minhas férias?", "qual meu horário amanhã?", "quando sai o holerite?". Um chatbot responde essas perguntas automaticamente a qualquer hora, liberando a equipe para tarefas estratégicas.</p>
+        <div class="blabel">Como vai funcionar</div><div class="how"><div class="hs"><span class="hn2">1</span>Colaborador envia mensagem pelo WhatsApp e se identifica de forma segura</div><div class="hs"><span class="hn2">2</span>O chatbot consulta os dados daquele colaborador no sistema (escala, férias, holerites)</div><div class="hs"><span class="hn2">3</span>Responde na hora com informações corretas, personalizadas para aquele colaborador</div></div>
+        <div class="blabel">O que é necessário</div><div class="needs"><div class="need nblock"><span class="ni">🔗</span>WhatsApp Business API com suporte a sessões e fluxos de conversa</div><div class="need nblock"><span class="ni">🔗</span>Mecanismo de autenticação do colaborador (segurança e LGPD)</div><div class="need nwarn"><span class="ni">⚙️</span>Mapeamento das perguntas mais frequentes para treinar o fluxo</div></div>
+        <div class="blabel">Impacto</div><div class="iw"><div class="im"><div class="imx"><span class="iv">Alto</span><span class="il">Experiência colaborador</span></div><div class="imx"><span class="iv">Alta</span><span class="il">Complexidade</span></div><div class="imx"><span class="iv">Múltiplos</span><span class="il">Parceiros</span></div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<button class="stbtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script>
+function toggle(c){c.classList.toggle('open');}
+function filter(t,btn){
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.card').forEach(c=>{
+    const tags=c.dataset.tags||'';
+    if(t==='all'){c.style.display='';return;}
+    if(t==='ext'){c.style.display=tags.includes('ext')?'':'none';return;}
+    
+    const s=c.closest('.section');
+    c.style.display=(s&&s.dataset.p===t)?'':'none';
+  });
+  document.querySelectorAll('.section').forEach(s=>{
+    if(t==='all'||t==='ext'){s.style.display='';return;}
+    s.style.display=s.dataset.p===t?'':'none';
+  });
+  document.querySelectorAll('.div').forEach(d=>{d.style.display=(t==='all')?'':'none';});
+}
+</script>
+</body>
+</html>
