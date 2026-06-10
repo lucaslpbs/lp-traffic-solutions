@@ -17,8 +17,8 @@ interface StatusResponse {
 }
 
 const WHATSAPP_GREEN = "#25D366";
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_GESTAO_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_GESTAO_KEY;
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 const SUPABASE_AUTH_HEADERS = {
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
