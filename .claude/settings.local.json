@@ -21,7 +21,10 @@
       "Bash(npx eslint *)",
       "Bash(node --check netlify/functions/uazapi-connect.js)",
       "Bash(node --check netlify/functions/uazapi-status.js)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{url_effective}\\\\n\" https://trafficsolutionsdigital.com.br/)",
+      "Bash(curl -s -i https://trafficsolutionsdigital.com.br/.netlify/functions/uazapi-connect -X POST -H \"Content-Type: application/json\" -d '{\"instanceName\":\"test\"}')",
+      "Bash(curl -s -I https://trafficsolutionsdigital.com.br/)"
     ],
     "additionalDirectories": [
       "\\mnt\\c\\Users\\User\\Downloads"

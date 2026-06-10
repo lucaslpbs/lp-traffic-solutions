@@ -17,7 +17,13 @@ interface StatusResponse {
 }
 
 const WHATSAPP_GREEN = "#25D366";
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+const SUPABASE_AUTH_HEADERS = {
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  apikey: SUPABASE_ANON_KEY,
+};
 const POLL_INTERVAL_MS = 3000;
 
 const STEPS = [
@@ -147,7 +153,8 @@ export default function CadastroInstancia() {
       pollTimerRef.current = setInterval(async () => {
         try {
           const res = await fetch(
-            `${API_BASE}/.netlify/functions/uazapi-status?token=${encodeURIComponent(token)}`
+            `${FUNCTIONS_URL}/uazapi-status?token=${encodeURIComponent(token)}`,
+            { headers: SUPABASE_AUTH_HEADERS }
           );
           if (!res.ok) return;
           const data: StatusResponse = await res.json();
@@ -178,9 +185,12 @@ export default function CadastroInstancia() {
     stopPolling();
 
     try {
-      const res = await fetch(`${API_BASE}/.netlify/functions/uazapi-connect`, {
+      const res = await fetch(`${FUNCTIONS_URL}/uazapi-connect`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...SUPABASE_AUTH_HEADERS,
+        },
         body: JSON.stringify({ instanceName }),
       });
 
