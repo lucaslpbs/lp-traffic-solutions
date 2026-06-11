@@ -153,7 +153,7 @@ export default function CadastroInstancia() {
       pollTimerRef.current = setInterval(async () => {
         try {
           const res = await fetch(
-            `${FUNCTIONS_URL}/uazapi-status?token=${encodeURIComponent(token)}`,
+            `${FUNCTIONS_URL}/uazapi-status?token=${encodeURIComponent(token)}&instanceName=${encodeURIComponent(instanceName ?? "")}`,
             { headers: SUPABASE_AUTH_HEADERS }
           );
           if (!res.ok) return;
