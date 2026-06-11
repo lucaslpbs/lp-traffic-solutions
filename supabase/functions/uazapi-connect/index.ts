@@ -29,11 +29,13 @@ Deno.serve(async (req: Request) => {
     return jsonResponse(405, { error: "Método não permitido" });
   }
 
-  const UAZAPI_URL = Deno.env.get("UAZAPI_URL");
+  const UAZAPI_URL_RAW = Deno.env.get("UAZAPI_URL");
   const UAZAPI_ADMINTOKEN = Deno.env.get("UAZAPI_ADMINTOKEN");
-  if (!UAZAPI_URL || !UAZAPI_ADMINTOKEN) {
+  if (!UAZAPI_URL_RAW || !UAZAPI_ADMINTOKEN) {
     return jsonResponse(500, { error: "UAZAPI_URL ou UAZAPI_ADMINTOKEN não configurados" });
   }
+
+  const UAZAPI_URL = UAZAPI_URL_RAW.replace(/\/+$/, "");
 
   let instanceName: string | undefined;
   try {
@@ -98,10 +100,7 @@ Deno.serve(async (req: Request) => {
       qrcode: extractQrcode(statusData),
       alreadyConnected: false,
     });
-  } catch (err) {
-    return jsonResponse(500, {
-      error: "Falha ao comunicar com a UazAPI",
-      details: err instanceof Error ? err.message : String(err),
-    });
+  } catch {
+    return jsonResponse(500, { error: "Falha ao comunicar com a UazAPI" });
   }
 });
