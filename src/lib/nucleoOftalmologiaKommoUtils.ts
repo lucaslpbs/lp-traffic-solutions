@@ -8,6 +8,8 @@ export type StatusGroup = 'convertido' | 'perdido' | 'aberto';
 
 export interface KommoLead {
   id: string;
+  nome: string;
+  telefone: string;
   etapa: string;
   funil: string;
   responsavel: string;
@@ -15,6 +17,16 @@ export interface KommoLead {
   ultimaModificacao: Date | null;
   status: StatusGroup;
   categoria: string;
+}
+
+export interface LostLead {
+  id: string;
+  nome: string;
+  telefone: string;
+  motivo: string;
+  funil: string;
+  responsavel: string;
+  data: Date | null;
 }
 
 export interface MonthlyMetric {
@@ -76,6 +88,7 @@ export interface NucleoKommoData {
   weekly: WeeklyMetric[];
   byDayOfWeek: number[]; // Segunda..Domingo
   byHour: number[]; // 0..23
+  lostLeads: LostLead[];
   periodoInicio: Date | null;
   periodoFim: Date | null;
   geradoEm: Date;
@@ -128,6 +141,38 @@ export function prettifyFunnelName(name: string): string {
   return FUNNEL_DISPLAY_NAMES[name.toLowerCase().trim()] || name;
 }
 
+const PHONE_FIELDS = [
+  'Celular (contato)',
+  'Telefone comercial (contato)',
+  'Tel. direto com. (contato)',
+  'Telefone residencial (contato)',
+  'Outro telefone (contato)',
+];
+
+export function formatPhone(raw: unknown): string {
+  const digits = String(raw ?? '').split(',')[0].replace(/\D/g, '');
+  let local = digits;
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) {
+    local = digits.slice(2);
+  }
+  if (local.length === 11) return `(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
+  if (local.length === 10) return `(${local.slice(0, 2)}) ${local.slice(2, 6)}-${local.slice(6)}`;
+  return digits ? `+${digits}` : '';
+}
+
+function extractPhone(row: Record<string, unknown>): string {
+  for (const field of PHONE_FIELDS) {
+    const raw = String(row[field] ?? '').trim();
+    if (raw) return formatPhone(raw);
+  }
+  return '';
+}
+
+export function extractMotivo(etapaRaw: string): string {
+  const m = etapaRaw.match(/\(([^)]+)\)/);
+  return m ? m[1].trim() : '';
+}
+
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '??';
@@ -167,6 +212,8 @@ function parseLeads(rawData: Record<string, unknown>[]): KommoLead[] {
     const etapa = String(row['Etapa do lead'] ?? '').trim();
     return {
       id: String(row['ID'] ?? ''),
+      nome: String(row['Contato principal'] ?? '').trim(),
+      telefone: extractPhone(row),
       etapa,
       funil: String(row['Funil de vendas'] ?? '').trim(),
       responsavel: String(row['Lead usuário responsável'] ?? '').trim(),
@@ -317,6 +364,21 @@ function computeWeekly(leads: KommoLead[], maxWeeks = 10): WeeklyMetric[] {
     }));
 }
 
+function computeLostLeads(leads: KommoLead[]): LostLead[] {
+  return leads
+    .filter(l => l.status === 'perdido')
+    .map(l => ({
+      id: l.id,
+      nome: l.nome || 'Sem nome',
+      telefone: l.telefone,
+      motivo: extractMotivo(l.etapa),
+      funil: prettifyFunnelName(l.funil),
+      responsavel: l.responsavel,
+      data: l.dataCriada,
+    }))
+    .sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
+}
+
 function computeByDayOfWeek(leads: KommoLead[]): number[] {
   const counts = new Array(7).fill(0);
   for (const l of leads) {
@@ -377,6 +439,7 @@ function buildDashboardFromBuffer(arrayBuffer: ArrayBuffer): NucleoKommoData {
     weekly: computeWeekly(leads),
     byDayOfWeek: computeByDayOfWeek(leads),
     byHour: computeByHour(leads),
+    lostLeads: computeLostLeads(leads),
     periodoInicio,
     periodoFim,
     geradoEm: new Date(),

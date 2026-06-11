@@ -703,6 +703,56 @@ export default function NucleoOftalmologiaDashboardKommo() {
           </Card>
         </div>
 
+        {/* Leads perdidos */}
+        <SectionLabel>Leads Perdidos – Detalhamento</SectionLabel>
+        <Card className="mb-5">
+          <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+            <div>
+              <div className="font-display text-[15px] font-semibold">Lista de Leads Perdidos</div>
+              <div className="text-[11px] text-white/35 mt-0.5">Nome, telefone e motivo da perda (quando informado)</div>
+            </div>
+            <div className="flex items-center gap-1.5 bg-[#FF6B6B]/[0.08] border border-[#FF6B6B]/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-[#FF6B6B]">
+              {fmtNum(data.lostLeads.length)} leads perdidos
+            </div>
+          </div>
+          <div className="max-h-[480px] overflow-y-auto rounded-xl border border-white/10">
+            <table className="w-full text-left text-[13px]">
+              <thead className="sticky top-0 bg-[#0B1E3D] z-10">
+                <tr className="text-[11px] uppercase tracking-[0.08em] text-white/35">
+                  <th className="px-4 py-3 font-medium">Nome</th>
+                  <th className="px-4 py-3 font-medium">Telefone</th>
+                  <th className="px-4 py-3 font-medium">Motivo</th>
+                  <th className="px-4 py-3 font-medium">Funil</th>
+                  <th className="px-4 py-3 font-medium">Responsável</th>
+                  <th className="px-4 py-3 font-medium">Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.lostLeads.map((lead, i) => (
+                  <tr key={lead.id} className={`border-t border-white/5 ${i % 2 === 0 ? 'bg-white/[0.015]' : ''}`}>
+                    <td className="px-4 py-2.5 font-medium">{lead.nome}</td>
+                    <td className="px-4 py-2.5 text-white/65 whitespace-nowrap">{lead.telefone || '—'}</td>
+                    <td className="px-4 py-2.5">
+                      {lead.motivo ? (
+                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(255,107,107,0.1)', color: C.coral }}>
+                          {lead.motivo}
+                        </span>
+                      ) : (
+                        <span className="text-white/25">Não informado</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-white/65 whitespace-nowrap">{lead.funil}</td>
+                    <td className="px-4 py-2.5 text-white/65 whitespace-nowrap">{lead.responsavel}</td>
+                    <td className="px-4 py-2.5 text-white/35 whitespace-nowrap">
+                      {lead.data ? format(lead.data, 'dd/MM/yyyy', { locale: ptBR }) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
         {/* Visão consolidada */}
         <SectionLabel>Visão Consolidada Mensal</SectionLabel>
         <Card>
