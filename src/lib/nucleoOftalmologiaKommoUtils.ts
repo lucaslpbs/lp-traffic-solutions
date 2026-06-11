@@ -44,6 +44,12 @@ export interface WeeklyMetric {
   convertidos: number;
 }
 
+export interface DailyMetric {
+  key: string; // yyyy-MM-dd
+  label: string;
+  total: number;
+}
+
 export interface AttendantMetric {
   nome: string;
   iniciais: string;
@@ -86,6 +92,7 @@ export interface NucleoKommoData {
   stages: StageMetric[];
   monthly: MonthlyMetric[];
   weekly: WeeklyMetric[];
+  daily: DailyMetric[];
   byDayOfWeek: number[]; // Segunda..Domingo
   byHour: number[]; // 0..23
   lostLeads: LostLead[];
@@ -335,6 +342,32 @@ function computeMonthly(leads: KommoLead[]): MonthlyMetric[] {
     });
 }
 
+function dateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function computeDaily(leads: KommoLead[]): DailyMetric[] {
+  const dates = leads.map(l => l.dataCriada).filter((d): d is Date => d !== null);
+  if (dates.length === 0) return [];
+
+  const counts = new Map<string, number>();
+  for (const d of dates) {
+    counts.set(dateKey(d), (counts.get(dateKey(d)) || 0) + 1);
+  }
+
+  const start = new Date(Math.min(...dates.map(d => d.getTime())));
+  const end = new Date(Math.max(...dates.map(d => d.getTime())));
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const result: DailyMetric[] = [];
+  for (const cur = new Date(start); cur.getTime() <= end.getTime(); cur.setDate(cur.getDate() + 1)) {
+    const key = dateKey(cur);
+    result.push({ key, label: format(cur, 'dd/MM'), total: counts.get(key) || 0 });
+  }
+  return result;
+}
+
 function weekStart(d: Date): Date {
   const day = (d.getDay() + 6) % 7; // Monday = 0
   const ws = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -437,6 +470,7 @@ function buildDashboardFromBuffer(arrayBuffer: ArrayBuffer): NucleoKommoData {
     stages: computeStages(leads),
     monthly: computeMonthly(leads),
     weekly: computeWeekly(leads),
+    daily: computeDaily(leads),
     byDayOfWeek: computeByDayOfWeek(leads),
     byHour: computeByHour(leads),
     lostLeads: computeLostLeads(leads),

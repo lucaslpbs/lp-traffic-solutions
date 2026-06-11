@@ -34,6 +34,9 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
+const tooltipItemStyle = { color: '#fff' };
+const tooltipLabelStyle = { color: '#fff' };
+
 const grid = { stroke: 'rgba(255,255,255,0.06)' };
 const tick = { fill: 'rgba(255,255,255,0.45)', fontSize: 11 };
 
@@ -208,6 +211,8 @@ export default function NucleoOftalmologiaDashboardKommo() {
   const [data, setData] = useState<NucleoKommoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -225,6 +230,11 @@ export default function NucleoOftalmologiaDashboardKommo() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   // ── Derived data ──────────────────────────────────────────────────────────
+
+  const dailyData = useMemo(() => {
+    if (!data) return [];
+    return data.daily.filter(d => (!dateFrom || d.key >= dateFrom) && (!dateTo || d.key <= dateTo));
+  }, [data, dateFrom, dateTo]);
 
   const dowData = useMemo(() => (data ? dayOfWeekData(data.byDayOfWeek) : []), [data]);
   const hrData = useMemo(() => (data ? hourData(data.byHour) : []), [data]);
@@ -455,7 +465,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                   <CartesianGrid {...grid} vertical={false} />
                   <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} />
                   <YAxis tick={tick} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                   <Bar dataKey="total" name="Total" fill="rgba(0,212,255,0.25)" stroke={C.cyan} strokeWidth={2} radius={[6, 6, 0, 0]} barSize={22} />
                   <Bar dataKey="convertidos" name="Convertidos" fill="rgba(0,229,155,0.25)" stroke={C.green} strokeWidth={2} radius={[6, 6, 0, 0]} barSize={22} />
                   <Bar dataKey="perdidos" name="Perdidos" fill="rgba(255,107,107,0.25)" stroke={C.coral} strokeWidth={2} radius={[6, 6, 0, 0]} barSize={22} />
@@ -478,7 +488,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                 <LineChart data={data.monthly}>
                   <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} />
                   <YAxis tick={tick} axisLine={false} tickLine={false} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtPct(v)} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => fmtPct(v)} />
                   <Line type="monotone" dataKey="conversao" name="Conversão" stroke={C.green} fill="rgba(0,229,155,0.1)" strokeWidth={2} dot={{ r: 4, fill: C.green }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -504,12 +514,72 @@ export default function NucleoOftalmologiaDashboardKommo() {
                 <CartesianGrid {...grid} vertical={false} />
                 <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} />
                 <YAxis tick={tick} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                 <Bar dataKey="total" name="Total" fill="rgba(0,212,255,0.2)" stroke={C.cyan} strokeWidth={1.5} radius={[5, 5, 0, 0]} />
                 <Bar dataKey="convertidos" name="Convertidos" fill="rgba(0,229,155,0.2)" stroke={C.green} strokeWidth={1.5} radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </Card>
+
+        {/* Conversas por dia */}
+        <Card className="mb-5">
+          <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div className="font-display text-[15px] font-semibold">Conversas por Dia</div>
+              <div className="text-[11px] text-white/35 mt-0.5">Quantidade de leads/conversas iniciadas por dia</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dateFrom}
+                min={data.daily[0]?.key}
+                max={data.daily[data.daily.length - 1]?.key}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="bg-white/[0.04] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/80 [color-scheme:dark] focus:outline-none focus:border-[#00D4FF]/40"
+              />
+              <span className="text-white/25 text-xs">até</span>
+              <input
+                type="date"
+                value={dateTo}
+                min={data.daily[0]?.key}
+                max={data.daily[data.daily.length - 1]?.key}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="bg-white/[0.04] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/80 [color-scheme:dark] focus:outline-none focus:border-[#00D4FF]/40"
+              />
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  className="text-[11px] text-white/35 hover:text-white/65 underline underline-offset-2"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+          </div>
+          {dailyData.length > 0 ? (
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyData}>
+                  <CartesianGrid {...grid} vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ ...tick, fontSize: 10 }}
+                    interval={Math.max(0, Math.floor(dailyData.length / 14))}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                  <Bar dataKey="total" name="Conversas" fill="rgba(0,212,255,0.25)" stroke={C.cyan} strokeWidth={1.5} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-56 flex items-center justify-center text-xs text-white/35">
+              Nenhuma conversa no período selecionado.
+            </div>
+          )}
         </Card>
 
         {/* Atendentes + Funis + Etapas */}
@@ -534,7 +604,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                   <CartesianGrid {...grid} vertical={false} />
                   <XAxis dataKey={(a: { nome: string }) => a.nome.split(' ')[0]} tick={tick} axisLine={false} tickLine={false} />
                   <YAxis tick={tick} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                   <Bar dataKey="total" name="Total" fill="rgba(0,212,255,0.25)" stroke={C.cyan} strokeWidth={1.5} radius={[6, 6, 0, 0]} />
                   <Bar dataKey="convertidos" name="Convertidos" fill="rgba(0,229,155,0.4)" stroke={C.green} strokeWidth={1.5} radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -562,7 +632,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                       <Cell key={f.nome} fill={FUNNEL_COLORS[i % FUNNEL_COLORS.length]} stroke="transparent" />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -579,7 +649,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                       <Cell key={s.nome} fill={STAGE_COLORS[s.nome] || C.gray} stroke="transparent" />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -612,7 +682,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                   <CartesianGrid {...grid} vertical={false} />
                   <XAxis dataKey="name" tick={tick} axisLine={false} tickLine={false} />
                   <YAxis tick={tick} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                   <Bar dataKey="value" name="Leads" radius={[6, 6, 0, 0]}>
                     {dowData.map((d, i) => (
                       <Cell key={d.name} fill={DAY_COLORS[i]} />
@@ -632,7 +702,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                   <CartesianGrid {...grid} vertical={false} />
                   <XAxis dataKey="name" tick={{ ...tick, fontSize: 10 }} interval={1} axisLine={false} tickLine={false} />
                   <YAxis tick={tick} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                   <Bar dataKey="value" name="Leads" radius={[4, 4, 0, 0]}>
                     {hrData.map(h => (
                       <Cell key={h.name} fill={hourColor(h.value, maxHour)} />
@@ -685,7 +755,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                 >
                   <XAxis type="number" scale="log" domain={[1, 'dataMax']} allowDataOverflow tick={tick} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v)}h`} />
                   <YAxis type="category" dataKey="name" tick={{ ...tick, fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatResponseTime(v)} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => formatResponseTime(v)} />
                   <Bar dataKey="value" radius={[0, 5, 5, 0]}>
                     {[C.green, C.yellow, C.coral, C.coral].map((c, i) => (
                       <Cell key={i} fill={c} />
@@ -769,7 +839,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
                 <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="left" tick={tick} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={tick} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                 <Bar yAxisId="left" dataKey="total" name="Total de leads" fill="rgba(0,212,255,0.15)" stroke={C.cyan} strokeWidth={1.5} radius={[6, 6, 0, 0]} />
                 <Line yAxisId="right" type="monotone" dataKey="conversao" name="Taxa de conversão %" stroke={C.green} strokeWidth={2} dot={{ r: 6, fill: C.green }} />
               </ComposedChart>
