@@ -64,6 +64,7 @@ const HIDDEN_PATHS = [
   '/ncsaude-dashboard',
   '/clarafashion-dashboard',
   '/facanha-dashboard',
+  '/msfarma-dashboard',
   '/nucleo-oftalmologia',
   '/nucleo-oftalmologia-dashboard',
 ];
