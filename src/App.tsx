@@ -41,6 +41,7 @@ import DanielMaiaAutomacoes from "./pages/DanielMaiaAutomacoes";
 import SandellyAutomacoes from "./pages/SandellyAutomacoes";
 import NucleoOftalmologiaDashboard from "./pages/NucleoOftalmologiaDashboard";
 import NucleoOftalmologiaDashboardKommo from "./pages/NucleoOftalmologiaDashboardKommo";
+import CadastroInstancia from "./pages/CadastroInstancia";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const HIDDEN_PATHS = [
   '/obrigado',
   '/danielmaiaautomacoes',
   '/sandelly-automacoes',
+  '/CadastroInstancia',
   // Dashboards por cliente
   '/livet-dashboard',
   '/ncsaude-dashboard',
@@ -124,6 +126,7 @@ const AppRoutes = () => {
         <Route path="/obrigado" element={<Obrigado />} />
         <Route path="/danielmaiaautomacoes" element={<DanielMaiaAutomacoes />} />
         <Route path="/sandelly-automacoes" element={<SandellyAutomacoes />} />
+        <Route path="/CadastroInstancia" element={<CadastroInstancia />} />
 
         <Route path="/login" element={<Login />} />
 
