@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -94,7 +93,7 @@ const parseConversa = (conversa: string): MensagemConversa[] => {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
-function MsfarmaDashboardContent() {
+export default function MsfarmaDashboard() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedVendedorId, setSelectedVendedorId] = useState<number | 'todos'>('todos');
@@ -677,96 +676,4 @@ function MsfarmaDashboardContent() {
       </div>
     </div>
   );
-}
-
-// ── Acesso exclusivo ──────────────────────────────────────────────────────────
-
-const MSFARMA_ACCESS_KEY = 'msfarma_dashboard_access';
-const MSFARMA_CREDENTIALS = {
-  email: 'janainamaia@gmail.com',
-  password: 'msfarma@2026',
-};
-
-function MsfarmaLoginGate({ onSuccess }: { onSuccess: () => void }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      email.trim().toLowerCase() === MSFARMA_CREDENTIALS.email &&
-      password === MSFARMA_CREDENTIALS.password
-    ) {
-      localStorage.setItem(MSFARMA_ACCESS_KEY, 'granted');
-      setError('');
-      onSuccess();
-    } else {
-      setError('E-mail ou senha incorretos.');
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md">
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
-          <div className="text-center mb-6">
-            <div className="inline-flex p-3 rounded-lg bg-emerald-500/20 border border-emerald-500/30 mb-4">
-              <Pill className="h-6 w-6 text-emerald-400" />
-            </div>
-            <h1 className="text-2xl font-bold text-white">Painel MS Farma</h1>
-            <p className="text-gray-400 text-sm mt-1">Acesso restrito</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="msfarma-email" className="text-white font-medium">E-mail</Label>
-              <Input
-                id="msfarma-email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-emerald-500 focus:ring-emerald-500/20 h-12"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="msfarma-password" className="text-white font-medium">Senha</Label>
-              <Input
-                id="msfarma-password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="bg-white/5 border-white/20 text-white placeholder:text-gray-500 focus:border-emerald-500 focus:ring-emerald-500/20 h-12"
-                required
-              />
-            </div>
-
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-
-            <Button
-              type="submit"
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold h-12 text-base"
-            >
-              Entrar
-            </Button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function MsfarmaDashboard() {
-  const [hasAccess, setHasAccess] = useState(
-    () => localStorage.getItem(MSFARMA_ACCESS_KEY) === 'granted'
-  );
-
-  if (!hasAccess) {
-    return <MsfarmaLoginGate onSuccess={() => setHasAccess(true)} />;
-  }
-
-  return <MsfarmaDashboardContent />;
 }
