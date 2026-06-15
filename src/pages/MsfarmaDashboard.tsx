@@ -38,7 +38,7 @@ interface ResumoLead {
   nome_lead?: string;
   telefone_lead?: string;
   conversa_compacta?: string | null;
-  trafego_pago?: string | null;
+  origem?: string | null;
 }
 
 interface VendedorData {
@@ -151,7 +151,7 @@ export default function MsfarmaDashboard() {
 
   const origensUnicas = useMemo(() => {
     const set = new Set<string>();
-    todosResumos.forEach(r => { if (r.trafego_pago) set.add(r.trafego_pago); });
+    todosResumos.forEach(r => { if (r.origem) set.add(r.origem); });
     return Array.from(set).sort();
   }, [todosResumos]);
 
@@ -172,7 +172,7 @@ export default function MsfarmaDashboard() {
     if (filterQualidadeLead === 'alto') result = result.filter(r => r.qualidade_lead >= 8);
     if (filterQualidadeLead === 'medio') result = result.filter(r => r.qualidade_lead >= 5 && r.qualidade_lead < 8);
     if (filterQualidadeLead === 'baixo') result = result.filter(r => r.qualidade_lead < 5);
-    if (filterOrigem !== 'all') result = result.filter(r => r.trafego_pago === filterOrigem);
+    if (filterOrigem !== 'all') result = result.filter(r => r.origem === filterOrigem);
     if (filterDataInicio) {
       const inicio = new Date(filterDataInicio);
       result = result.filter(r => new Date(r.periodo_inicio) >= inicio);
@@ -539,9 +539,9 @@ export default function MsfarmaDashboard() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-gray-500 text-xs">
-                          {r.trafego_pago ? (
+                          {r.origem ? (
                             <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs">
-                              {r.trafego_pago}
+                              {r.origem}
                             </span>
                           ) : '—'}
                         </td>
