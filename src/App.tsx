@@ -42,6 +42,7 @@ import SandellyAutomacoes from "./pages/SandellyAutomacoes";
 import NucleoOftalmologiaDashboard from "./pages/NucleoOftalmologiaDashboard";
 import NucleoOftalmologiaDashboardKommo from "./pages/NucleoOftalmologiaDashboardKommo";
 import CadastroInstancia from "./pages/CadastroInstancia";
+import SistemaPage from "./pages/SistemaPage";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const HIDDEN_PATHS = [
   '/msfarma-dashboard',
   '/nucleo-oftalmologia',
   '/nucleo-oftalmologia-dashboard',
+  '/sistema',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -130,6 +132,7 @@ const AppRoutes = () => {
         <Route path="/CadastroInstancia" element={<CadastroInstancia />} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/sistema" element={<ProtectedRoute><SistemaPage /></ProtectedRoute>} />
 
         {/* Dashboard interno */}
         <Route
