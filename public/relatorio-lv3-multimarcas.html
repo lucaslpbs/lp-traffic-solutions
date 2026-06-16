@@ -620,6 +620,10 @@
   }
   .funnel-pct { font-family: var(--mono); font-size: 12px; color: var(--text-dim); width: 45px; text-align: right; }
 
+  @media (max-width: 640px) {
+    .funnel-grid { grid-template-columns: 1fr !important; }
+  }
+
   /* ── FOOTER ── */
   footer {
     border-top: 1px solid var(--border);
@@ -891,7 +895,7 @@
   <!-- FUNIL DE CONVERSÃO -->
   <div class="funnel-section">
     <div class="section-label">Funis de Conversão</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div class="funnel-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
 
       <!-- FUNIL COMPLETO -->
       <div class="funnel-container">
