@@ -53,7 +53,7 @@ export const ClienteModal = ({ cliente, onClose }: Props) => {
     <Sheet open={!!cliente} onOpenChange={(o) => { if (!o) { setSubArea(null); onClose(); } }}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-2xl bg-zinc-950 border-zinc-800 text-zinc-100 overflow-y-auto"
+        className="w-full sm:max-w-2xl bg-[#111111] border-[#2a2a2a] text-white overflow-y-auto"
       >
         <SheetHeader className="space-y-3 border-b border-zinc-800 pb-4">
           <div className="flex items-center gap-3">
