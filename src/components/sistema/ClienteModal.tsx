@@ -1,11 +1,20 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, FileText, Workflow } from "lucide-react";
 import { Cliente, subAreasModal } from "@/lib/sistemaMockData";
 import { PersonaForm } from "./PersonaForm";
+import { ICPForm } from "./forms/ICPForm";
+import { EscopoForm } from "./forms/EscopoForm";
+import { HistoriasForm } from "./forms/HistoriasForm";
+import { BibliotecaForm } from "./forms/BibliotecaForm";
+import { CanaisForm } from "./forms/CanaisForm";
+import { LinhasEditoriaisForm } from "./forms/LinhasEditoriaisForm";
+import { CalendarioEditorialForm } from "./forms/CalendarioEditorialForm";
+import { RelatoriosForm } from "./forms/RelatoriosForm";
+import { OtimizacaoForm } from "./forms/OtimizacaoForm";
+import { DiarioBordoForm } from "./forms/DiarioBordoForm";
 
 interface Props {
   cliente: Cliente | null;
@@ -18,25 +27,33 @@ export const ClienteModal = ({ cliente, onClose }: Props) => {
   if (!cliente) return null;
 
   const renderSubArea = () => {
-    if (subArea === "Persona") return <PersonaForm />;
-    return (
-      <div className="space-y-3">
-        <Textarea
-          className="min-h-[400px] bg-zinc-950 border-zinc-800 text-zinc-100"
-          placeholder={`Descreva ${subArea?.toLowerCase()}...`}
-        />
-        <div className="flex justify-end">
-          <Button className="bg-[#3b82f6] hover:bg-[#3b82f6]/90">Salvar</Button>
-        </div>
-      </div>
-    );
+    switch (subArea) {
+      case "Persona": return <PersonaForm />;
+      case "ICP": return <ICPForm />;
+      case "Escopo do trabalho": return <EscopoForm />;
+      case "Diretório de histórias do especialista": return <HistoriasForm />;
+      case "Biblioteca de estudos e referências": return <BibliotecaForm />;
+      case "Canais de comunicação": return <CanaisForm />;
+      case "Linhas editoriais": return <LinhasEditoriaisForm />;
+      case "Calendário editorial": return <CalendarioEditorialForm />;
+      case "Relatórios": return <RelatoriosForm />;
+      case "Otimização": return <OtimizacaoForm />;
+      case "Diário de Bordo": return <DiarioBordoForm />;
+      default:
+        return (
+          <Textarea
+            className="min-h-[400px] bg-[#1c1c1e] border-[#2a2a2a] text-white"
+            placeholder={`Descreva ${subArea?.toLowerCase()}...`}
+          />
+        );
+    }
   };
 
   return (
     <Sheet open={!!cliente} onOpenChange={(o) => { if (!o) { setSubArea(null); onClose(); } }}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-2xl bg-zinc-950 border-zinc-800 text-zinc-100 overflow-y-auto"
+        className="w-full sm:max-w-2xl bg-[#111111] border-[#2a2a2a] text-white overflow-y-auto"
       >
         <SheetHeader className="space-y-3 border-b border-zinc-800 pb-4">
           <div className="flex items-center gap-3">
