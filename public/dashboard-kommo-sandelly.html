@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Kommo CRM</title>
+<style>
+:root{
+  --bg:#f7f8fa;
+  --paper:#ffffff;
+  --ink:#0f172a;
+  --ink-soft:#64748b;
+  --ink-faint:#94a3b8;
+  --line:#e7eaf0;
+  --accent:#4f46e5;
+  --accent-soft:#eef0fd;
+  --accent-deep:#3730a3;
+  --green:#16a34a;
+  --green-soft:#e9f7ee;
+  --red:#dc2626;
+  --red-soft:#fdeded;
+  --amber:#d97706;
+  --amber-soft:#fef3e1;
+  --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -12px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.45;
+}
+.wrap{max-width:1280px;margin:0 auto;padding:32px 28px 80px;}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:28px; flex-wrap:wrap; gap:14px;
+}
+.brand{display:flex; align-items:center; gap:11px;}
+.brand .mark{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg, var(--accent), #7c72f0);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:#fff; font-size:14px; flex-shrink:0;
+}
+.brand h1{font-size:16.5px; font-weight:700; margin:0; letter-spacing:-0.01em;}
+.brand .meta{font-size:12.5px; color:var(--ink-faint); margin-top:1px;}
+.range-pill{
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--paper); border:1px solid var(--line);
+  border-radius:9px; padding:8px 14px; font-size:12.5px; color:var(--ink-soft);
+  box-shadow:var(--shadow);
+}
+.range-pill b{color:var(--ink); font-weight:600;}
+.dot-live{width:7px;height:7px;border-radius:50%; background:var(--green); display:inline-block;}
+
+/* ===== KPI ROW ===== */
+.kpi-row{display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:22px;}
+.kpi-card{
+  background:var(--paper); border:1px solid var(--line); border-radius:14px;
+  padding:18px 18px 16px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+}
+.kpi-card .lbl{font-size:12px; color:var(--ink-soft); font-weight:600; display:flex; align-items:center; justify-content:space-between;}
+.kpi-card .val{font-size:26px; font-weight:800; letter-spacing:-0.02em; margin-top:8px; color:var(--ink);}
+.kpi-card .delta{font-size:11.5px; font-weight:700; margin-top:6px; display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:6px;}
+.delta.up{background:var(--green-soft); color:var(--green);}
+.delta.down{background:var(--red-soft); color:var(--red);}
+.delta.flat{background:var(--accent-soft); color:var(--accent-deep);}
+.spark{position:absolute; right:0; bottom:0; left:0; height:30px; opacity:0.5;}
+
+/* ===== GRID LAYOUT ===== */
+.grid{display:grid; gap:14px;}
+.g-2{grid-template-columns:1.5fr 1fr;}
+.g-3{grid-template-columns:1fr 1fr 1fr;}
+.g-12{grid-template-columns:7fr 5fr;}
+.span2{grid-column:span 2;}
+
+.panel{
+  background:var(--paper); border:1px solid var(--line); border-radius:14px;
+  padding:20px 20px 18px; box-shadow:var(--shadow);
+}
+.panel-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; gap:10px;}
+.panel-head h3{font-size:13.5px; font-weight:700; margin:0; color:var(--ink);}
+.panel-head .note{font-size:11.5px; color:var(--ink-faint);}
+.panel-foot{font-size:11.5px; color:var(--ink-faint); margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
+
+section{margin-top:22px;}
+.section-title{font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
+.section-title::after{content:""; flex:1; height:1px; background:var(--line);}
+
+/* ===== FUNNEL ROWS ===== */
+.funnel-row{display:flex; align-items:center; gap:10px; margin-bottom:11px;}
+.funnel-row:last-child{margin-bottom:0;}
+.funnel-label{width:96px; font-size:12px; font-weight:600; flex-shrink:0; color:var(--ink);}
+.funnel-bar-bg{flex:1; height:22px; background:#f1f2f6; border-radius:6px; overflow:hidden; display:flex;}
+.funnel-seg{height:100%; display:flex; align-items:center; justify-content:center; font-size:10.5px; color:#fff; font-weight:700;}
+.seg-ganho{background:var(--green);}
+.seg-andamento{background:var(--accent);}
+.seg-perdido{background:#cbd2e0;}
+.funnel-total{width:38px; text-align:right; font-size:12px; font-weight:700; color:var(--ink-soft); flex-shrink:0;}
+
+.legend-row{display:flex; gap:16px; margin-top:12px; font-size:11.5px; color:var(--ink-soft);}
+.legend-row span{display:inline-flex; align-items:center; gap:5px;}
+.lgd-dot{width:8px;height:8px;border-radius:50%; display:inline-block;}
+
+/* ===== BARS ===== */
+.bars{display:flex; align-items:flex-end; gap:4px; height:120px;}
+.bars .col{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%;}
+.bars .col .b{width:100%; border-radius:3px 3px 0 0; background:var(--accent); min-height:2px;}
+.bars .col.we .b{background:#c7cbf5;}
+.bars .col .t{font-size:9px; color:var(--ink-faint); margin-top:5px;}
+
+.bars-h{display:flex; align-items:flex-end; gap:5px; height:100px;}
+.bars-h .col{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%;}
+.bars-h .col .b{width:100%; border-radius:3px 3px 0 0; background:var(--accent);}
+.bars-h .col .t{font-size:9.5px; color:var(--ink-faint); margin-top:4px;}
+
+/* ===== HOUR HEAT ===== */
+.hour-grid{display:grid; grid-template-columns:repeat(12,1fr); gap:4px;}
+.hcell{aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:700;}
+
+/* ===== TABLE ===== */
+table{width:100%; border-collapse:collapse; font-size:12.5px;}
+th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); padding:0 8px 8px; border-bottom:1px solid var(--line); font-weight:700;}
+td{padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.num-cell{text-align:right; font-variant-numeric:tabular-nums; font-weight:700;}
+.rank-pill{
+  width:20px;height:20px;border-radius:6px; background:var(--accent-soft); color:var(--accent-deep);
+  display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800;
+}
+.badge{display:inline-block; padding:2px 8px; border-radius:5px; font-size:10.5px; font-weight:700;}
+.badge-accent{background:var(--accent-soft); color:var(--accent-deep);}
+
+/* ===== RESPONSAVEIS ===== */
+.resp-row{display:flex; align-items:center; gap:11px; padding:10px 0; border-bottom:1px solid var(--line);}
+.resp-row:last-child{border-bottom:none; padding-bottom:0;}
+.resp-row:first-child{padding-top:0;}
+.resp-avatar{
+  width:32px;height:32px;border-radius:9px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:12px;
+}
+.resp-info{flex:1; min-width:0;}
+.resp-name{font-weight:700; font-size:12.5px;}
+.resp-meta{font-size:11px; color:var(--ink-faint); margin-top:1px;}
+.resp-bar-bg{height:5px; background:#f1f2f6; border-radius:3px; margin-top:5px; overflow:hidden;}
+.resp-bar{height:100%; border-radius:3px;}
+.resp-revenue{text-align:right; font-weight:800; font-size:13.5px; color:var(--ink); flex-shrink:0;}
+
+/* ===== LOSS BARS ===== */
+.loss-row{margin-bottom:11px;}
+.loss-row:last-child{margin-bottom:0;}
+.loss-top{display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;}
+.loss-bar-bg{height:7px; background:#f1f2f6; border-radius:4px; overflow:hidden;}
+.loss-bar{height:100%; border-radius:4px;}
+
+/* ===== STAT MINI GRID ===== */
+.stat-mini{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.stat-mini .box{background:#fafbfd; border:1px solid var(--line); border-radius:10px; padding:12px 14px; text-align:center;}
+.stat-mini .box .n{font-size:19px; font-weight:800; color:var(--ink);}
+.stat-mini .box .l{font-size:10.5px; color:var(--ink-faint); margin-top:2px;}
+
+footer{margin-top:36px; padding-top:18px; border-top:1px solid var(--line); font-size:11px; color:var(--ink-faint); text-align:center;}
+
+@media (max-width:1100px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .g-2,.g-3,.g-12{grid-template-columns:1fr;}
+  .span2{grid-column:span 1;}
+  .hour-grid{grid-template-columns:repeat(8,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">K</div>
+      <div>
+        <h1>Funil de Vendas — Kommo</h1>
+        <div class="meta">Atualizado em 17 jun 2026, 13:40</div>
+      </div>
+    </div>
+    <div class="range-pill"><span class="dot-live"></span> 29 mai – 17 jun 2026 &nbsp;·&nbsp; <b>1.094</b> leads</div>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="lbl">Total de leads</div>
+      <div class="val">1.094</div>
+      <div class="delta flat">~58/dia</div>
+    </div>
+    <div class="kpi-card">
+      <div class="lbl">Receita confirmada</div>
+      <div class="val">R$ 6.460</div>
+      <div class="delta up">32 vendas</div>
+    </div>
+    <div class="kpi-card">
+      <div class="lbl">Ticket médio</div>
+      <div class="val">R$ 201,88</div>
+      <div class="delta flat">por venda</div>
+    </div>
+    <div class="kpi-card">
+      <div class="lbl">Taxa de conversão</div>
+      <div class="val">2,9%</div>
+      <div class="delta down">32 / 1.094</div>
+    </div>
+    <div class="kpi-card">
+      <div class="lbl">Taxa de perda</div>
+      <div class="val">38,7%</div>
+      <div class="delta down">423 leads</div>
+    </div>
+  </div>
+
+  <!-- ROW: FUNIL + STATUS -->
+  <section>
+    <div class="section-title">Funis</div>
+    <div class="grid g-12">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Status por funil</h3>
+          <span class="note">ganho · em andamento · perdido</span>
+        </div>
+        <div id="funnel-chart"></div>
+        <div class="legend-row">
+          <span><span class="lgd-dot" style="background:var(--green)"></span>Ganho</span>
+          <span><span class="lgd-dot" style="background:var(--accent)"></span>Em andamento</span>
+          <span><span class="lgd-dot" style="background:#cbd2e0"></span>Perdido</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Distribuição geral</h3></div>
+        <div class="stat-mini">
+          <div class="box"><div class="n" style="color:var(--green)">32</div><div class="l">Ganho</div></div>
+          <div class="box"><div class="n" style="color:var(--accent)">639</div><div class="l">Em andamento</div></div>
+          <div class="box"><div class="n" style="color:var(--ink-faint)">423</div><div class="l">Perdido</div></div>
+        </div>
+        <div class="panel-foot">58% da base ainda sem desfecho · 39% perdido · 3% ganho</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROW: RESPONSAVEIS + RECEITA -->
+  <section>
+    <div class="section-title">Equipe</div>
+    <div class="grid g-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Performance por responsável</h3>
+          <span class="note">leads · vendas · receita</span>
+        </div>
+        <div id="resp-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Concentração de receita</h3></div>
+        <div style="display:flex; align-items:center; gap:18px;">
+          <div style="width:108px;height:108px;border-radius:50%; background:conic-gradient(var(--accent) 0% 100%, #eef0f5 100% 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <div style="width:76px;height:76px;border-radius:50%; background:var(--paper); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="font-size:18px; font-weight:800; color:var(--accent-deep);">100%</div>
+              <div style="font-size:8.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em;">DUDA</div>
+            </div>
+          </div>
+          <div style="font-size:12px; color:var(--ink-soft); line-height:1.8;">
+            <div><span class="lgd-dot" style="background:var(--accent)"></span> DUDA — R$ 6.460,04</div>
+            <div><span class="lgd-dot" style="background:#eef0f5"></span> Demais 5 — R$ 0,00</div>
+          </div>
+        </div>
+        <div class="panel-foot">717 leads sob DUDA (66% da base) · 100% das vendas confirmadas</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROW: TEMPO -->
+  <section>
+    <div class="section-title">Volume no tempo</div>
+    <div class="grid g-3">
+      <div class="panel">
+        <div class="panel-head"><h3>Por dia</h3></div>
+        <div class="bars" id="day-chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Por dia da semana</h3></div>
+        <div class="bars-h" id="dow-chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Por hora do dia</h3></div>
+        <div class="hour-grid" id="hour-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROW: PERDAS + TOP VENDAS -->
+  <section>
+    <div class="section-title">Receita e perdas</div>
+    <div class="grid g-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Motivos de perda</h3>
+          <span class="note">423 leads perdidos</span>
+        </div>
+        <div id="loss-bars"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Top 10 vendas</h3>
+          <span class="note">etapa "Pedido PAGO – ganho"</span>
+        </div>
+        <table id="top-sales"></table>
+      </div>
+    </div>
+  </section>
+
+  <footer>Kommo CRM · kommo_export_leads_2026-06-17.xlsx · 1.094 registros</footer>
+</div>
+
+<script>
+const DATA = {
+  funis: [
+    {nome:"Contato Inicial", total:265, ganho:0, andamento:234, perdido:31},
+    {nome:"DUDA", total:700, ganho:32, andamento:340, perdido:328},
+    {nome:"EVA", total:36, ganho:0, andamento:26, perdido:10},
+    {nome:"FRAN", total:39, ganho:0, andamento:8, perdido:31},
+    {nome:"NARA", total:52, ganho:0, andamento:29, perdido:23},
+    {nome:"Núm. Antigo", total:2, ganho:0, andamento:2, perdido:0}
+  ],
+  responsaveis: [
+    {nome:"DUDA", total:717, ganho:32, receita:6460.04, color:"#4f46e5"},
+    {nome:"Lucas Paulino", total:243, ganho:0, receita:0, color:"#0891b2"},
+    {nome:"NARA", total:54, ganho:0, receita:0, color:"#d97706"},
+    {nome:"FRAN", total:40, ganho:0, receita:0, color:"#dc2626"},
+    {nome:"EVA", total:38, ganho:0, receita:0, color:"#7c3aed"},
+    {nome:"Sandelly", total:2, ganho:0, receita:0, color:"#64748b"}
+  ],
+  leadsPorDia: {"29/05":5,"30/05":47,"31/05":8,"01/06":26,"02/06":23,"03/06":46,"04/06":39,"05/06":64,"06/06":62,"07/06":25,"08/06":62,"09/06":70,"10/06":63,"11/06":58,"12/06":63,"13/06":73,"14/06":56,"15/06":132,"16/06":126,"17/06":46},
+  leadsPorDow: {"Seg":220,"Ter":219,"Qua":155,"Qui":97,"Sex":132,"Sáb":182,"Dom":89},
+  weekendDows: ["Sáb","Dom"],
+  weekendDates: ["31/05","01/06","07/06","08/06","14/06","15/06"],
+  leadsPorHora: {0:3,1:2,2:2,3:1,4:1,5:2,6:4,7:24,8:64,9:84,10:108,11:97,12:67,13:121,14:83,15:97,16:85,17:67,18:40,19:50,20:36,21:25,22:22,23:9},
+  motivosPerda: {"Não especificado":299,"Cliente parou de responder":62,"Contato de outra loja":36,"Compra ou visita em outra loja":12,"Falta de numeração/cor":4,"Preço":4,"Valor do frete":4,"Produto (modelagem/conforto)":2},
+  topVendas: [
+    {nome:"Cintia", valor:790.99},
+    {nome:"Manuela", valor:720.90},
+    {nome:"Paula", valor:314.98},
+    {nome:"Joice Correia", valor:287.90},
+    {nome:"Gabriel Euler", valor:259.99},
+    {nome:"Luana Mara", valor:259.99},
+    {nome:"Yasmim Dantas", valor:252.88},
+    {nome:"Júlia Rodrigues", valor:239.99},
+    {nome:"Elisa Pinheiro", valor:236.45},
+    {nome:"Carla Rocha", valor:224.13}
+  ]
+};
+
+function brl(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// FUNNEL
+(function(){
+  const el = document.getElementById('funnel-chart');
+  let html='';
+  DATA.funis.forEach(f=>{
+    const pg=f.total?f.ganho/f.total*100:0, pa=f.total?f.andamento/f.total*100:0, pp=f.total?f.perdido/f.total*100:0;
+    html+=`<div class="funnel-row">
+      <div class="funnel-label">${f.nome}</div>
+      <div class="funnel-bar-bg">
+        ${pg>0?`<div class="funnel-seg seg-ganho" style="width:${pg}%">${f.ganho}</div>`:''}
+        ${pa>0?`<div class="funnel-seg seg-andamento" style="width:${pa}%">${f.andamento}</div>`:''}
+        ${pp>0?`<div class="funnel-seg seg-perdido" style="width:${pp}%; color:#475569;">${f.perdido}</div>`:''}
+      </div>
+      <div class="funnel-total">${f.total}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+})();
+
+// RESPONSAVEIS
+(function(){
+  const el = document.getElementById('resp-list');
+  const maxLeads = Math.max(...DATA.responsaveis.map(r=>r.total));
+  let html='';
+  DATA.responsaveis.forEach(r=>{
+    const initials = r.nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const w = (r.total/maxLeads*100);
+    html+=`<div class="resp-row">
+      <div class="resp-avatar" style="background:${r.color}">${initials}</div>
+      <div class="resp-info">
+        <div class="resp-name">${r.nome}</div>
+        <div class="resp-meta">${r.total} leads · ${r.ganho} venda${r.ganho===1?'':'s'}</div>
+        <div class="resp-bar-bg"><div class="resp-bar" style="width:${w}%; background:${r.color}"></div></div>
+      </div>
+      <div class="resp-revenue">R$ ${brl(r.receita)}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+})();
+
+// DAY CHART
+(function(){
+  const el = document.getElementById('day-chart');
+  const entries = Object.entries(DATA.leadsPorDia);
+  const max = Math.max(...entries.map(e=>e[1]));
+  let html='';
+  entries.forEach(([d,c],i)=>{
+    const h=(c/max*100);
+    const we = DATA.weekendDates.includes(d);
+    const showLabel = i%3===0;
+    html+=`<div class="col ${we?'we':''}" title="${d}: ${c} leads">
+      <div class="b" style="height:${h}%"></div>
+      <div class="t">${showLabel?d.split('/')[0]:''}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+})();
+
+// DOW CHART
+(function(){
+  const el = document.getElementById('dow-chart');
+  const entries = Object.entries(DATA.leadsPorDow);
+  const max = Math.max(...entries.map(e=>e[1]));
+  let html='';
+  entries.forEach(([d,c])=>{
+    const h=(c/max*100);
+    const we = DATA.weekendDows.includes(d);
+    html+=`<div class="col ${we?'we':''}" title="${d}: ${c} leads">
+      <div class="b" style="height:${h}%"></div>
+      <div class="t">${d}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+})();
+
+// HOUR GRID
+(function(){
+  const el = document.getElementById('hour-grid');
+  const entries = Object.entries(DATA.leadsPorHora);
+  const max = Math.max(...entries.map(e=>e[1]));
+  let html='';
+  entries.forEach(([h,c])=>{
+    const t=c/max;
+    const bg = `rgba(79,70,229,${0.08+t*0.85})`;
+    const tc = t>0.45 ? '#fff' : '#475569';
+    html+=`<div class="hcell" style="background:${bg}; color:${tc};" title="${h}h: ${c} leads">${h}</div>`;
+  });
+  el.innerHTML=html;
+})();
+
+// LOSS BARS
+(function(){
+  const el = document.getElementById('loss-bars');
+  const entries = Object.entries(DATA.motivosPerda).sort((a,b)=>b[1]-a[1]);
+  const max = Math.max(...entries.map(e=>e[1]));
+  let html='';
+  entries.forEach(([m,c])=>{
+    const w=(c/max*100);
+    const isUnspec = m==="Não especificado";
+    html+=`<div class="loss-row">
+      <div class="loss-top"><span style="${isUnspec?'color:var(--red); font-weight:700;':''}">${m}</span><span style="font-weight:700;">${c}</span></div>
+      <div class="loss-bar-bg"><div class="loss-bar" style="width:${w}%; background:${isUnspec?'var(--red)':'var(--accent)'}"></div></div>
+    </div>`;
+  });
+  el.innerHTML=html;
+})();
+
+// TOP SALES
+(function(){
+  const el = document.getElementById('top-sales');
+  let html = '<thead><tr><th></th><th>Cliente</th><th style="text-align:right;">Valor</th></tr></thead><tbody>';
+  DATA.topVendas.forEach((v,i)=>{
+    html+=`<tr><td><span class="rank-pill">${i+1}</span></td><td>${v.nome}</td><td class="num-cell">R$ ${brl(v.valor)}</td></tr>`;
+  });
+  html+='</tbody>';
+  el.innerHTML=html;
+})();
+</script>
+</body>
+</html>
