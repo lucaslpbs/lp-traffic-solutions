@@ -26,21 +26,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserRole = async (userId: string) => {
     setLoadingRole(true);
     try {
-      const { data: adminResult } = await supabase.rpc('user_is_admin', { user_id: userId });
+      const { data, error } = await supabase.rpc('user_is_admin', { user_id: userId });
+      if (error) throw error;
 
-      if (adminResult === true) {
+      if (data === true) {
         setIsAdmin(true);
         setClienteVinculadoId(null);
       } else {
         setIsAdmin(false);
-        const { data: clientData } = await supabase
+        const { data: uc, error: ucError } = await supabase
           .from('users_clients')
           .select('client_id')
           .eq('user_id', userId)
-          .single();
-        setClienteVinculadoId(clientData?.client_id ?? null);
+          .maybeSingle();
+        if (ucError) throw ucError;
+        setClienteVinculadoId(uc?.client_id ?? null);
       }
-    } catch {
+    } catch (err) {
+      console.error('Erro ao buscar papel do usuario:', err);
       setIsAdmin(false);
       setClienteVinculadoId(null);
     } finally {

@@ -1,11 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+// Re-exporta o cliente unificado — ambos os projetos agora sao o mesmo
+// (twclltazkfvtufbsehsv — Gestao Clientes)
+import { supabase } from './client';
 
-const SUPABASE_GESTAO_URL = import.meta.env.VITE_SUPABASE_GESTAO_URL;
-const SUPABASE_GESTAO_KEY = import.meta.env.VITE_SUPABASE_GESTAO_KEY;
-
-export const supabaseGestao = createClient(SUPABASE_GESTAO_URL, SUPABASE_GESTAO_KEY, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-  }
-});
+export const supabaseGestao = supabase;

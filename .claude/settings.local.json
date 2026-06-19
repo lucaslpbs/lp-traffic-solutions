@@ -28,10 +28,12 @@
       "Bash(npx --no-install supabase --version)",
       "Bash(supabase functions *)",
       "PowerShell(supabase functions deploy uazapi-status)",
-      "Bash(npx supabase *)"
+      "Bash(npx supabase *)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\gabri\\\\source\\\\repos\\\\lp-traffic-solutions\\\\src\\\\sql\")"
     ],
     "additionalDirectories": [
-      "\\mnt\\c\\Users\\User\\Downloads"
+      "\\mnt\\c\\Users\\User\\Downloads",
+      "c:\\Users\\gabri\\source\\repos\\lp-traffic-solutions\\src"
     ]
   }
 }

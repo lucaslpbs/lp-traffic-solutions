@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState, useMemo } from 'react';
-import { supabaseGestao } from '@/integrations/supabase/clientGestao';
+import { supabase as supabaseGestao } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
