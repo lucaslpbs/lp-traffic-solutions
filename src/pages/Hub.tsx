@@ -8,7 +8,7 @@ import {
   Settings,
   LogOut,
   ArrowRight,
-  Building2,
+
   Users,
   Crosshair,
   FolderOpen,
@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 
 interface ClientInfo {
   id: string;
-  name: string;
+  nome_cliente: string;
   logo_url: string | null;
 }
 
@@ -152,6 +152,23 @@ const AdminHub = ({ userName }: { userName: string }) => {
   );
 };
 
+const ClienteLogo = ({ url, name, size = 'h-14 w-14' }: { url: string | null | undefined; name: string; size?: string }) => {
+  const [broken, setBroken] = useState(false);
+  const showImg = url && !broken;
+  return showImg ? (
+    <img
+      src={url}
+      alt={name}
+      className={`${size} rounded-xl object-cover border border-[#2a2a2a]`}
+      onError={() => setBroken(true)}
+    />
+  ) : (
+    <div className={`${size} rounded-xl bg-[#7c3aed]/10 border border-[#2a2a2a] flex items-center justify-center`}>
+      <span className="text-[#7c3aed] font-bold text-lg">{name.charAt(0).toUpperCase()}</span>
+    </div>
+  );
+};
+
 const ClienteHub = ({
   clientInfo,
   onSignOut,
@@ -159,24 +176,14 @@ const ClienteHub = ({
   clientInfo: ClientInfo | null;
   onSignOut: () => void;
 }) => {
-  const clientName = clientInfo?.name ?? 'Cliente';
+  const clientName = clientInfo?.nome_cliente ?? 'Cliente';
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
       <div className="w-full max-w-2xl">
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-4">
-            {clientInfo?.logo_url ? (
-              <img
-                src={clientInfo.logo_url}
-                alt={clientName}
-                className="h-14 w-14 rounded-xl object-cover border border-[#2a2a2a]"
-              />
-            ) : (
-              <div className="h-14 w-14 rounded-xl bg-[#7c3aed]/10 border border-[#2a2a2a] flex items-center justify-center">
-                <Building2 className="h-7 w-7 text-[#7c3aed]" />
-              </div>
-            )}
+            <ClienteLogo url={clientInfo?.logo_url} name={clientName} />
             <div>
               <h1 className="text-2xl font-bold text-white">
                 Ola, {clientName}
@@ -248,8 +255,8 @@ export default function Hub() {
     if (!isAdmin && clienteVinculadoId) {
       setLoadingClient(true);
       supabase
-        .from('clients')
-        .select('id, name, logo_url')
+        .from('gestao_clientes')
+        .select('id, nome_cliente, logo_url')
         .eq('id', clienteVinculadoId)
         .single()
         .then(({ data }) => {

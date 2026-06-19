@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, FileText, BookOpen, Target, Library, Loader2 } from 'lucide-react';
+import { ArrowLeft, FileText, BookOpen, Target, Library, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -8,11 +8,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
 interface ClientInfo {
-  name: string;
+  nome_cliente: string;
   logo_url: string | null;
 }
 
 type SectionId = 'persona' | 'icp' | 'escopo' | 'biblioteca' | null;
+
+const ClienteLogo = ({ url, name, size = 'h-14 w-14' }: { url: string | null | undefined; name: string; size?: string }) => {
+  const [broken, setBroken] = useState(false);
+  const showImg = url && !broken;
+  return showImg ? (
+    <img
+      src={url}
+      alt={name}
+      className={`${size} rounded-xl object-cover border border-[#2a2a2a]`}
+      onError={() => setBroken(true)}
+    />
+  ) : (
+    <div className={`${size} rounded-xl bg-[#7c3aed]/10 border border-[#2a2a2a] flex items-center justify-center`}>
+      <span className="text-[#7c3aed] font-bold text-lg">{name.charAt(0).toUpperCase()}</span>
+    </div>
+  );
+};
 
 const inputCls = 'bg-[#1c1c1e] border-[#2a2a2a] text-white rounded-md cursor-default';
 
@@ -173,8 +190,8 @@ export default function ClientePerfil() {
     }
 
     supabase
-      .from('clients')
-      .select('name, logo_url')
+      .from('gestao_clientes')
+      .select('nome_cliente, logo_url')
       .eq('id', clienteVinculadoId)
       .single()
       .then(({ data }) => {
@@ -191,7 +208,7 @@ export default function ClientePerfil() {
     );
   }
 
-  const clientName = clientInfo?.name ?? 'Cliente';
+  const clientName = clientInfo?.nome_cliente ?? 'Cliente';
 
   const renderSection = () => {
     switch (activeSection) {
@@ -214,13 +231,7 @@ export default function ClientePerfil() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          {clientInfo?.logo_url ? (
-            <img src={clientInfo.logo_url} alt={clientName} className="h-12 w-12 rounded-xl object-cover border border-[#2a2a2a]" />
-          ) : (
-            <div className="h-12 w-12 rounded-xl bg-[#7c3aed]/10 flex items-center justify-center border border-[#2a2a2a]">
-              <Building2 className="h-6 w-6 text-[#7c3aed]" />
-            </div>
-          )}
+          <ClienteLogo url={clientInfo?.logo_url} name={clientName} size="h-12 w-12" />
           <div>
             <h1 className="text-2xl font-bold text-white">
               {activeSection ? sections.find(s => s.id === activeSection)?.label : 'Meu Perfil & Materiais'}

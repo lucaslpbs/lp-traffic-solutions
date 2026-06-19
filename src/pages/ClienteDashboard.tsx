@@ -12,7 +12,7 @@ import {
   Loader2,
   ArrowLeft,
   Video,
-  Building2,
+
 } from 'lucide-react';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
@@ -51,6 +51,23 @@ interface ReportData {
 
 type TabType = 'mensagem' | 'site';
 
+const ClienteLogo = ({ url, name, size = 'h-14 w-14' }: { url: string | null | undefined; name: string; size?: string }) => {
+  const [broken, setBroken] = useState(false);
+  const showImg = url && !broken;
+  return showImg ? (
+    <img
+      src={url}
+      alt={name}
+      className={`${size} rounded-xl object-cover border border-[#2a2a2a]`}
+      onError={() => setBroken(true)}
+    />
+  ) : (
+    <div className={`${size} rounded-xl bg-[#7c3aed]/10 border border-[#2a2a2a] flex items-center justify-center`}>
+      <span className="text-[#7c3aed] font-bold text-lg">{name.charAt(0).toUpperCase()}</span>
+    </div>
+  );
+};
+
 export default function ClienteDashboard() {
   const { clienteVinculadoId } = useAuth();
   const navigate = useNavigate();
@@ -72,13 +89,13 @@ export default function ClienteDashboard() {
     }
 
     supabase
-      .from('clients')
-      .select('id, name, logo_url')
+      .from('gestao_clientes')
+      .select('id, nome_cliente, logo_url')
       .eq('id', clienteVinculadoId)
       .single()
       .then(({ data }) => {
         if (data) {
-          setClientName((data as any).name ?? '');
+          setClientName((data as any).nome_cliente ?? '');
           setClientLogo((data as any).logo_url ?? null);
           setAccountId(clienteVinculadoId);
         }
@@ -210,13 +227,7 @@ export default function ClienteDashboard() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            {clientLogo ? (
-              <img src={clientLogo} alt={clientName} className="h-12 w-12 rounded-xl object-cover border border-[#2a2a2a]" />
-            ) : (
-              <div className="h-12 w-12 rounded-xl bg-[#7c3aed]/10 flex items-center justify-center border border-[#2a2a2a]">
-                <Building2 className="h-6 w-6 text-[#7c3aed]" />
-              </div>
-            )}
+            <ClienteLogo url={clientLogo} name={clientName || 'C'} size="h-12 w-12" />
             <div>
               <h1 className="text-2xl font-bold text-white">{clientName || 'Meu Dashboard'}</h1>
               <p className="text-[#a1a1aa] text-sm">Acompanhe seus resultados</p>
