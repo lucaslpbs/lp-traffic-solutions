@@ -7,7 +7,6 @@ import { Header } from "@/components/sections/modern-header";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/dashboard/ProtectedRoute";
-import { ProtectedHubRoute } from "@/components/dashboard/ProtectedHubRoute";
 import { ProtectedAdminRoute } from "@/components/dashboard/ProtectedAdminRoute";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import Home from "./pages/Home";
@@ -47,9 +46,6 @@ import CadastroInstancia from "./pages/CadastroInstancia";
 import SistemaPage from "./pages/SistemaPage";
 import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
-import Hub from "./pages/Hub";
-import ClienteDashboard from "./pages/ClienteDashboard";
-import ClientePerfil from "./pages/ClientePerfil";
 
 const queryClient = new QueryClient();
 
@@ -78,7 +74,6 @@ const HIDDEN_PATHS = [
   '/sistema',
   '/relatorio-lv3-multimarcas',
   '/dashboard-kommo-sandelly',
-  '/hub',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -135,7 +130,7 @@ const AppRoutes = () => {
         <Route path="/nucleo-oftalmologia" element={<NucleoOftalmologiaDashboard />} />
         <Route path="/nucleo-oftalmologia-dashboard" element={<NucleoOftalmologiaDashboardKommo />} />
 
-<Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
+        <Route path="/proposta-piazza-aldeota" element={<PropostaPiazzaAldeota />} />
         <Route path="/obrigado" element={<Obrigado />} />
         <Route path="/danielmaiaautomacoes" element={<DanielMaiaAutomacoes />} />
         <Route path="/sandelly-automacoes" element={<SandellyAutomacoes />} />
@@ -145,28 +140,22 @@ const AppRoutes = () => {
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
 
-        {/* Hub pos-login */}
-        <Route path="/hub" element={<ProtectedHubRoute><Hub /></ProtectedHubRoute>}>
-          <Route path="dashboard" element={<ClienteDashboard />} />
-          <Route path="perfil" element={<ClientePerfil />} />
-        </Route>
+        {/* Sistema — qualquer usuario logado (pagina decide internamente) */}
+        <Route path="/sistema" element={<ProtectedRoute><SistemaPage /></ProtectedRoute>} />
 
-        {/* Sistema — so admin */}
-        <Route path="/sistema" element={<ProtectedAdminRoute><SistemaPage /></ProtectedAdminRoute>} />
-
-        {/* Dashboard interno — so admin */}
+        {/* Dashboard — qualquer usuario logado (pagina decide internamente) */}
         <Route
           path="/dashboard"
           element={
-            <ProtectedAdminRoute>
+            <ProtectedRoute>
               <DashboardLayout />
-            </ProtectedAdminRoute>
+            </ProtectedRoute>
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="guerra" element={<WarRoom />} />
-          <Route path="gestao-clientes" element={<GestaoClientes />} />
-          <Route path=":clientId" element={<ClientReport />} />
+          <Route path="guerra" element={<ProtectedAdminRoute><WarRoom /></ProtectedAdminRoute>} />
+          <Route path="gestao-clientes" element={<ProtectedAdminRoute><GestaoClientes /></ProtectedAdminRoute>} />
+          <Route path=":clientId" element={<ProtectedAdminRoute><ClientReport /></ProtectedAdminRoute>} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

@@ -11,6 +11,7 @@ import {
   Loader2,
   Crosshair,
   Users,
+  FolderKanban,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -25,7 +26,7 @@ export const DashboardSidebar = () => {
   const [clients, setClients] = useState<N8NClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -101,82 +102,103 @@ export const DashboardSidebar = () => {
           {!collapsed && <span className="font-medium">Dashboard</span>}
         </Link>
 
+        {isAdmin && (
+          <>
+            <Link
+              to="/dashboard/guerra"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
+                location.pathname === '/dashboard/guerra'
+                  ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <Crosshair className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span className="font-medium">Quarto de Guerra</span>}
+            </Link>
+
+            <Link
+              to="/dashboard/gestao-clientes"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
+                location.pathname === '/dashboard/gestao-clientes'
+                  ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <Users className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span className="font-medium">Gestão de Clientes</span>}
+            </Link>
+          </>
+        )}
+
         <Link
-          to="/dashboard/guerra"
+          to="/sistema"
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-            location.pathname === '/dashboard/guerra'
+            location.pathname.startsWith('/sistema')
               ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
               : "text-gray-400 hover:bg-white/5 hover:text-white"
           )}
         >
-          <Crosshair className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">Quarto de Guerra</span>}
+          <FolderKanban className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Sistema</span>}
         </Link>
 
-        <Link
-          to="/dashboard/gestao-clientes"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-            location.pathname === '/dashboard/gestao-clientes'
-              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-              : "text-gray-400 hover:bg-white/5 hover:text-white"
-          )}
-        >
-          <Users className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">Gestão de Clientes</span>}
-        </Link>
+        {/* Clients Section — admin only */}
+        {isAdmin && (
+          <>
+            {!collapsed && (
+              <div className="mt-6 mb-2 px-3">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Clientes
+                </span>
+              </div>
+            )}
 
-        {/* Clients Section */}
-        {!collapsed && (
-          <div className="mt-6 mb-2 px-3">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Clientes
-            </span>
-          </div>
-        )}
+            {loading ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {clients.map((client) => (
+                  <Link
+                    key={client.id_conta}
+                    to={`/dashboard/${client.id_conta}?nome=${encodeURIComponent(client.nome)}`}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                      isActive(`/dashboard/${client.id_conta}`)
+                        ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+                        : "text-gray-400 hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    {client.picture_url ? (
+                      <img
+                        src={client.picture_url}
+                        alt={client.nome}
+                        className="h-5 w-5 rounded object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <Building2 className="h-5 w-5 flex-shrink-0" />
+                    )}
+                    {!collapsed && (
+                      <span className="font-medium truncate">{client.nome}</span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
 
-        {loading ? (
-          <div className="flex justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {clients.map((client) => (
-              <Link
-                key={client.id_conta}
-                to={`/dashboard/${client.id_conta}?nome=${encodeURIComponent(client.nome)}`}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                  isActive(`/dashboard/${client.id_conta}`)
-                    ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white"
-                )}
-              >
-                {client.picture_url ? (
-                  <img 
-                    src={client.picture_url} 
-                    alt={client.nome}
-                    className="h-5 w-5 rounded object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <Building2 className="h-5 w-5 flex-shrink-0" />
-                )}
-                {!collapsed && (
-                  <span className="font-medium truncate">{client.nome}</span>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {clients.length === 0 && !loading && (
-          <p className={cn(
-            "text-gray-500 text-sm px-3 py-2",
-            collapsed && "hidden"
-          )}>
-            Nenhum cliente vinculado
-          </p>
+            {clients.length === 0 && !loading && (
+              <p className={cn(
+                "text-gray-500 text-sm px-3 py-2",
+                collapsed && "hidden"
+              )}>
+                Nenhum cliente vinculado
+              </p>
+            )}
+          </>
         )}
       </nav>
 

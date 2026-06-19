@@ -36,7 +36,7 @@ export const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/hub" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
