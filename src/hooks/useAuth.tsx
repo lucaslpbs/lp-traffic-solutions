@@ -6,6 +6,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isAdmin: boolean;
+  clienteVinculadoId: string | null;
+  loadingRole: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -16,22 +19,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [clienteVinculadoId, setClienteVinculadoId] = useState<string | null>(null);
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  const fetchUserRole = async (userId: string) => {
+    setLoadingRole(true);
+    try {
+      const { data: adminResult } = await supabase.rpc('user_is_admin', { user_id: userId });
+
+      if (adminResult === true) {
+        setIsAdmin(true);
+        setClienteVinculadoId(null);
+      } else {
+        setIsAdmin(false);
+        const { data: clientData } = await supabase
+          .from('users_clients')
+          .select('client_id')
+          .eq('user_id', userId)
+          .single();
+        setClienteVinculadoId(clientData?.client_id ?? null);
+      }
+    } catch {
+      setIsAdmin(false);
+      setClienteVinculadoId(null);
+    } finally {
+      setLoadingRole(false);
+    }
+  };
+
+  const clearRole = () => {
+    setIsAdmin(false);
+    setClienteVinculadoId(null);
+    setLoadingRole(false);
+  };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        if (session?.user) {
+          fetchUserRole(session.user.id);
+        } else {
+          clearRole();
+        }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      } else {
+        clearRole();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -50,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, clienteVinculadoId, loadingRole, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

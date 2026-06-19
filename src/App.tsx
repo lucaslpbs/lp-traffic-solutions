@@ -7,6 +7,8 @@ import { Header } from "@/components/sections/modern-header";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/dashboard/ProtectedRoute";
+import { ProtectedHubRoute } from "@/components/dashboard/ProtectedHubRoute";
+import { ProtectedAdminRoute } from "@/components/dashboard/ProtectedAdminRoute";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import Home from "./pages/Home";
 import Services from "./pages/Services";
@@ -45,6 +47,9 @@ import CadastroInstancia from "./pages/CadastroInstancia";
 import SistemaPage from "./pages/SistemaPage";
 import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
+import Hub from "./pages/Hub";
+import ClienteDashboard from "./pages/ClienteDashboard";
+import ClientePerfil from "./pages/ClientePerfil";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +78,7 @@ const HIDDEN_PATHS = [
   '/sistema',
   '/relatorio-lv3-multimarcas',
   '/dashboard-kommo-sandelly',
+  '/hub',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -138,15 +144,23 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
-        <Route path="/sistema" element={<ProtectedRoute><SistemaPage /></ProtectedRoute>} />
 
-        {/* Dashboard interno */}
+        {/* Hub pos-login */}
+        <Route path="/hub" element={<ProtectedHubRoute><Hub /></ProtectedHubRoute>}>
+          <Route path="dashboard" element={<ClienteDashboard />} />
+          <Route path="perfil" element={<ClientePerfil />} />
+        </Route>
+
+        {/* Sistema — so admin */}
+        <Route path="/sistema" element={<ProtectedAdminRoute><SistemaPage /></ProtectedAdminRoute>} />
+
+        {/* Dashboard interno — so admin */}
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedAdminRoute>
               <DashboardLayout />
-            </ProtectedRoute>
+            </ProtectedAdminRoute>
           }
         >
           <Route index element={<Dashboard />} />
