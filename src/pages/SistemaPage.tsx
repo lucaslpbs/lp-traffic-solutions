@@ -173,6 +173,7 @@ function ClienteSistemaView() {
   const [clientLogo, setClientLogo] = useState<string | null>(null);
   const [loadingClient, setLoadingClient] = useState(true);
   const [activeSection, setActiveSection] = useState<SectionId>(null);
+  const [logoBroken, setLogoBroken] = useState(false);
 
   useEffect(() => {
     if (!clienteVinculadoId) {
@@ -212,7 +213,6 @@ function ClienteSistemaView() {
     }
   };
 
-  const [logoBroken, setLogoBroken] = useState(false);
   const showLogo = clientLogo && !logoBroken;
 
   return (

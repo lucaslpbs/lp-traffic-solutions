@@ -76,6 +76,7 @@ function ClienteDashboardView() {
   const [activeTab, setActiveTab] = useState<TabType>('mensagem');
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const [logoBroken, setLogoBroken] = useState(false);
 
   useEffect(() => {
     if (!clienteVinculadoId) {
@@ -210,9 +211,7 @@ function ClienteDashboardView() {
     reproducoes_video_3s: d.reproducoes_video_3s,
   }));
 
-  const logoUrl = clientLogo;
-  const [logoBroken, setLogoBroken] = useState(false);
-  const showLogo = logoUrl && !logoBroken;
+  const showLogo = clientLogo && !logoBroken;
 
   return (
     <div className="p-6 lg:p-8">
@@ -220,7 +219,7 @@ function ClienteDashboardView() {
         <div className="flex items-center gap-4">
           {showLogo ? (
             <img
-              src={logoUrl}
+              src={clientLogo!}
               alt={clientName}
               className="h-12 w-12 rounded-xl object-cover border border-white/10"
               onError={() => setLogoBroken(true)}
