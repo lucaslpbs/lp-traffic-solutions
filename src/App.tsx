@@ -71,7 +71,6 @@ const HIDDEN_PATHS = [
   '/msfarma-dashboard',
   '/nucleo-oftalmologia',
   '/nucleo-oftalmologia-dashboard',
-  '/sistema',
   '/relatorio-lv3-multimarcas',
   '/dashboard-kommo-sandelly',
 ];
@@ -140,9 +139,6 @@ const AppRoutes = () => {
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
 
-        {/* Sistema — qualquer usuario logado (pagina decide internamente) */}
-        <Route path="/sistema" element={<ProtectedRoute><SistemaPage /></ProtectedRoute>} />
-
         {/* Dashboard — qualquer usuario logado (pagina decide internamente) */}
         <Route
           path="/dashboard"
@@ -155,6 +151,7 @@ const AppRoutes = () => {
           <Route index element={<Dashboard />} />
           <Route path="guerra" element={<ProtectedAdminRoute><WarRoom /></ProtectedAdminRoute>} />
           <Route path="gestao-clientes" element={<ProtectedAdminRoute><GestaoClientes /></ProtectedAdminRoute>} />
+          <Route path="sistema" element={<SistemaPage />} />
           <Route path=":clientId" element={<ProtectedAdminRoute><ClientReport /></ProtectedAdminRoute>} />
         </Route>
 

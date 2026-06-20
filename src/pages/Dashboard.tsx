@@ -77,6 +77,7 @@ function ClienteDashboardView() {
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const [logoBroken, setLogoBroken] = useState(false);
+  const [missingAccount, setMissingAccount] = useState(false);
 
   useEffect(() => {
     if (!clienteVinculadoId) {
@@ -86,14 +87,19 @@ function ClienteDashboardView() {
 
     supabase
       .from('gestao_clientes')
-      .select('id, nome_cliente, logo_url')
+      .select('id, nome_cliente, logo_url, numero_conta_anuncio')
       .eq('id', clienteVinculadoId)
       .single()
       .then(({ data }) => {
         if (data) {
           setClientName((data as any).nome_cliente ?? '');
           setClientLogo((data as any).logo_url ?? null);
-          setAccountId(clienteVinculadoId);
+          const conta = (data as any).numero_conta_anuncio;
+          if (conta) {
+            setAccountId(conta);
+          } else {
+            setMissingAccount(true);
+          }
         }
         setLoadingClient(false);
       });
@@ -139,6 +145,20 @@ function ClienteDashboardView() {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+      </div>
+    );
+  }
+
+  if (missingAccount) {
+    return (
+      <div className="flex items-center justify-center h-full p-6">
+        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-12 text-center border border-white/10 max-w-md">
+          <Building2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-white">Conta de anúncio não configurada</h3>
+          <p className="text-gray-400 mt-2">
+            Este cliente ainda não possui uma conta de anúncio vinculada. Contate o administrador.
+          </p>
+        </div>
       </div>
     );
   }
