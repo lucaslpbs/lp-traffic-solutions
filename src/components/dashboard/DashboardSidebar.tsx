@@ -12,6 +12,7 @@ import {
   Crosshair,
   Users,
   FolderKanban,
+  Headphones,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -143,6 +144,19 @@ export const DashboardSidebar = () => {
         >
           <FolderKanban className="h-5 w-5 flex-shrink-0" />
           {!collapsed && <span className="font-medium">Sistema</span>}
+        </Link>
+
+        <Link
+          to="/dashboard/chamados"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
+            location.pathname.startsWith('/dashboard/chamados')
+              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          <Headphones className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Chamados</span>}
         </Link>
 
         {/* Clients Section — admin only */}

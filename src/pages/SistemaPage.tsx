@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Users, ListChecks, Target, Workflow, LogOut, FileText, BookOpen, Library, Loader2 } from "lucide-react";
+import { Users, ListChecks, Target, Workflow, LogOut, FileText, BookOpen, Library, Loader2, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ClienteGallery } from "@/components/sistema/ClienteGallery";
 import { KanbanBoard } from "@/components/sistema/KanbanBoard";
 import { MetasBoard } from "@/components/sistema/MetasBoard";
 import { FluxosPage } from "@/components/sistema/FluxosPage";
+import { OtimizacaoForm } from "@/components/sistema/forms/OtimizacaoForm";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +29,7 @@ const titles: Record<Tab, string> = {
 
 // ── Client read-only view components ──
 
-type SectionId = "persona" | "icp" | "escopo" | "biblioteca" | null;
+type SectionId = "persona" | "icp" | "escopo" | "biblioteca" | "otimizacao" | null;
 
 const inputCls = "bg-[#1c1c1e] border-[#2a2a2a] text-white rounded-md cursor-default";
 
@@ -165,6 +166,7 @@ const clientSections = [
   { id: "icp" as const, label: "ICP", icon: Target },
   { id: "escopo" as const, label: "Escopo do Trabalho", icon: BookOpen },
   { id: "biblioteca" as const, label: "Biblioteca de Referencias", icon: Library },
+  { id: "otimizacao" as const, label: "Otimização", icon: BarChart3 },
 ];
 
 function ClienteSistemaView() {
@@ -209,6 +211,7 @@ function ClienteSistemaView() {
       case "icp": return <ICPReadOnly />;
       case "escopo": return <EscopoReadOnly />;
       case "biblioteca": return <BibliotecaReadOnly />;
+      case "otimizacao": return <OtimizacaoForm clientId={clienteVinculadoId || undefined} readOnly />;
       default: return null;
     }
   };

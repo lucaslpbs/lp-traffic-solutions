@@ -44,6 +44,7 @@ import NucleoOftalmologiaDashboard from "./pages/NucleoOftalmologiaDashboard";
 import NucleoOftalmologiaDashboardKommo from "./pages/NucleoOftalmologiaDashboardKommo";
 import CadastroInstancia from "./pages/CadastroInstancia";
 import SistemaPage from "./pages/SistemaPage";
+import ChamadosPage from "./pages/ChamadosPage";
 import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 
@@ -152,6 +153,7 @@ const AppRoutes = () => {
           <Route path="guerra" element={<ProtectedAdminRoute><WarRoom /></ProtectedAdminRoute>} />
           <Route path="gestao-clientes" element={<ProtectedAdminRoute><GestaoClientes /></ProtectedAdminRoute>} />
           <Route path="sistema" element={<SistemaPage />} />
+          <Route path="chamados" element={<ChamadosPage />} />
           <Route path=":clientId" element={<ProtectedAdminRoute><ClientReport /></ProtectedAdminRoute>} />
         </Route>
 

@@ -3,7 +3,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, FileText, Workflow } from "lucide-react";
-import { Cliente, subAreasModal } from "@/lib/sistemaMockData";
+import { subAreasModal } from "@/lib/sistemaMockData";
+import { SistemaCliente } from "./ClienteGallery";
 import { PersonaForm } from "./PersonaForm";
 import { ICPForm } from "./forms/ICPForm";
 import { EscopoForm } from "./forms/EscopoForm";
@@ -17,7 +18,7 @@ import { OtimizacaoForm } from "./forms/OtimizacaoForm";
 import { DiarioBordoForm } from "./forms/DiarioBordoForm";
 
 interface Props {
-  cliente: Cliente | null;
+  cliente: SistemaCliente | null;
   onClose: () => void;
 }
 
@@ -37,7 +38,7 @@ export const ClienteModal = ({ cliente, onClose }: Props) => {
       case "Linhas editoriais": return <LinhasEditoriaisForm />;
       case "Calendário editorial": return <CalendarioEditorialForm />;
       case "Relatórios": return <RelatoriosForm />;
-      case "Otimização": return <OtimizacaoForm />;
+      case "Otimização": return <OtimizacaoForm clientId={cliente.id} />;
       case "Diário de Bordo": return <DiarioBordoForm />;
       default:
         return (
@@ -57,8 +58,12 @@ export const ClienteModal = ({ cliente, onClose }: Props) => {
       >
         <SheetHeader className="space-y-3 border-b border-zinc-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="h-14 w-14 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lg font-bold text-[#3b82f6]">
-              {cliente.nome.charAt(0)}
+            <div className="h-14 w-14 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+              {cliente.logo ? (
+                <img src={cliente.logo} alt={cliente.nome} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-lg font-bold text-[#3b82f6]">{cliente.nome.charAt(0)}</span>
+              )}
             </div>
             <div className="flex-1">
               <SheetTitle className="text-zinc-100">{cliente.nome}</SheetTitle>
@@ -66,7 +71,6 @@ export const ClienteModal = ({ cliente, onClose }: Props) => {
                 <Badge className={cliente.status === "ativo" ? "bg-emerald-600/20 text-emerald-400 border-emerald-700" : "bg-zinc-700/30 text-zinc-400 border-zinc-700"}>
                   {cliente.status === "ativo" ? "Ativo" : "Inativo"}
                 </Badge>
-                <span className="text-xs text-zinc-500">{cliente.servico} · {cliente.periodo}</span>
               </div>
             </div>
           </div>
