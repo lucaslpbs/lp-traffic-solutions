@@ -117,7 +117,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-[#a78bfa]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#3b82f6]" />
       </div>
     );
   }
@@ -128,7 +128,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
         <div className="flex justify-end">
           <Button
             type="button" size="sm" onClick={add}
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white h-8"
+            className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white h-8"
           >
             <Plus className="h-3.5 w-3.5 mr-1" /> Nova
           </Button>
@@ -137,7 +137,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
       <div className="rounded-lg border border-[#2a2a2a] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-[#1c1c1e] sticky top-0">
-            <tr className="text-[11px] uppercase tracking-wide text-[#a78bfa]">
+            <tr className="text-[11px] uppercase tracking-wide text-[#3b82f6]">
               <th className="text-left px-3 py-2.5 font-semibold w-36">Data</th>
               <th className="text-left px-3 py-2.5 font-semibold w-28">Otimizado?</th>
               <th className="text-left px-3 py-2.5 font-semibold">Observações</th>
@@ -203,7 +203,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
                       <button
                         type="button"
                         onClick={() => setViewingObs(r)}
-                        className="text-left text-sm text-zinc-300 hover:text-[#c4b5fd] truncate w-full block cursor-pointer"
+                        className="text-left text-sm text-zinc-300 hover:text-[#60a5fa] truncate w-full block cursor-pointer"
                       >
                         {r.observacoes.slice(0, 80)}{r.observacoes.length > 80 ? "…" : ""}
                       </button>
@@ -214,7 +214,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
                     <button
                       type="button"
                       onClick={() => { setEditing(r); setEditingObs(r.observacoes); }}
-                      className="text-left text-sm text-[#a78bfa] hover:text-[#c4b5fd] truncate w-full"
+                      className="text-left text-sm text-[#3b82f6] hover:text-[#60a5fa] truncate w-full"
                     >
                       {r.observacoes ? r.observacoes.slice(0, 80) : "+ Adicionar observação"}
                     </button>
@@ -250,7 +250,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
               minHeight="300px"
             />
             <div className="flex justify-end">
-              <Button type="button" className="bg-[#7c3aed] hover:bg-[#6d28d9]" onClick={() => { if (editing) upd(editing.id, { observacoes: editingObs }); setEditing(null); }}>
+              <Button type="button" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90" onClick={() => { if (editing) upd(editing.id, { observacoes: editingObs }); setEditing(null); }}>
                 Salvar
               </Button>
             </div>

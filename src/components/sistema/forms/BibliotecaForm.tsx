@@ -5,6 +5,7 @@ export const BibliotecaForm = () => {
   const { saved, onSubmit } = useSaved();
   return (
     <FormShell onSubmit={onSubmit}>
+      <SaveButton saved={saved} />
       <section className="space-y-3">
         <SectionTitle>Referências e materiais de estudo do cliente</SectionTitle>
         <Textarea
@@ -12,7 +13,6 @@ export const BibliotecaForm = () => {
           placeholder="Cole links, anote insights, livros, podcasts, vídeos..."
         />
       </section>
-      <SaveButton saved={saved} />
     </FormShell>
   );
 };

@@ -102,7 +102,7 @@ export const CalendarioEditorialForm = () => {
         </div>
         <Button
           type="button" size="sm"
-          className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white h-8"
+          className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white h-8"
           onClick={() => openNew()}
         >
           <Plus className="h-3.5 w-3.5 mr-1" /> Nova
@@ -117,7 +117,7 @@ export const CalendarioEditorialForm = () => {
             onClick={() => setTab(t)}
             className={`text-xs px-3 py-2 transition-colors ${
               tab === t
-                ? "text-[#a78bfa] border-b-2 border-[#7c3aed] -mb-px"
+                ? "text-[#3b82f6] border-b-2 border-[#3b82f6] -mb-px"
                 : "text-zinc-400 hover:text-white"
             }`}
           >
@@ -152,7 +152,7 @@ export const CalendarioEditorialForm = () => {
                     <>
                       <div
                         className={`text-xs mb-1 inline-flex items-center justify-center h-5 w-5 rounded-full ${
-                          isToday ? "bg-[#7c3aed] text-white font-bold" : "text-zinc-400"
+                          isToday ? "bg-[#3b82f6] text-white font-bold" : "text-zinc-400"
                         }`}
                       >
                         {d.getDate()}
@@ -191,7 +191,7 @@ export const CalendarioEditorialForm = () => {
                 if (!items.length) return null;
                 return (
                   <div key={st} className="border-b border-[#2a2a2a] last:border-0">
-                    <div className="px-3 py-2 text-xs text-[#a78bfa] uppercase bg-[#0f0f0f] font-semibold">
+                    <div className="px-3 py-2 text-xs text-[#3b82f6] uppercase bg-[#0f0f0f] font-semibold">
                       {STATUS_META[st].label} ({items.length})
                     </div>
                     {items.map((e) => (
@@ -253,7 +253,7 @@ export const CalendarioEditorialForm = () => {
             />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setModalDate(null)}>Cancelar</Button>
-              <Button type="button" className="bg-[#7c3aed] hover:bg-[#6d28d9]" onClick={save}>Salvar</Button>
+              <Button type="button" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90" onClick={save}>Salvar</Button>
             </div>
           </div>
         </DialogContent>

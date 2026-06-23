@@ -110,7 +110,7 @@ export function MarkdownEditor({
 
   if (readOnly) {
     return (
-      <div className="prose prose-invert prose-sm max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-strong:text-zinc-200 prose-em:text-zinc-300 prose-a:text-[#3b82f6] prose-code:text-[#a78bfa] prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-blockquote:border-[#3b82f6] prose-blockquote:text-zinc-400 prose-li:text-zinc-300 prose-hr:border-zinc-700 prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-800">
+      <div className="prose prose-invert prose-sm max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-strong:text-zinc-200 prose-em:text-zinc-300 prose-a:text-[#3b82f6] prose-code:text-[#3b82f6] prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-blockquote:border-[#3b82f6] prose-blockquote:text-zinc-400 prose-li:text-zinc-300 prose-hr:border-zinc-700 prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-800">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {value || "—"}
         </ReactMarkdown>

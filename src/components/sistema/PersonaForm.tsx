@@ -31,6 +31,11 @@ export const PersonaForm = () => {
       }}
       className="space-y-4"
     >
+      <div className="flex items-center justify-end gap-3">
+        {saved && <span className="text-xs text-emerald-400">Salvo</span>}
+        <Button type="submit" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 h-9">Salvar</Button>
+      </div>
+
       <Section title="Identificação">
         <Field label="Nome"><Input className={inputCls} /></Field>
         <Field label="Idade"><Input className={inputCls} /></Field>
@@ -74,10 +79,6 @@ export const PersonaForm = () => {
         </div>
       </Section>
 
-      <div className="flex items-center justify-end gap-3">
-        {saved && <span className="text-xs text-emerald-400">Salvo</span>}
-        <Button type="submit" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90">Salvar</Button>
-      </div>
     </form>
   );
 };

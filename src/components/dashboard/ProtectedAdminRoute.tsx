@@ -24,7 +24,7 @@ export const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#7c3aed] mx-auto" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#3b82f6] mx-auto" />
           <p className="mt-4 text-[#a1a1aa]">Carregando...</p>
         </div>
       </div>

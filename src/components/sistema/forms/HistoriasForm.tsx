@@ -26,10 +26,11 @@ export const HistoriasForm = () => {
 
   return (
     <FormShell onSubmit={onSubmit}>
+      <SaveButton saved={saved} />
       <div className="overflow-hidden rounded-lg border border-[#2a2a2a]">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#1c1c1e] text-[11px] uppercase tracking-wide text-[#a78bfa]">
+            <tr className="bg-[#1c1c1e] text-[11px] uppercase tracking-wide text-[#3b82f6]">
               <th className="text-left px-3 py-2.5 font-semibold">Tema e História</th>
               <th className="text-left px-3 py-2.5 font-semibold w-24">Ano</th>
               <th className="text-left px-3 py-2.5 font-semibold w-56">Palavras-chave</th>
@@ -89,13 +90,12 @@ export const HistoriasForm = () => {
             onClick={add}
             variant="ghost"
             size="sm"
-            className="text-[#a78bfa] hover:text-[#c4b5fd] hover:bg-[#2a2a2a]"
+            className="text-[#3b82f6] hover:text-[#60a5fa] hover:bg-[#2a2a2a]"
           >
             <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar história
           </Button>
         </div>
       </div>
-      <SaveButton saved={saved} />
     </FormShell>
   );
 };

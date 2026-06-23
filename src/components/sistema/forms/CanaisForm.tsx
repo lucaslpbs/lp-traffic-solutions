@@ -37,6 +37,7 @@ export const CanaisForm = () => {
 
   return (
     <FormShell onSubmit={onSubmit}>
+      <SaveButton saved={saved} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {CANAIS.map(({ id, nome, Icon }) => {
           const s = state[id];
@@ -44,13 +45,13 @@ export const CanaisForm = () => {
             <div
               key={id}
               className={`rounded-lg border bg-[#1c1c1e] p-3 transition-all ${
-                s.ativo ? "border-[#7c3aed]/60" : "border-[#2a2a2a]"
+                s.ativo ? "border-[#3b82f6]/60" : "border-[#2a2a2a]"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="h-8 w-8 rounded-md bg-[#0f0f0f] border border-[#2a2a2a] flex items-center justify-center shrink-0">
-                    <Icon className="h-4 w-4 text-[#a78bfa]" />
+                    <Icon className="h-4 w-4 text-[#3b82f6]" />
                   </div>
                   <span className="text-sm text-white truncate">{nome}</span>
                 </div>
@@ -77,7 +78,6 @@ export const CanaisForm = () => {
           );
         })}
       </div>
-      <SaveButton saved={saved} />
     </FormShell>
   );
 };

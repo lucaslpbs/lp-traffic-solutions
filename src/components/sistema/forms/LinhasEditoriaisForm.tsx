@@ -32,6 +32,7 @@ export const LinhasEditoriaisForm = () => {
 
   return (
     <FormShell onSubmit={onSubmit}>
+      <SaveButton saved={saved} />
       <div className="space-y-2">
         {temas.map((t, i) => (
           <div key={t.id} className="rounded-lg border border-[#2a2a2a] bg-[#1c1c1e] overflow-hidden">
@@ -83,11 +84,10 @@ export const LinhasEditoriaisForm = () => {
         onClick={add}
         variant="ghost"
         size="sm"
-        className="text-[#a78bfa] hover:text-[#c4b5fd] hover:bg-[#1c1c1e]"
+        className="text-[#3b82f6] hover:text-[#60a5fa] hover:bg-[#1c1c1e]"
       >
         <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar tema
       </Button>
-      <SaveButton saved={saved} />
     </FormShell>
   );
 };

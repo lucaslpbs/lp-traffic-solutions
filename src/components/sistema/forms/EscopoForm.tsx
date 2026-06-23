@@ -9,6 +9,8 @@ export const EscopoForm = () => {
 
   return (
     <FormShell onSubmit={onSubmit}>
+      <SaveButton saved={saved} />
+
       <section className="space-y-3">
         <SectionTitle>Links importantes</SectionTitle>
         <BulletList
@@ -32,8 +34,6 @@ export const EscopoForm = () => {
         <SectionTitle>Rotinas definidas</SectionTitle>
         <BulletList items={rotinas} setItems={setRotinas} />
       </section>
-
-      <SaveButton saved={saved} />
     </FormShell>
   );
 };

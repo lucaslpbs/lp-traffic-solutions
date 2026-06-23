@@ -80,7 +80,7 @@ export const DiarioBordoForm = () => {
                 {b.entradas.map((e) => (
                   <div
                     key={e.id}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-[#0f0f0f] border border-[#2a2a2a] hover:border-[#7c3aed]/40 cursor-pointer group"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-[#0f0f0f] border border-[#2a2a2a] hover:border-[#3b82f6]/40 cursor-pointer group"
                     onClick={() => setEditing({ bucketKey: b.key, entrada: e })}
                   >
                     <span className="text-sm text-white flex-1">{e.data}</span>
@@ -96,7 +96,7 @@ export const DiarioBordoForm = () => {
                 <button
                   type="button"
                   onClick={() => startNew(b.key)}
-                  className="flex items-center gap-1.5 text-xs text-[#a78bfa] hover:text-[#c4b5fd] mt-2"
+                  className="flex items-center gap-1.5 text-xs text-[#3b82f6] hover:text-[#60a5fa] mt-2"
                 >
                   <Plus className="h-3.5 w-3.5" /> Nova entrada
                 </button>
@@ -118,7 +118,7 @@ export const DiarioBordoForm = () => {
           />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setAskDate(null)}>Cancelar</Button>
-            <Button type="button" className="bg-[#7c3aed] hover:bg-[#6d28d9]" onClick={confirmNew}>Criar</Button>
+            <Button type="button" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90" onClick={confirmNew}>Criar</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -148,13 +148,13 @@ export const DiarioBordoForm = () => {
           <div
             contentEditable
             suppressContentEditableWarning
-            className="min-h-[300px] max-h-[50vh] overflow-y-auto bg-[#1c1c1e] border border-[#2a2a2a] rounded-md p-3 text-white text-sm focus:outline-none focus:border-[#7c3aed]/60"
+            className="min-h-[300px] max-h-[50vh] overflow-y-auto bg-[#1c1c1e] border border-[#2a2a2a] rounded-md p-3 text-white text-sm focus:outline-none focus:border-[#3b82f6]/60"
             dangerouslySetInnerHTML={{ __html: editing?.entrada.conteudo ?? "" }}
             onBlur={(e) => editing && updateEntrada(editing.bucketKey, editing.entrada.id, e.currentTarget.innerHTML)}
           />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setEditing(null)}>Fechar</Button>
-            <Button type="button" className="bg-[#7c3aed] hover:bg-[#6d28d9]" onClick={() => setEditing(null)}>Salvar</Button>
+            <Button type="button" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90" onClick={() => setEditing(null)}>Salvar</Button>
           </div>
         </DialogContent>
       </Dialog>

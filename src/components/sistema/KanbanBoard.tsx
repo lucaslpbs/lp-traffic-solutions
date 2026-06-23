@@ -865,7 +865,7 @@ export const KanbanBoard = () => {
             <Button
               onClick={handleOtimSave}
               disabled={otimSaving}
-              className="bg-[#7c3aed] hover:bg-[#6d28d9]"
+              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
             >
               {otimSaving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               Salvar

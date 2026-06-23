@@ -21,6 +21,7 @@ export const ICPForm = () => {
 
   return (
     <FormShell onSubmit={onSubmit}>
+      <SaveButton saved={saved} />
       {SECOES.map((s) => (
         <section key={s} className="space-y-3">
           <SectionTitle>{s}</SectionTitle>
@@ -31,7 +32,6 @@ export const ICPForm = () => {
           />
         </section>
       ))}
-      <SaveButton saved={saved} />
     </FormShell>
   );
 };

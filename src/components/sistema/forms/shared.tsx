@@ -8,7 +8,7 @@ export const inputCls =
   "bg-[#1c1c1e] border-[#2a2a2a] text-white rounded-md placeholder:text-zinc-600";
 
 export const SectionTitle = ({ children }: { children: ReactNode }) => (
-  <h4 className="text-sm font-semibold text-[#a78bfa] uppercase tracking-wide border-b border-[#2a2a2a] pb-2">
+  <h4 className="text-sm font-semibold text-[#3b82f6] uppercase tracking-wide border-b border-[#2a2a2a] pb-2">
     {children}
   </h4>
 );
@@ -20,9 +20,9 @@ export const FieldLabel = ({ children }: { children: ReactNode }) => (
 );
 
 export const SaveButton = ({ saved }: { saved?: boolean }) => (
-  <div className="sticky bottom-0 -mx-1 bg-gradient-to-t from-[#111111] via-[#111111] to-transparent pt-4 pb-1 flex items-center justify-end gap-3">
+  <div className="flex items-center justify-end gap-3">
     {saved && <span className="text-xs text-emerald-400">Salvo</span>}
-    <Button type="submit" className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white">
+    <Button type="submit" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white h-9">
       Salvar
     </Button>
   </div>
@@ -70,7 +70,7 @@ export const BulletList = ({
     <div className="space-y-2">
       {items.map((it, i) => (
         <div key={i} className="flex items-center gap-2 group">
-          <span className="text-[#7c3aed] text-lg leading-none select-none">•</span>
+          <span className="text-[#3b82f6] text-lg leading-none select-none">•</span>
           <Input
             value={it}
             onChange={(e) => update(i, e.target.value)}
@@ -82,7 +82,7 @@ export const BulletList = ({
               href={it}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-[#a78bfa] hover:underline px-2"
+              className="text-xs text-[#3b82f6] hover:underline px-2"
             >
               abrir
             </a>
@@ -101,7 +101,7 @@ export const BulletList = ({
       <button
         type="button"
         onClick={add}
-        className="flex items-center gap-1.5 text-xs text-[#a78bfa] hover:text-[#c4b5fd] transition-colors pl-5"
+        className="flex items-center gap-1.5 text-xs text-[#3b82f6] hover:text-[#60a5fa] transition-colors pl-5"
       >
         <Plus className="h-3.5 w-3.5" /> Adicionar
       </button>

@@ -76,7 +76,7 @@ export const RelatoriosForm = () => {
                     key={a.id}
                     className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-[#0f0f0f] border border-[#2a2a2a]"
                   >
-                    <FileText className="h-4 w-4 text-[#a78bfa]" />
+                    <FileText className="h-4 w-4 text-[#3b82f6]" />
                     <span className="text-sm text-white flex-1 truncate">{a.nome}</span>
                     <span className="text-xs text-zinc-500">{a.tamanho}</span>
                     <a
@@ -84,7 +84,7 @@ export const RelatoriosForm = () => {
                       download={a.nome}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-400 hover:text-[#a78bfa]"
+                      className="text-zinc-400 hover:text-[#3b82f6]"
                     >
                       <Download className="h-4 w-4" />
                     </a>
@@ -101,7 +101,7 @@ export const RelatoriosForm = () => {
                 <button
                   type="button"
                   onClick={() => inputRefs.current[label]?.click()}
-                  className="flex items-center gap-1.5 text-xs text-[#a78bfa] hover:text-[#c4b5fd] mt-2"
+                  className="flex items-center gap-1.5 text-xs text-[#3b82f6] hover:text-[#60a5fa] mt-2"
                 >
                   <Plus className="h-3.5 w-3.5" /> Adicionar relatório
                 </button>
