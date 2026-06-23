@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Trash2 } from "lucide-react";
+import { Plus, Loader2, Trash2, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,6 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -102,6 +108,8 @@ export const KanbanBoard = () => {
   const [otimClientId, setOtimClientId] = useState("");
   const [otimReport, setOtimReport] = useState("");
   const [otimSaving, setOtimSaving] = useState(false);
+  const [selectedResponsaveis, setSelectedResponsaveis] = useState<string[]>([]);
+  const [selectedClientes, setSelectedClientes] = useState<string[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -126,11 +134,13 @@ export const KanbanBoard = () => {
   if (!isAdmin) return null;
 
   const filtered = demandas.filter((d) => {
+    let passAba = true;
     switch (aba) {
       case "Minhas demandas":
-        return d.responsavel_id === user?.id || d.created_by === user?.id;
+        passAba = d.responsavel_id === user?.id || d.created_by === user?.id;
+        break;
       case "Esta semana": {
-        if (!d.prazo) return false;
+        if (!d.prazo) { passAba = false; break; }
         const now = new Date();
         const day = now.getDay();
         const start = new Date(now);
@@ -140,17 +150,21 @@ export const KanbanBoard = () => {
         end.setDate(start.getDate() + 6);
         end.setHours(23, 59, 59, 999);
         const p = new Date(d.prazo + "T00:00:00");
-        return p >= start && p <= end;
+        passAba = p >= start && p <= end;
+        break;
       }
       case "Atrasadas": {
-        if (!d.prazo) return false;
+        if (!d.prazo) { passAba = false; break; }
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return new Date(d.prazo + "T00:00:00") < today && d.status !== "done";
+        passAba = new Date(d.prazo + "T00:00:00") < today && d.status !== "done";
+        break;
       }
-      default:
-        return true;
     }
+    if (!passAba) return false;
+    if (selectedResponsaveis.length > 0 && !selectedResponsaveis.includes(d.responsavel_id || "")) return false;
+    if (selectedClientes.length > 0 && !selectedClientes.includes(d.client_id || "")) return false;
+    return true;
   });
 
   const openNew = () => {
@@ -359,6 +373,119 @@ export const KanbanBoard = () => {
             {a}
           </button>
         ))}
+
+        <div className="w-px h-6 bg-zinc-700 mx-1" />
+
+        {/* Filtro por Responsável */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className={`px-3 py-1.5 rounded-md text-sm border transition inline-flex items-center gap-1.5 ${
+                selectedResponsaveis.length > 0
+                  ? "bg-[#3b82f6]/20 border-[#3b82f6]/50 text-[#3b82f6]"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+              }`}
+            >
+              Responsável
+              {selectedResponsaveis.length > 0 && (
+                <Badge className="bg-[#3b82f6] text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
+                  {selectedResponsaveis.length}
+                </Badge>
+              )}
+              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-52 p-2 bg-[#1c1c1e] border-[#2a2a2a]"
+          >
+            <div className="space-y-1">
+              {adminList.map((a) => (
+                <label
+                  key={a.id}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zinc-800 cursor-pointer text-sm text-zinc-200"
+                >
+                  <Checkbox
+                    checked={selectedResponsaveis.includes(a.id)}
+                    onCheckedChange={(checked) =>
+                      setSelectedResponsaveis((prev) =>
+                        checked
+                          ? [...prev, a.id]
+                          : prev.filter((id) => id !== a.id)
+                      )
+                    }
+                    className="border-zinc-600 data-[state=checked]:bg-[#3b82f6] data-[state=checked]:border-[#3b82f6]"
+                  />
+                  {a.nome}
+                </label>
+              ))}
+            </div>
+            {selectedResponsaveis.length > 0 && (
+              <button
+                onClick={() => setSelectedResponsaveis([])}
+                className="mt-2 w-full text-xs text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1 py-1 border-t border-zinc-800"
+              >
+                <X className="h-3 w-3" /> Limpar
+              </button>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {/* Filtro por Cliente */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className={`px-3 py-1.5 rounded-md text-sm border transition inline-flex items-center gap-1.5 ${
+                selectedClientes.length > 0
+                  ? "bg-[#3b82f6]/20 border-[#3b82f6]/50 text-[#3b82f6]"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+              }`}
+            >
+              Cliente
+              {selectedClientes.length > 0 && (
+                <Badge className="bg-[#3b82f6] text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
+                  {selectedClientes.length}
+                </Badge>
+              )}
+              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-56 p-2 bg-[#1c1c1e] border-[#2a2a2a]"
+          >
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {clientes.map((c) => (
+                <label
+                  key={c.id}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zinc-800 cursor-pointer text-sm text-zinc-200"
+                >
+                  <Checkbox
+                    checked={selectedClientes.includes(c.id)}
+                    onCheckedChange={(checked) =>
+                      setSelectedClientes((prev) =>
+                        checked
+                          ? [...prev, c.id]
+                          : prev.filter((id) => id !== c.id)
+                      )
+                    }
+                    className="border-zinc-600 data-[state=checked]:bg-[#3b82f6] data-[state=checked]:border-[#3b82f6]"
+                  />
+                  {c.nome}
+                </label>
+              ))}
+            </div>
+            {selectedClientes.length > 0 && (
+              <button
+                onClick={() => setSelectedClientes([])}
+                className="mt-2 w-full text-xs text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1 py-1 border-t border-zinc-800"
+              >
+                <X className="h-3 w-3" /> Limpar
+              </button>
+            )}
+          </PopoverContent>
+        </Popover>
+
         <div className="flex-1" />
         <Button
           onClick={openNew}
