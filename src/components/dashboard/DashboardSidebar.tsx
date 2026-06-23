@@ -15,16 +15,17 @@ import {
   Headphones,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
-interface N8NClient {
-  id_conta: string;
-  nome: string;
-  campanhas_ativas: number;
-  picture_url: string;
+interface SidebarCliente {
+  id: string;
+  nome_cliente: string;
+  numero_conta_anuncio: string;
+  logo_url: string | null;
 }
 
 export const DashboardSidebar = () => {
-  const [clients, setClients] = useState<N8NClient[]>([]);
+  const [clients, setClients] = useState<SidebarCliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const { signOut, isAdmin } = useAuth();
@@ -32,27 +33,17 @@ export const DashboardSidebar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await fetch('https://n8n.trafficsolutions.cloud/webhook/bm-clientes-ativos', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          setClients(result.clientes || []);
+    (supabase as any)
+      .from("gestao_clientes")
+      .select("id, nome_cliente, numero_conta_anuncio, logo_url")
+      .eq("status", "ativo")
+      .order("nome_cliente")
+      .then(({ data, error }: any) => {
+        if (!error && data) {
+          setClients(data);
         }
-      } catch (error) {
-        console.error('Erro ao buscar clientes:', error);
-      } finally {
         setLoading(false);
-      }
-    };
-
-    fetchClients();
+      });
   }, []);
 
   const handleSignOut = async () => {
@@ -178,26 +169,26 @@ export const DashboardSidebar = () => {
               <div className="space-y-1">
                 {clients.map((client) => (
                   <Link
-                    key={client.id_conta}
-                    to={`/dashboard/${client.id_conta}?nome=${encodeURIComponent(client.nome)}`}
+                    key={client.id}
+                    to={`/dashboard/${client.numero_conta_anuncio}?nome=${encodeURIComponent(client.nome_cliente)}`}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                      isActive(`/dashboard/${client.id_conta}`)
+                      isActive(`/dashboard/${client.numero_conta_anuncio}`)
                         ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
                         : "text-gray-400 hover:bg-white/5 hover:text-white"
                     )}
                   >
-                    {client.picture_url ? (
+                    {client.logo_url ? (
                       <img
-                        src={client.picture_url}
-                        alt={client.nome}
+                        src={client.logo_url}
+                        alt={client.nome_cliente}
                         className="h-5 w-5 rounded object-cover flex-shrink-0"
                       />
                     ) : (
                       <Building2 className="h-5 w-5 flex-shrink-0" />
                     )}
                     {!collapsed && (
-                      <span className="font-medium truncate">{client.nome}</span>
+                      <span className="font-medium truncate">{client.nome_cliente}</span>
                     )}
                   </Link>
                 ))}

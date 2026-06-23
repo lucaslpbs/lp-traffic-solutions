@@ -30,7 +30,7 @@ export const ClienteGallery = () => {
               id: c.id,
               nome: c.nome_cliente || "",
               logo: c.logo_url || undefined,
-              status: c.status === "inativo" ? "inativo" as const : "ativo" as const,
+              status: c.status === "ativo" ? "ativo" as const : "inativo" as const,
             }))
           );
         }

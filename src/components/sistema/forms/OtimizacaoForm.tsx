@@ -34,6 +34,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Registro | null>(null);
   const [editingObs, setEditingObs] = useState("");
+  const [viewingObs, setViewingObs] = useState<Registro | null>(null);
 
   useEffect(() => {
     if (!clientId) return;
@@ -198,9 +199,17 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
                 </td>
                 <td className="px-2 py-2">
                   {readOnly ? (
-                    <div className="text-sm">
-                      <MarkdownEditor value={r.observacoes || ""} readOnly />
-                    </div>
+                    r.observacoes ? (
+                      <button
+                        type="button"
+                        onClick={() => setViewingObs(r)}
+                        className="text-left text-sm text-zinc-300 hover:text-[#c4b5fd] truncate w-full block cursor-pointer"
+                      >
+                        {r.observacoes.slice(0, 80)}{r.observacoes.length > 80 ? "…" : ""}
+                      </button>
+                    ) : (
+                      <span className="text-zinc-500 text-sm">—</span>
+                    )
                   ) : (
                     <button
                       type="button"
@@ -248,6 +257,17 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
           </DialogContent>
         </Dialog>
       )}
+
+      <Dialog open={!!viewingObs} onOpenChange={(o) => !o && setViewingObs(null)}>
+        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">Otimização · {viewingObs && formatBR(viewingObs.data)}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <MarkdownEditor value={viewingObs?.observacoes || ""} readOnly />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
