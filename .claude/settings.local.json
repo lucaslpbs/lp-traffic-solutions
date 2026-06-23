@@ -31,7 +31,8 @@
       "Bash(npx supabase *)",
       "Bash(mkdir -p \"c:\\\\Users\\\\gabri\\\\source\\\\repos\\\\lp-traffic-solutions\\\\src\\\\sql\")",
       "Bash(mkdir -p \"c:/Users/gabri/source/repos/lp-traffic-solutions/src/_deprecated\")",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "PowerShell(npm run build 2>&1)"
     ],
     "additionalDirectories": [
       "\\mnt\\c\\Users\\User\\Downloads",

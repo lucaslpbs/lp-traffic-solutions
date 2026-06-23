@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { supabase as supabaseGestao } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
@@ -39,7 +39,11 @@ import {
   Calendar,
   ChevronUp,
   X,
+  Upload,
+  Building2,
+  Loader2,
 } from 'lucide-react';
+import { uploadClientLogo, validateLogoFile } from '@/lib/supabaseStorage';
 
 type GestaoCliente = Tables<'gestao_clientes'>;
 
@@ -198,6 +202,11 @@ export default function GestaoClientes() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
 
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cobrarCliente, setCobrarCliente] = useState<GestaoCliente | null>(null);
   const [cobrandoId, setCobrandoId] = useState<string | null>(null);
@@ -246,14 +255,31 @@ export default function GestaoClientes() {
     };
   }, [clientes]);
 
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const err = validateLogoFile(file);
+    if (err) {
+      toast.error(err);
+      e.target.value = '';
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
   const openCreate = () => {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setLogoFile(null);
+    setLogoPreview(null);
     setModalOpen(true);
   };
 
   const openEdit = (c: GestaoCliente) => {
     setEditingId(c.id);
+    setLogoFile(null);
+    setLogoPreview(c.logo_url || null);
     const parcelasDetalhes = Array.isArray(c.parcelas_detalhes) ? (c.parcelas_detalhes as Parcela[]) : null;
     setForm({
       nome_cliente: c.nome_cliente,
@@ -352,9 +378,15 @@ export default function GestaoClientes() {
       };
 
       if (editingId) {
+        let logoUrl: string | undefined;
+        if (logoFile) {
+          setUploadingLogo(true);
+          logoUrl = await uploadClientLogo(logoFile, editingId);
+          setUploadingLogo(false);
+        }
         const { error } = await supabaseGestao
           .from('gestao_clientes')
-          .update(payload)
+          .update({ ...payload, ...(logoUrl ? { logo_url: logoUrl } : {}) })
           .eq('id', editingId);
         if (error) throw error;
         toast.success('Cliente atualizado com sucesso!');
@@ -371,6 +403,22 @@ export default function GestaoClientes() {
       if (error) throw error;
 
       const nc = novoCliente as GestaoCliente;
+
+      if (logoFile) {
+        try {
+          setUploadingLogo(true);
+          const logoUrl = await uploadClientLogo(logoFile, nc.id);
+          await supabaseGestao
+            .from('gestao_clientes')
+            .update({ logo_url: logoUrl })
+            .eq('id', nc.id);
+        } catch (uploadErr) {
+          console.error('Erro ao fazer upload da logo:', uploadErr);
+          toast.error('Cliente cadastrado, mas houve um erro ao enviar a logo.');
+        } finally {
+          setUploadingLogo(false);
+        }
+      }
 
       const webhookPayload = {
         action: 'novo_cliente',
@@ -773,6 +821,44 @@ export default function GestaoClientes() {
             <div>
               <p className={sectionTitleCls}>Identificação</p>
               <div className="grid grid-cols-2 gap-4">
+                {/* Logo upload */}
+                <div className="col-span-2">
+                  <label className={labelCls}>Logo do Cliente</label>
+                  <div className="flex items-center gap-4">
+                    <div className="h-20 w-20 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {uploadingLogo ? (
+                        <Loader2 className="h-6 w-6 text-blue-400 animate-spin" />
+                      ) : logoPreview ? (
+                        <img src={logoPreview} alt="Logo" className="h-full w-full object-cover" />
+                      ) : (
+                        <Building2 className="h-8 w-8 text-gray-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.svg"
+                        onChange={handleLogoSelect}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-white/10 text-gray-300 hover:text-white hover:bg-white/10 gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        {logoPreview ? 'Trocar imagem' : 'Selecionar imagem'}
+                      </Button>
+                      <p className="text-xs text-gray-600">JPG, PNG, WebP ou SVG — máximo 5MB</p>
+                      {logoFile && (
+                        <p className="text-xs text-blue-400 truncate max-w-xs">{logoFile.name}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="col-span-2">
                   <label className={labelCls}>
                     Nome do Cliente <span className="text-red-400">*</span>
