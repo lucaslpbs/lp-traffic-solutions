@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -348,13 +348,11 @@ export const MetasBoard = () => {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-400">Descrição</Label>
-              <Textarea
+              <MarkdownEditor
                 value={form.descricao}
-                onChange={(e) =>
-                  setForm({ ...form, descricao: e.target.value })
-                }
-                className={`${inputCls} min-h-[60px]`}
+                onChange={(v) => setForm({ ...form, descricao: v })}
                 placeholder="Detalhes da meta"
+                minHeight="60px"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">

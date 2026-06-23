@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Send, CheckCircle2, MessageSquare } from "lucide-react";
@@ -90,11 +90,11 @@ function ClienteChamadosView() {
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 space-y-4">
-        <Textarea
+        <MarkdownEditor
           value={mensagem}
-          onChange={(e) => setMensagem(e.target.value)}
+          onChange={setMensagem}
           placeholder="Descreva sua dúvida ou solicitação..."
-          className="bg-[#1c1c1e] border-[#2a2a2a] text-white min-h-[120px] placeholder:text-zinc-600"
+          minHeight="120px"
         />
         <div className="flex justify-end">
           <Button
@@ -119,14 +119,18 @@ function ClienteChamadosView() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 space-y-1">
                       <p className="text-xs text-zinc-500">{formatDate(c.created_at)}</p>
-                      <p className="text-sm text-zinc-200">{c.mensagem}</p>
+                      <div className="text-sm text-zinc-200">
+                        <MarkdownEditor value={c.mensagem} readOnly />
+                      </div>
                     </div>
                     <Badge className={cfg.cls}>{cfg.label}</Badge>
                   </div>
                   {c.resposta_admin && (
                     <div className="border-t border-zinc-800 pt-3">
                       <p className="text-xs text-zinc-500 mb-1">Resposta do suporte{c.respondido_at ? ` · ${formatDate(c.respondido_at)}` : ""}</p>
-                      <p className="text-sm text-zinc-300">{c.resposta_admin}</p>
+                      <div className="text-sm text-zinc-300">
+                        <MarkdownEditor value={c.resposta_admin} readOnly />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -286,7 +290,9 @@ function AdminChamadosView() {
                       <span className="text-sm font-semibold text-zinc-100">{c.nome_cliente}</span>
                       <span className="text-xs text-zinc-500">· {formatDate(c.created_at)}</span>
                     </div>
-                    <p className="text-sm text-zinc-300">{c.mensagem}</p>
+                    <div className="text-sm text-zinc-300">
+                      <MarkdownEditor value={c.mensagem} readOnly />
+                    </div>
                   </div>
                   <Badge className={cfg.cls}>{cfg.label}</Badge>
                 </div>
@@ -294,7 +300,9 @@ function AdminChamadosView() {
                 {c.resposta_admin && (
                   <div className="border-t border-zinc-800 pt-3">
                     <p className="text-xs text-zinc-500 mb-1">Resposta{c.respondido_at ? ` · ${formatDate(c.respondido_at)}` : ""}</p>
-                    <p className="text-sm text-zinc-300">{c.resposta_admin}</p>
+                    <div className="text-sm text-zinc-300">
+                      <MarkdownEditor value={c.resposta_admin} readOnly />
+                    </div>
                   </div>
                 )}
 
@@ -342,13 +350,15 @@ function AdminChamadosView() {
           </DialogHeader>
           <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 mb-2">
             <p className="text-xs text-zinc-500 mb-1">Mensagem do cliente:</p>
-            <p className="text-sm text-zinc-300">{respondendo?.mensagem}</p>
+            <div className="text-sm text-zinc-300">
+              <MarkdownEditor value={respondendo?.mensagem || ""} readOnly />
+            </div>
           </div>
-          <Textarea
+          <MarkdownEditor
             value={resposta}
-            onChange={(e) => setResposta(e.target.value)}
-            className="bg-[#1c1c1e] border-[#2a2a2a] text-white min-h-[150px] placeholder:text-zinc-600"
+            onChange={setResposta}
             placeholder="Escreva sua resposta..."
+            minHeight="150px"
           />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => { setRespondendo(null); setResposta(""); }} className="border-zinc-700 text-zinc-300">

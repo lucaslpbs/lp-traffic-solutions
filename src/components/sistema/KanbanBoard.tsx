@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -98,6 +98,10 @@ export const KanbanBoard = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [otimStep, setOtimStep] = useState<"confirm" | "select-client" | "report" | null>(null);
+  const [otimClientId, setOtimClientId] = useState("");
+  const [otimReport, setOtimReport] = useState("");
+  const [otimSaving, setOtimSaving] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -175,6 +179,9 @@ export const KanbanBoard = () => {
       return;
     }
     setSaving(true);
+    const oldStatus = editingId
+      ? demandas.find((d) => d.id === editingId)?.status
+      : undefined;
     const payload: any = {
       titulo: form.titulo.trim(),
       descricao: form.descricao.trim() || null,
@@ -202,6 +209,9 @@ export const KanbanBoard = () => {
         );
         toast.success("Demanda atualizada");
         setDialogOpen(false);
+        if (form.status === "done" && oldStatus !== "done") {
+          startOtimFlow(form.client_id || null);
+        }
       }
     } else {
       payload.created_by = user?.id;
@@ -217,6 +227,9 @@ export const KanbanBoard = () => {
         setDemandas((prev) => [data, ...prev]);
         toast.success("Demanda criada");
         setDialogOpen(false);
+        if (form.status === "done") {
+          startOtimFlow(form.client_id || null);
+        }
       }
     }
     setSaving(false);
@@ -244,6 +257,9 @@ export const KanbanBoard = () => {
     newStatus: DemandaStatus
   ) => {
     e.stopPropagation();
+    const demanda = demandas.find((d) => d.id === id);
+    const movingToDone = newStatus === "done" && demanda?.status !== "done";
+
     setDemandas((prev) =>
       prev.map((d) => (d.id === id ? { ...d, status: newStatus } : d))
     );
@@ -254,6 +270,8 @@ export const KanbanBoard = () => {
     if (error) {
       toast.error("Erro ao mover demanda");
       console.error(error);
+    } else if (movingToDone) {
+      startOtimFlow(demanda?.client_id || null);
     }
   };
 
@@ -264,6 +282,64 @@ export const KanbanBoard = () => {
 
   const getColIdx = (status: DemandaStatus) =>
     colunas.findIndex((c) => c.id === status);
+
+  const resetOtimFlow = () => {
+    setOtimStep(null);
+    setOtimClientId("");
+    setOtimReport("");
+  };
+
+  const startOtimFlow = (clientId: string | null) => {
+    setOtimClientId(clientId || "");
+    setOtimStep("confirm");
+  };
+
+  const handleOtimConfirm = () => {
+    if (otimClientId) {
+      setOtimStep("report");
+    } else {
+      setOtimStep("select-client");
+    }
+  };
+
+  const handleOtimClientSelect = () => {
+    if (!otimClientId) {
+      toast.error("Selecione um cliente");
+      return;
+    }
+    setOtimStep("report");
+  };
+
+  const handleOtimSave = async () => {
+    if (!user) return;
+    setOtimSaving(true);
+    const today = new Date().toISOString().slice(0, 10);
+    const { error } = await (supabase as any)
+      .from("sistema_otimizacoes")
+      .insert({
+        client_id: otimClientId,
+        data: today,
+        otimizado: true,
+        observacoes: otimReport.trim() || null,
+        created_by: user.id,
+      });
+    if (error) {
+      toast.error("Erro ao registrar otimização");
+      console.error(error);
+    } else {
+      const clienteNome = clientes.find((c) => c.id === otimClientId)?.nome;
+      toast.success(`Otimização registrada para ${clienteNome}`);
+      resetOtimFlow();
+    }
+    setOtimSaving(false);
+  };
+
+  const handleOtimReportClose = () => {
+    if (otimReport.trim() && !window.confirm("Descartar relatório de otimização?")) {
+      return;
+    }
+    resetOtimFlow();
+  };
 
   const inputCls = "bg-[#1c1c1e] border-[#2a2a2a] text-white";
 
@@ -416,13 +492,11 @@ export const KanbanBoard = () => {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-400">Descrição</Label>
-              <Textarea
+              <MarkdownEditor
                 value={form.descricao}
-                onChange={(e) =>
-                  setForm({ ...form, descricao: e.target.value })
-                }
-                className={`${inputCls} min-h-[80px]`}
+                onChange={(v) => setForm({ ...form, descricao: v })}
                 placeholder="Descrição da demanda"
+                minHeight="80px"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -541,6 +615,116 @@ export const KanbanBoard = () => {
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               {editingId ? "Salvar" : "Criar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Otimização — Passo 1: confirmar */}
+      <Dialog
+        open={otimStep === "confirm"}
+        onOpenChange={(o) => { if (!o) resetOtimFlow(); }}
+      >
+        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Demanda concluída</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-zinc-300">
+            Ir para otimização do cliente?
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={resetOtimFlow}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Não
+            </Button>
+            <Button
+              onClick={handleOtimConfirm}
+              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
+            >
+              Sim
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Otimização — Passo 2: selecionar cliente (quando demanda não tem client_id) */}
+      <Dialog
+        open={otimStep === "select-client"}
+        onOpenChange={(o) => { if (!o) resetOtimFlow(); }}
+      >
+        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Selecionar cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-zinc-400">
+              Selecione o cliente para registrar a otimização:
+            </p>
+            <Select
+              value={otimClientId || "__none__"}
+              onValueChange={(v) =>
+                setOtimClientId(v === "__none__" ? "" : v)
+              }
+            >
+              <SelectTrigger className={inputCls}>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white max-h-60">
+                <SelectItem value="__none__">Selecione...</SelectItem>
+                {clientes.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={resetOtimFlow}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleOtimClientSelect}
+              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
+            >
+              Continuar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Otimização — Passo 3: relatório */}
+      <Dialog
+        open={otimStep === "report"}
+        onOpenChange={(o) => { if (!o) handleOtimReportClose(); }}
+      >
+        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              Relatório de otimização · {formatDate(new Date().toISOString().slice(0, 10))}
+            </DialogTitle>
+          </DialogHeader>
+          <MarkdownEditor
+            value={otimReport}
+            onChange={setOtimReport}
+            placeholder="Descreva as otimizações realizadas, hipóteses, resultados..."
+            minHeight="300px"
+          />
+          <div className="flex justify-end">
+            <Button
+              onClick={handleOtimSave}
+              disabled={otimSaving}
+              className="bg-[#7c3aed] hover:bg-[#6d28d9]"
+            >
+              {otimSaving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Salvar
             </Button>
           </div>
         </DialogContent>

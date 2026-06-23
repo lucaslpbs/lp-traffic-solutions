@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,7 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
   const [rows, setRows] = useState<Registro[]>([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Registro | null>(null);
+  const [editingObs, setEditingObs] = useState("");
 
   useEffect(() => {
     if (!clientId) return;
@@ -197,11 +198,13 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
                 </td>
                 <td className="px-2 py-2">
                   {readOnly ? (
-                    <span className="text-sm text-zinc-400">{r.observacoes || "—"}</span>
+                    <div className="text-sm">
+                      <MarkdownEditor value={r.observacoes || ""} readOnly />
+                    </div>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setEditing(r)}
+                      onClick={() => { setEditing(r); setEditingObs(r.observacoes); }}
                       className="text-left text-sm text-[#a78bfa] hover:text-[#c4b5fd] truncate w-full"
                     >
                       {r.observacoes ? r.observacoes.slice(0, 80) : "+ Adicionar observação"}
@@ -231,14 +234,14 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
             <DialogHeader>
               <DialogTitle className="text-white">Relatório de otimização · {editing && formatBR(editing.data)}</DialogTitle>
             </DialogHeader>
-            <Textarea
-              defaultValue={editing?.observacoes}
-              onBlur={(e) => editing && upd(editing.id, { observacoes: e.target.value })}
-              className={`${inputCls} min-h-[300px]`}
+            <MarkdownEditor
+              value={editingObs}
+              onChange={setEditingObs}
               placeholder="Descreva as otimizações realizadas, hipóteses, resultados..."
+              minHeight="300px"
             />
             <div className="flex justify-end">
-              <Button type="button" className="bg-[#7c3aed] hover:bg-[#6d28d9]" onClick={() => setEditing(null)}>
+              <Button type="button" className="bg-[#7c3aed] hover:bg-[#6d28d9]" onClick={() => { if (editing) upd(editing.id, { observacoes: editingObs }); setEditing(null); }}>
                 Salvar
               </Button>
             </div>
