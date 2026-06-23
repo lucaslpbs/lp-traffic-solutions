@@ -73,15 +73,17 @@ export const ClienteGallery = () => {
               onClick={() => setSelected(c)}
               className="group rounded-xl border border-zinc-800 bg-zinc-900/60 hover:border-[#3b82f6]/60 hover:bg-zinc-900 transition-all overflow-hidden text-left"
             >
-              <div className="aspect-video bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center">
+              <div className="aspect-video bg-gradient-to-br from-zinc-800 to-zinc-950 overflow-hidden">
                 {c.logo ? (
-                  <img src={c.logo} alt={c.nome} className="h-10 w-10 rounded object-cover" />
+                  <img src={c.logo} alt={c.nome} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl font-bold text-[#3b82f6]/80">{c.nome.charAt(0)}</span>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-4xl font-bold text-[#3b82f6]/80">{c.nome.charAt(0)}</span>
+                  </div>
                 )}
               </div>
               <div className="p-3 space-y-1.5">
-                <p className="text-sm font-medium text-zinc-100 line-clamp-1">{c.nome}</p>
+                <p className="text-sm font-medium text-zinc-100 truncate">{c.nome}</p>
                 <Badge className={c.status === "ativo"
                   ? "bg-emerald-600/20 text-emerald-400 border-emerald-700/50"
                   : "bg-zinc-700/30 text-zinc-400 border-zinc-700"}>
