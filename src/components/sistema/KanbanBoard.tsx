@@ -108,6 +108,7 @@ export const KanbanBoard = () => {
   const [otimClientId, setOtimClientId] = useState("");
   const [otimReport, setOtimReport] = useState("");
   const [otimSaving, setOtimSaving] = useState(false);
+  const [otimDemandaId, setOtimDemandaId] = useState<string | null>(null);
   const [selectedResponsaveis, setSelectedResponsaveis] = useState<string[]>([]);
   const [selectedClientes, setSelectedClientes] = useState<string[]>([]);
 
@@ -224,7 +225,7 @@ export const KanbanBoard = () => {
         toast.success("Demanda atualizada");
         setDialogOpen(false);
         if (form.status === "done" && oldStatus !== "done") {
-          startOtimFlow(form.client_id || null);
+          startOtimFlow(editingId, form.client_id || null);
         }
       }
     } else {
@@ -242,7 +243,7 @@ export const KanbanBoard = () => {
         toast.success("Demanda criada");
         setDialogOpen(false);
         if (form.status === "done") {
-          startOtimFlow(form.client_id || null);
+          startOtimFlow(data.id, form.client_id || null);
         }
       }
     }
@@ -285,7 +286,7 @@ export const KanbanBoard = () => {
       toast.error("Erro ao mover demanda");
       console.error(error);
     } else if (movingToDone) {
-      startOtimFlow(demanda?.client_id || null);
+      startOtimFlow(id, demanda?.client_id || null);
     }
   };
 
@@ -301,9 +302,11 @@ export const KanbanBoard = () => {
     setOtimStep(null);
     setOtimClientId("");
     setOtimReport("");
+    setOtimDemandaId(null);
   };
 
-  const startOtimFlow = (clientId: string | null) => {
+  const startOtimFlow = (demandaId: string, clientId: string | null) => {
+    setOtimDemandaId(demandaId);
     setOtimClientId(clientId || "");
     setOtimStep("confirm");
   };
@@ -341,6 +344,20 @@ export const KanbanBoard = () => {
       toast.error("Erro ao registrar otimização");
       console.error(error);
     } else {
+      if (otimDemandaId) {
+        const demanda = demandas.find((d) => d.id === otimDemandaId);
+        if (demanda && !demanda.client_id) {
+          await (supabase as any)
+            .from("sistema_demandas")
+            .update({ client_id: otimClientId, updated_at: new Date().toISOString() })
+            .eq("id", otimDemandaId);
+          setDemandas((prev) =>
+            prev.map((d) =>
+              d.id === otimDemandaId ? { ...d, client_id: otimClientId } : d
+            )
+          );
+        }
+      }
       const clienteNome = clientes.find((c) => c.id === otimClientId)?.nome;
       toast.success(`Otimização registrada para ${clienteNome}`);
       resetOtimFlow();
