@@ -48,6 +48,7 @@ import ChamadosPage from "./pages/ChamadosPage";
 import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 import ClienteDetailPage from "./pages/ClienteDetailPage";
+import SistemaMarketingPage from "./pages/sistema";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ const HIDDEN_PATHS = [
   '/nucleo-oftalmologia-dashboard',
   '/relatorio-lv3-multimarcas',
   '/dashboard-kommo-sandelly',
+  '/sistema',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -137,6 +139,7 @@ const AppRoutes = () => {
         <Route path="/sandelly-automacoes" element={<SandellyAutomacoes />} />
         <Route path="/CadastroInstancia" element={<CadastroInstancia />} />
 
+        <Route path="/sistema" element={<SistemaMarketingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
