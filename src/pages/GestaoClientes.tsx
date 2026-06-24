@@ -42,7 +42,11 @@ import {
   Upload,
   Building2,
   Loader2,
+  RefreshCw,
+  Zap,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { uploadClientLogo, validateLogoFile } from '@/lib/supabaseStorage';
 
 type GestaoCliente = Tables<'gestao_clientes'>;
@@ -65,6 +69,9 @@ type FormData = {
   observacoes: string;
   plano_personalizado: boolean;
   parcelas: Parcela[];
+  fluxo_alerta_saldo: boolean;
+  fluxo_relatorio_diario: boolean;
+  fluxo_resumos: boolean;
 };
 
 const EMPTY_PARCELA: Parcela = { parcelas: '', valor: '', inicio: new Date().toISOString().split('T')[0] };
@@ -85,7 +92,34 @@ const EMPTY_FORM: FormData = {
   observacoes: '',
   plano_personalizado: false,
   parcelas: [{ ...EMPTY_PARCELA }],
+  fluxo_alerta_saldo: true,
+  fluxo_relatorio_diario: true,
+  fluxo_resumos: true,
 };
+
+const N8N_API_BASE_URL = import.meta.env.VITE_N8N_API_BASE_URL || '';
+const N8N_API_KEY = import.meta.env.VITE_N8N_API_KEY || '';
+
+async function n8nToggleWorkflow(workflowId: string, active: boolean): Promise<void> {
+  const res = await fetch(`${N8N_API_BASE_URL}/api/v1/workflows/${workflowId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-N8N-API-KEY': N8N_API_KEY,
+    },
+    body: JSON.stringify({ active }),
+  });
+  if (!res.ok) throw new Error(`n8n API error: ${res.status}`);
+}
+
+async function n8nGetWorkflow(workflowId: string): Promise<{ active: boolean }> {
+  const res = await fetch(`${N8N_API_BASE_URL}/api/v1/workflows/${workflowId}`, {
+    method: 'GET',
+    headers: { 'X-N8N-API-KEY': N8N_API_KEY },
+  });
+  if (!res.ok) throw new Error(`n8n API error: ${res.status}`);
+  return res.json();
+}
 
 const inputCls =
   'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-0';
@@ -211,6 +245,10 @@ export default function GestaoClientes() {
   const [cobrarCliente, setCobrarCliente] = useState<GestaoCliente | null>(null);
   const [cobrandoId, setCobrandoId] = useState<string | null>(null);
 
+  const [editingCliente, setEditingCliente] = useState<GestaoCliente | null>(null);
+  const [togglingFluxo, setTogglingFluxo] = useState<string | null>(null);
+  const [syncingFluxos, setSyncingFluxos] = useState(false);
+
   const fetchClientes = async () => {
     setLoading(true);
     const { data, error } = await supabaseGestao
@@ -270,6 +308,7 @@ export default function GestaoClientes() {
 
   const openCreate = () => {
     setEditingId(null);
+    setEditingCliente(null);
     setForm(EMPTY_FORM);
     setLogoFile(null);
     setLogoPreview(null);
@@ -278,6 +317,7 @@ export default function GestaoClientes() {
 
   const openEdit = (c: GestaoCliente) => {
     setEditingId(c.id);
+    setEditingCliente(c);
     setLogoFile(null);
     setLogoPreview(c.logo_url || null);
     const parcelasDetalhes = Array.isArray(c.parcelas_detalhes) ? (c.parcelas_detalhes as Parcela[]) : null;
@@ -297,6 +337,9 @@ export default function GestaoClientes() {
       observacoes: c.observacoes ?? '',
       plano_personalizado: c.plano_personalizado ?? false,
       parcelas: parcelasDetalhes ?? [{ ...EMPTY_PARCELA }],
+      fluxo_alerta_saldo: c.fluxo_alerta_saldo_ativo ?? true,
+      fluxo_relatorio_diario: c.fluxo_relatorio_diario_ativo ?? true,
+      fluxo_resumos: c.fluxo_resumos_ativo ?? true,
     });
     setModalOpen(true);
   };
@@ -375,6 +418,9 @@ export default function GestaoClientes() {
         observacoes: form.observacoes || null,
         plano_personalizado: form.plano_personalizado,
         parcelas_detalhes: form.plano_personalizado ? form.parcelas : null,
+        fluxo_alerta_saldo_ativo: form.fluxo_alerta_saldo,
+        fluxo_relatorio_diario_ativo: form.fluxo_relatorio_diario,
+        fluxo_resumos_ativo: form.fluxo_resumos,
       };
 
       if (editingId) {
@@ -437,10 +483,15 @@ export default function GestaoClientes() {
         segmento: nc.segmento,
         plano_personalizado: form.plano_personalizado,
         parcelas_detalhes: form.plano_personalizado ? form.parcelas : null,
+        fluxos_selecionados: {
+          alerta_saldo: form.fluxo_alerta_saldo,
+          relatorio_diario: form.fluxo_relatorio_diario,
+          resumos: form.fluxo_resumos,
+        },
       };
 
       try {
-        await fetch(
+        const webhookRes = await fetch(
           'https://n8n.trafficsolutions.cloud/webhook/novo-cliente-cadastrado',
           {
             method: 'POST',
@@ -448,12 +499,34 @@ export default function GestaoClientes() {
             body: JSON.stringify(webhookPayload),
           }
         );
+
+        const fluxoUpdate: Record<string, unknown> = { webhook_cadastro_disparado: true };
+
+        if (webhookRes.ok) {
+          try {
+            const webhookData = await webhookRes.json();
+            if (webhookData?.success) {
+              if (webhookData.fluxo_alerta_saldo_id)
+                fluxoUpdate.fluxo_alerta_saldo_id = webhookData.fluxo_alerta_saldo_id;
+              if (webhookData.fluxo_relatorio_diario_id)
+                fluxoUpdate.fluxo_relatorio_diario_id = webhookData.fluxo_relatorio_diario_id;
+              if (webhookData.fluxo_resumos_id)
+                fluxoUpdate.fluxo_resumos_id = webhookData.fluxo_resumos_id;
+              fluxoUpdate.fluxos_criados = true;
+            }
+          } catch {
+            // response wasn't JSON — IDs will be synced later
+          }
+        }
+
         await supabaseGestao
           .from('gestao_clientes')
-          .update({ webhook_cadastro_disparado: true })
+          .update(fluxoUpdate)
           .eq('id', nc.id);
       } catch {
-        // webhook failure is non-blocking
+        toast.error(
+          'O webhook de automação falhou ou demorou. Use o botão "Sincronizar" ao editar o cliente para tentar novamente.'
+        );
       }
 
       toast.success(
@@ -513,6 +586,76 @@ export default function GestaoClientes() {
     } finally {
       setCobrandoId(null);
       setCobrarCliente(null);
+    }
+  };
+
+  const handleToggleFluxo = async (
+    fluxoKey: 'alerta_saldo' | 'relatorio_diario' | 'resumos',
+    active: boolean,
+  ) => {
+    if (!editingCliente) return;
+    const idField = `fluxo_${fluxoKey}_id` as const;
+    const ativoField = `fluxo_${fluxoKey}_ativo` as const;
+    const workflowId = editingCliente[idField];
+    if (!workflowId) return;
+
+    const nomeFluxo = {
+      alerta_saldo: 'Alerta de Saldo',
+      relatorio_diario: 'Relatório Diário',
+      resumos: 'Geração de Resumos',
+    }[fluxoKey];
+
+    setTogglingFluxo(fluxoKey);
+    try {
+      await n8nToggleWorkflow(workflowId, active);
+      await supabaseGestao
+        .from('gestao_clientes')
+        .update({ [ativoField]: active })
+        .eq('id', editingCliente.id);
+      setEditingCliente((prev) => prev ? { ...prev, [ativoField]: active } : prev);
+      toast.success(`${nomeFluxo} ${active ? 'ativado' : 'pausado'}.`);
+    } catch {
+      toast.error(`Erro ao ${active ? 'ativar' : 'pausar'} ${nomeFluxo}. Verifique a conexão com o n8n.`);
+    } finally {
+      setTogglingFluxo(null);
+    }
+  };
+
+  const handleSyncFluxos = async () => {
+    if (!editingCliente) return;
+    setSyncingFluxos(true);
+    try {
+      const updates: Record<string, boolean> = {};
+      const fluxos = [
+        { key: 'alerta_saldo', id: editingCliente.fluxo_alerta_saldo_id },
+        { key: 'relatorio_diario', id: editingCliente.fluxo_relatorio_diario_id },
+        { key: 'resumos', id: editingCliente.fluxo_resumos_id },
+      ] as const;
+
+      for (const f of fluxos) {
+        if (!f.id) continue;
+        try {
+          const wf = await n8nGetWorkflow(f.id);
+          updates[`fluxo_${f.key}_ativo`] = wf.active;
+        } catch {
+          // skip this flow if API fails
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await supabaseGestao
+          .from('gestao_clientes')
+          .update(updates)
+          .eq('id', editingCliente.id);
+        setEditingCliente((prev) => prev ? { ...prev, ...updates } : prev);
+      }
+
+      toast.success('Status dos fluxos sincronizado com o n8n.');
+      fetchClientes();
+    } catch {
+      toast.error('Erro ao sincronizar status dos fluxos.');
+    } finally {
+      setSyncingFluxos(false);
     }
   };
 
@@ -1215,6 +1358,145 @@ export default function GestaoClientes() {
                   className={inputCls}
                 />
               </div>
+            </div>
+
+            {/* Automações */}
+            <div>
+              <p className={sectionTitleCls}>
+                <span className="flex items-center gap-2">
+                  <Zap className="h-3.5 w-3.5" />
+                  Automações (Fluxos n8n)
+                </span>
+              </p>
+
+              {!editingId ? (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-500 mb-3">
+                    Selecione quais fluxos automáticos serão criados para este cliente.
+                  </p>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <Checkbox
+                      checked={form.fluxo_alerta_saldo}
+                      onCheckedChange={(v) =>
+                        setForm((prev) => ({ ...prev, fluxo_alerta_saldo: !!v }))
+                      }
+                      className="border-white/20 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                    />
+                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                      Alerta de Saldo (Meta Ads pré-pago)
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <Checkbox
+                      checked={form.fluxo_relatorio_diario}
+                      onCheckedChange={(v) =>
+                        setForm((prev) => ({ ...prev, fluxo_relatorio_diario: !!v }))
+                      }
+                      className="border-white/20 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                    />
+                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                      Relatório Diário (Meta Ads)
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <Checkbox
+                      checked={form.fluxo_resumos}
+                      onCheckedChange={(v) =>
+                        setForm((prev) => ({ ...prev, fluxo_resumos: !!v }))
+                      }
+                      className="border-white/20 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mt-0.5"
+                    />
+                    <div>
+                      <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                        Geração de Resumos
+                      </span>
+                      <p className="text-xs text-yellow-500/80 mt-1">
+                        ⚠ Este fluxo só funciona de fato se o número do cliente estiver cadastrado/vinculado à instância.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-500 mb-3">
+                    Ative ou pause cada fluxo individualmente. Fluxos não criados não podem ser controlados.
+                  </p>
+                  {([
+                    {
+                      key: 'alerta_saldo' as const,
+                      label: 'Alerta de Saldo',
+                      desc: 'Meta Ads pré-pago',
+                      idField: 'fluxo_alerta_saldo_id',
+                      ativoField: 'fluxo_alerta_saldo_ativo',
+                    },
+                    {
+                      key: 'relatorio_diario' as const,
+                      label: 'Relatório Diário',
+                      desc: 'Meta Ads',
+                      idField: 'fluxo_relatorio_diario_id',
+                      ativoField: 'fluxo_relatorio_diario_ativo',
+                    },
+                    {
+                      key: 'resumos' as const,
+                      label: 'Geração de Resumos',
+                      desc: 'Requer número vinculado',
+                      idField: 'fluxo_resumos_id',
+                      ativoField: 'fluxo_resumos_ativo',
+                    },
+                  ]).map((fluxo) => {
+                    const workflowId = editingCliente?.[fluxo.idField];
+                    const ativo = editingCliente?.[fluxo.ativoField] ?? false;
+                    const hasId = !!workflowId;
+                    const isToggling = togglingFluxo === fluxo.key;
+
+                    return (
+                      <div
+                        key={fluxo.key}
+                        className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white">{fluxo.label}</p>
+                          <p className="text-xs text-gray-500">{fluxo.desc}</p>
+                        </div>
+                        <div className="flex items-center gap-3 ml-3">
+                          {!hasId ? (
+                            <span className="text-xs text-gray-600 italic">Não criado</span>
+                          ) : (
+                            <>
+                              <span className={`text-xs font-medium ${ativo ? 'text-green-400' : 'text-yellow-400'}`}>
+                                {ativo ? 'Ativo' : 'Pausado'}
+                              </span>
+                              <Switch
+                                checked={!!ativo}
+                                disabled={isToggling}
+                                onCheckedChange={(checked) =>
+                                  handleToggleFluxo(fluxo.key, checked)
+                                }
+                                className="data-[state=checked]:bg-green-500"
+                              />
+                              {isToggling && <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSyncFluxos}
+                    disabled={syncingFluxos}
+                    className="w-full border-white/10 text-gray-300 hover:text-white hover:bg-white/10 gap-2 mt-2"
+                  >
+                    {syncingFluxos ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    {syncingFluxos ? 'Sincronizando...' : 'Sincronizar status dos fluxos'}
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Observações */}
