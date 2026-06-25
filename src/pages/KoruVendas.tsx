@@ -13,8 +13,9 @@ import { Link } from 'react-router-dom';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const API_URL = 'https://n8n.trafficsolutions.cloud/webhook/buscar-leads-koru-engenharia';
-const XLSX_INTERNA = '/data/Funil%20Vendas%20Internas.xlsx';
-const XLSX_EXTERNA = '/data/Funil%20Vendas%20Externas.xlsx';
+const XLSX_PATH = '/data/Koru%20engenharia.xlsx';
+const FUNIL_INTERNA = 'Funil Vendas Internas';
+const FUNIS_EXTERNA = ['Atendimento Geral', 'Funil Rodrigo Jefferson', 'Agenda Imobiliárias'];
 const DEFAULT_TICKET = 245000;
 const PIPELINE_ID_INTERNA = 12157328;
 const PIPELINE_ID_EXTERNA = 13422447;
@@ -465,20 +466,30 @@ function useXlsx(tab: 'interna' | 'externa') {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const url = tab === 'interna' ? XLSX_INTERNA : XLSX_EXTERNA;
     setLoading(true); setError(null);
-    fetch(url)
+    fetch(XLSX_PATH)
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); })
       .then(buf => {
         const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: '' });
         if (!json.length) { setRows([]); return; }
-        const key = Object.keys(json[0]).find(k => norm(k).includes('etapa do lead')) ?? '';
-        if (!key) { setRows([]); return; }
+        const etapaKey = Object.keys(json[0]).find(k => norm(k).includes('etapa do lead')) ?? '';
+        const funilKey = Object.keys(json[0]).find(k => norm(k).includes('funil de vendas')) ?? '';
+        if (!etapaKey) { setRows([]); return; }
+
+        const filtered = funilKey
+          ? json.filter(row => {
+              const funil = String(row[funilKey] ?? '').trim();
+              return tab === 'interna'
+                ? funil === FUNIL_INTERNA
+                : FUNIS_EXTERNA.includes(funil);
+            })
+          : json;
+
         const map = new Map<string, number>();
-        for (const row of json) {
-          const e = String(row[key] ?? '').trim();
+        for (const row of filtered) {
+          const e = String(row[etapaKey] ?? '').trim();
           if (!e) continue;
           if (ETAPAS_TERMINAL.some(t => norm(e).includes(norm(t)))) continue;
           map.set(e, (map.get(e) ?? 0) + 1);
