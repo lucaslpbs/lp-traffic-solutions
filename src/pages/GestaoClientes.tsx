@@ -97,27 +97,24 @@ const EMPTY_FORM: FormData = {
   fluxo_resumos: true,
 };
 
-const N8N_API_BASE_URL = import.meta.env.VITE_N8N_API_BASE_URL || '';
-const N8N_API_KEY = import.meta.env.VITE_N8N_API_KEY || '';
+const N8N_WEBHOOK_CONTROLAR_FLUXO = 'https://n8n.trafficsolutions.cloud/webhook/controlar-fluxo-cliente';
 
 async function n8nToggleWorkflow(workflowId: string, active: boolean): Promise<void> {
-  const res = await fetch(`${N8N_API_BASE_URL}/api/v1/workflows/${workflowId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-N8N-API-KEY': N8N_API_KEY,
-    },
-    body: JSON.stringify({ active }),
+  const res = await fetch(N8N_WEBHOOK_CONTROLAR_FLUXO, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'toggle', workflow_id: workflowId, active }),
   });
-  if (!res.ok) throw new Error(`n8n API error: ${res.status}`);
+  if (!res.ok) throw new Error(`n8n webhook error: ${res.status}`);
 }
 
 async function n8nGetWorkflow(workflowId: string): Promise<{ active: boolean }> {
-  const res = await fetch(`${N8N_API_BASE_URL}/api/v1/workflows/${workflowId}`, {
-    method: 'GET',
-    headers: { 'X-N8N-API-KEY': N8N_API_KEY },
+  const res = await fetch(N8N_WEBHOOK_CONTROLAR_FLUXO, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'status', workflow_id: workflowId }),
   });
-  if (!res.ok) throw new Error(`n8n API error: ${res.status}`);
+  if (!res.ok) throw new Error(`n8n webhook error: ${res.status}`);
   return res.json();
 }
 
