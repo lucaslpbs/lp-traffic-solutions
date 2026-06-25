@@ -29,6 +29,8 @@ import {
   Plus,
   Search,
   Eye,
+  EyeOff,
+  Lock,
   MessageSquare,
   Pencil,
   PauseCircle,
@@ -72,6 +74,8 @@ type FormData = {
   fluxo_alerta_saldo: boolean;
   fluxo_relatorio_diario: boolean;
   fluxo_resumos: boolean;
+  email_acesso: string;
+  senha_acesso: string;
 };
 
 const EMPTY_PARCELA: Parcela = { parcelas: '', valor: '', inicio: new Date().toISOString().split('T')[0] };
@@ -95,6 +99,8 @@ const EMPTY_FORM: FormData = {
   fluxo_alerta_saldo: true,
   fluxo_relatorio_diario: true,
   fluxo_resumos: true,
+  email_acesso: '',
+  senha_acesso: '',
 };
 
 const N8N_WEBHOOK_CONTROLAR_FLUXO = 'https://n8n.trafficsolutions.cloud/webhook/controlar-fluxo-cliente';
@@ -245,6 +251,7 @@ export default function GestaoClientes() {
   const [editingCliente, setEditingCliente] = useState<GestaoCliente | null>(null);
   const [togglingFluxo, setTogglingFluxo] = useState<string | null>(null);
   const [syncingFluxos, setSyncingFluxos] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const fetchClientes = async () => {
     setLoading(true);
@@ -309,6 +316,7 @@ export default function GestaoClientes() {
     setForm(EMPTY_FORM);
     setLogoFile(null);
     setLogoPreview(null);
+    setShowPassword(false);
     setModalOpen(true);
   };
 
@@ -317,6 +325,7 @@ export default function GestaoClientes() {
     setEditingCliente(c);
     setLogoFile(null);
     setLogoPreview(c.logo_url || null);
+    setShowPassword(false);
     const parcelasDetalhes = Array.isArray(c.parcelas_detalhes) ? (c.parcelas_detalhes as Parcela[]) : null;
     setForm({
       nome_cliente: c.nome_cliente,
@@ -337,6 +346,8 @@ export default function GestaoClientes() {
       fluxo_alerta_saldo: c.fluxo_alerta_saldo_ativo ?? true,
       fluxo_relatorio_diario: c.fluxo_relatorio_diario_ativo ?? true,
       fluxo_resumos: c.fluxo_resumos_ativo ?? true,
+      email_acesso: c.login_email ?? '',
+      senha_acesso: '',
     });
     setModalOpen(true);
   };
@@ -393,6 +404,18 @@ export default function GestaoClientes() {
       return;
     }
 
+    if (form.email_acesso) {
+      const isNewLogin = !editingId || !editingCliente?.login_email;
+      if (isNewLogin && !form.senha_acesso) {
+        toast.error('Senha é obrigatória para criar o acesso do cliente.');
+        return;
+      }
+      if (form.senha_acesso && form.senha_acesso.length < 6) {
+        toast.error('A senha de acesso deve ter no mínimo 6 caracteres.');
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const valorEfetivo = form.plano_personalizado
@@ -427,12 +450,43 @@ export default function GestaoClientes() {
           logoUrl = await uploadClientLogo(logoFile, editingId);
           setUploadingLogo(false);
         }
+        const updatePayload = {
+          ...payload,
+          ...(logoUrl ? { logo_url: logoUrl } : {}),
+          ...(form.email_acesso ? { login_email: form.email_acesso } : {}),
+        };
         const { error } = await supabaseGestao
           .from('gestao_clientes')
-          .update({ ...payload, ...(logoUrl ? { logo_url: logoUrl } : {}) })
+          .update(updatePayload)
           .eq('id', editingId);
         if (error) throw error;
-        toast.success('Cliente atualizado com sucesso!');
+
+        if (form.email_acesso) {
+          try {
+            const { data: fnData, error: fnError } = await supabaseGestao.functions.invoke(
+              'manage-client-auth',
+              {
+                body: {
+                  action: 'update',
+                  client_id: editingId,
+                  email: form.email_acesso,
+                  ...(form.senha_acesso ? { password: form.senha_acesso } : {}),
+                },
+              }
+            );
+            if (fnError) throw fnError;
+            if (!fnData?.success) {
+              toast.error(fnData?.error || 'Erro ao configurar acesso do cliente.');
+            } else {
+              toast.success('Cliente e acesso atualizados com sucesso!');
+            }
+          } catch {
+            toast.error('Cliente salvo, mas houve erro ao configurar o acesso.');
+          }
+        } else {
+          toast.success('Cliente atualizado com sucesso!');
+        }
+
         setModalOpen(false);
         fetchClientes();
         return;
@@ -524,6 +578,34 @@ export default function GestaoClientes() {
         toast.error(
           'O webhook de automação falhou ou demorou. Use o botão "Sincronizar" ao editar o cliente para tentar novamente.'
         );
+      }
+
+      if (form.email_acesso && form.senha_acesso) {
+        try {
+          const { data: fnData, error: fnError } = await supabaseGestao.functions.invoke(
+            'manage-client-auth',
+            {
+              body: {
+                action: 'create',
+                client_id: nc.id,
+                email: form.email_acesso,
+                password: form.senha_acesso,
+              },
+            }
+          );
+          if (fnError) throw fnError;
+          if (!fnData?.success) {
+            toast.error(fnData?.error || 'Erro ao criar acesso do cliente.');
+          } else {
+            await supabaseGestao
+              .from('gestao_clientes')
+              .update({ login_email: form.email_acesso })
+              .eq('id', nc.id);
+            toast.success('Acesso do cliente criado com sucesso!');
+          }
+        } catch {
+          toast.error('Cliente cadastrado, mas houve erro ao criar o acesso de login.');
+        }
       }
 
       toast.success(
@@ -1494,6 +1576,61 @@ export default function GestaoClientes() {
                   </Button>
                 </div>
               )}
+            </div>
+
+            {/* Acesso do Cliente */}
+            <div>
+              <p className={sectionTitleCls}>
+                <span className="flex items-center gap-2">
+                  <Lock className="h-3.5 w-3.5" />
+                  Acesso do Cliente (Login)
+                </span>
+              </p>
+              <p className="text-xs text-gray-500 mb-3">
+                {editingId && editingCliente?.login_email
+                  ? 'Este cliente já possui acesso ao sistema. Você pode alterar o email ou definir uma nova senha.'
+                  : 'Opcional — preencha para dar acesso de login ao cliente no sistema.'}
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Email de Acesso</label>
+                  <Input
+                    type="email"
+                    value={form.email_acesso}
+                    onChange={(e) => handleField('email_acesso', e.target.value)}
+                    placeholder="cliente@email.com"
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    Senha de Acesso
+                    {editingId && editingCliente?.login_email && (
+                      <span className="text-gray-600 font-normal ml-1">(opcional)</span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      value={form.senha_acesso}
+                      onChange={(e) => handleField('senha_acesso', e.target.value)}
+                      placeholder={
+                        editingId && editingCliente?.login_email
+                          ? 'Deixe em branco para não alterar'
+                          : 'Mínimo 6 caracteres'
+                      }
+                      className={`${inputCls} pr-10`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Observações */}
