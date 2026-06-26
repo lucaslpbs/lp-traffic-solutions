@@ -479,8 +479,36 @@ function AdminDashboardView() {
   );
 }
 
-export default function Dashboard() {
-  const { isAdmin } = useAuth();
+function RemovedAccessView() {
+  const { signOut } = useAuth();
 
+  return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-8 text-center">
+        <div className="mx-auto mb-6 p-4 rounded-full bg-red-500/15 w-fit">
+          <Building2 className="h-10 w-10 text-red-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-white mb-3">
+          Seu acesso não está mais ativo
+        </h2>
+        <p className="text-gray-400 text-sm leading-relaxed mb-6">
+          Para mais dúvidas, fale com Lucas Paulino ou procure o Instagram da
+          Traffic Solutions.
+        </p>
+        <button
+          onClick={() => signOut()}
+          className="text-sm text-gray-500 hover:text-white transition-colors underline underline-offset-4"
+        >
+          Sair da conta
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const { isAdmin, isRemoved } = useAuth();
+
+  if (!isAdmin && isRemoved) return <RemovedAccessView />;
   return isAdmin ? <AdminDashboardView /> : <ClienteDashboardView />;
 }

@@ -36,6 +36,8 @@ import {
   PauseCircle,
   PlayCircle,
   HelpCircle,
+  Trash2,
+  AlertTriangle,
   TrendingUp,
   DollarSign,
   Calendar,
@@ -50,6 +52,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { uploadClientLogo, validateLogoFile } from '@/lib/supabaseStorage';
+import { useAuth } from '@/hooks/useAuth';
 
 type GestaoCliente = Tables<'gestao_clientes'>;
 
@@ -252,6 +255,12 @@ export default function GestaoClientes() {
   const [togglingFluxo, setTogglingFluxo] = useState<string | null>(null);
   const [syncingFluxos, setSyncingFluxos] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const { user } = useAuth();
 
   const fetchClientes = async () => {
     setLoading(true);
@@ -735,6 +744,62 @@ export default function GestaoClientes() {
       toast.error('Erro ao sincronizar status dos fluxos.');
     } finally {
       setSyncingFluxos(false);
+    }
+  };
+
+  const handleDeleteCliente = async () => {
+    if (!editingCliente) return;
+    setDeleting(true);
+    try {
+      const { data: userLink } = await supabaseGestao
+        .from('users_clients')
+        .select('user_id')
+        .eq('client_id', editingCliente.id)
+        .eq('role', 'cliente')
+        .maybeSingle();
+
+      if (userLink?.user_id) {
+        await supabaseGestao.from('clientes_removidos').insert({
+          user_id: userLink.user_id,
+          nome_cliente: editingCliente.nome_cliente,
+          removido_por: user?.id ?? null,
+        });
+      }
+
+      const fluxos = [
+        editingCliente.fluxo_alerta_saldo_id,
+        editingCliente.fluxo_relatorio_diario_id,
+        editingCliente.fluxo_resumos_id,
+      ].filter(Boolean) as string[];
+
+      for (const wfId of fluxos) {
+        try {
+          await n8nToggleWorkflow(wfId, false);
+        } catch {
+          console.warn(`Falha ao pausar fluxo ${wfId} — continuando exclusão.`);
+        }
+      }
+
+      const { error } = await supabaseGestao
+        .from('gestao_clientes')
+        .delete()
+        .eq('id', editingCliente.id);
+      if (error) throw error;
+
+      toast.success(`Cliente "${editingCliente.nome_cliente}" excluído permanentemente.`);
+      setDeleteModalOpen(false);
+      setDeleteConfirmText('');
+      setModalOpen(false);
+      setEditingCliente(null);
+      setEditingId(null);
+      fetchClientes();
+    } catch (err) {
+      toast.error(
+        'Erro ao excluir cliente: ' +
+          (err instanceof Error ? err.message : String(err))
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -1645,26 +1710,46 @@ export default function GestaoClientes() {
               />
             </div>
 
-            <DialogFooter className="gap-2 pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setModalOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-[#3b82f6] hover:bg-blue-600 text-white"
-              >
-                {submitting
-                  ? 'Salvando...'
-                  : editingId
-                  ? 'Salvar Alterações'
-                  : 'Cadastrar Cliente'}
-              </Button>
+            <DialogFooter className="pt-2">
+              <div className="flex w-full items-center justify-between">
+                {editingId ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setDeleteConfirmText('');
+                      setDeleteModalOpen(true);
+                    }}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Excluir cliente
+                  </Button>
+                ) : (
+                  <div />
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setModalOpen(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="bg-[#3b82f6] hover:bg-blue-600 text-white"
+                  >
+                    {submitting
+                      ? 'Salvando...'
+                      : editingId
+                      ? 'Salvar Alterações'
+                      : 'Cadastrar Cliente'}
+                  </Button>
+                </div>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -1724,6 +1809,83 @@ export default function GestaoClientes() {
               className="bg-[#3b82f6] hover:bg-blue-600 text-white"
             >
               {cobrandoId ? 'Enviando...' : 'Enviar Cobrança'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteModalOpen}
+        onOpenChange={(o) => {
+          if (!o && !deleting) {
+            setDeleteModalOpen(false);
+            setDeleteConfirmText('');
+          }
+        }}
+      >
+        <DialogContent className="bg-[#0a0a0a] border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-400">
+              <AlertTriangle className="h-5 w-5" />
+              Excluir cliente permanentemente
+            </DialogTitle>
+          </DialogHeader>
+          {editingCliente && (
+            <div className="space-y-4 my-2">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-sm text-red-300">
+                <p className="font-medium mb-2">Esta ação é irreversível.</p>
+                <p>
+                  Todos os dados deste cliente (demandas, otimizações, chamados)
+                  serão apagados permanentemente. As automações no n8n serão
+                  pausadas, mas não removidas.
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-400 mb-2">
+                  Para confirmar, digite o nome do cliente:{' '}
+                  <span className="font-semibold text-white">
+                    {editingCliente.nome_cliente}
+                  </span>
+                </p>
+                <Input
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={editingCliente.nome_cliente}
+                  className={inputCls}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleteModalOpen(false);
+                setDeleteConfirmText('');
+              }}
+              disabled={deleting}
+              className="text-gray-400 hover:text-white"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDeleteCliente}
+              disabled={
+                deleting ||
+                deleteConfirmText !== editingCliente?.nome_cliente
+              }
+              className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-40"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Excluindo...
+                </>
+              ) : (
+                'Excluir permanentemente'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

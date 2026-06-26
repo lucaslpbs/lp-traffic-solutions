@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   clienteVinculadoId: string | null;
+  isRemoved: boolean;
   loadingRole: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [clienteVinculadoId, setClienteVinculadoId] = useState<string | null>(null);
+  const [isRemoved, setIsRemoved] = useState(false);
   const [loadingRole, setLoadingRole] = useState(true);
 
   const fetchUserRole = async (userId: string) => {
@@ -32,6 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data === true) {
         setIsAdmin(true);
         setClienteVinculadoId(null);
+        setIsRemoved(false);
       } else {
         setIsAdmin(false);
         const { data: uc, error: ucError } = await supabase
@@ -41,6 +44,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .maybeSingle();
         if (ucError) throw ucError;
         setClienteVinculadoId(uc?.client_id ?? null);
+
+        if (!uc?.client_id) {
+          const { data: removed } = await supabase
+            .from('clientes_removidos')
+            .select('id')
+            .eq('user_id', userId)
+            .limit(1)
+            .maybeSingle();
+          setIsRemoved(!!removed);
+        } else {
+          setIsRemoved(false);
+        }
       }
     } catch (err) {
       console.error('Erro ao buscar papel do usuario:', err);
@@ -54,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearRole = () => {
     setIsAdmin(false);
     setClienteVinculadoId(null);
+    setIsRemoved(false);
     setLoadingRole(false);
   };
 
@@ -100,7 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, clienteVinculadoId, loadingRole, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, clienteVinculadoId, isRemoved, loadingRole, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
