@@ -36,6 +36,7 @@ import NCSaudeDashboard from "./pages/NCSaudeDashboard.tsx";
 import ClaraFashionDashboard from "./pages/ClaraFashionDashboard.tsx";
 import FacanhaChickDashboard from "./pages/FacanhaChickDashboard.tsx";
 import MsfarmaDashboard from "./pages/MsfarmaDashboard.tsx";
+import SamysamDashboard from "./pages/SamysamDashboard.tsx";
 import PropostaPiazzaAldeota from "./pages/proposta-piazza-aldeota/index.jsx";
 import Obrigado from "./pages/obrigado";
 import DanielMaiaAutomacoes from "./pages/DanielMaiaAutomacoes";
@@ -76,6 +77,7 @@ const HIDDEN_PATHS = [
   '/nucleo-oftalmologia-dashboard',
   '/relatorio-lv3-multimarcas',
   '/dashboard-kommo-sandelly',
+  '/samysam-dashboard',
   '/sistema',
 ];
 
@@ -130,6 +132,7 @@ const AppRoutes = () => {
         <Route path="/clarafashion-dashboard" element={<ProtectedRoute><ClaraFashionDashboard /></ProtectedRoute>} />
         <Route path="/facanha-dashboard" element={<ProtectedRoute><FacanhaChickDashboard /></ProtectedRoute>} />
         <Route path="/msfarma-dashboard" element={<MsfarmaDashboard />} />
+        <Route path="/samysam-dashboard" element={<SamysamDashboard />} />
         <Route path="/nucleo-oftalmologia" element={<NucleoOftalmologiaDashboard />} />
         <Route path="/nucleo-oftalmologia-dashboard" element={<NucleoOftalmologiaDashboardKommo />} />
 
