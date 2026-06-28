@@ -50,6 +50,7 @@ import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 import ClienteDetailPage from "./pages/ClienteDetailPage";
 import SistemaMarketingPage from "./pages/sistema";
+import OrcamentoEscolaCearenceOftalmologia from "./pages/OrcamentoEscolaCearenceOftalmologia";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const HIDDEN_PATHS = [
   '/dashboard-kommo-sandelly',
   '/samysam-dashboard',
   '/sistema',
+  '/orcamento-escola-cearence-oftalmologia',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -143,6 +145,7 @@ const AppRoutes = () => {
         <Route path="/CadastroInstancia" element={<CadastroInstancia />} />
 
         <Route path="/sistema" element={<SistemaMarketingPage />} />
+        <Route path="/orcamento-escola-cearence-oftalmologia" element={<OrcamentoEscolaCearenceOftalmologia />} />
         <Route path="/login" element={<Login />} />
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
