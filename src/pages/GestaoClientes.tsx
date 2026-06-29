@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase as supabaseGestao } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -259,6 +259,26 @@ export default function GestaoClientes() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+
+  const [gruposWhatsapp, setGruposWhatsapp] = useState<{ nome: string; id: string }[]>([]);
+  const [loadingGrupos, setLoadingGrupos] = useState(false);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    setLoadingGrupos(true);
+    fetch('https://n8n.trafficsolutions.cloud/webhook/listar-grupos-uazapi')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const sorted = [...data].sort((a, b) => a.nome.localeCompare(b.nome));
+          setGruposWhatsapp(sorted);
+        }
+      })
+      .catch(() => {
+        toast.error('Erro ao carregar lista de grupos WhatsApp.');
+      })
+      .finally(() => setLoadingGrupos(false));
+  }, [modalOpen]);
 
   const { user } = useAuth();
 
@@ -1229,19 +1249,33 @@ export default function GestaoClientes() {
                 </div>
                 <div>
                   <label className={labelCls}>
-                    ID do Grupo WhatsApp <span className="text-red-400">*</span>
-                    <TooltipIcon text="ID do grupo onde os alertas e relatórios são enviados. Encontre em: abrir grupo no WhatsApp Web → a URL contém o ID." />
+                    Grupo WhatsApp <span className="text-red-400">*</span>
+                    <TooltipIcon text="Selecione o grupo onde os alertas e relatórios são enviados." />
                   </label>
-                  <Input
-                    value={form.numero_grupo_whatsapp}
-                    onChange={(e) =>
-                      handleField('numero_grupo_whatsapp', e.target.value)
-                    }
-                    placeholder="120363425141584579"
-                    className={inputCls}
-                  />
+                  {loadingGrupos ? (
+                    <div className="flex items-center gap-2 h-10 px-3">
+                      <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
+                      <span className="text-sm text-gray-500">Carregando grupos...</span>
+                    </div>
+                  ) : (
+                    <Select
+                      value={form.numero_grupo_whatsapp}
+                      onValueChange={(v) => handleField('numero_grupo_whatsapp', v)}
+                    >
+                      <SelectTrigger className={inputCls}>
+                        <SelectValue placeholder="Selecione um grupo" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0f0f0f] border-white/10 text-white max-h-60">
+                        {gruposWhatsapp.map((g) => (
+                          <SelectItem key={g.id} value={g.id}>
+                            {g.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <p className="text-xs text-gray-600 mt-1.5">
-                    Este ID é usado nos fluxos automáticos de alerta de saldo e relatório diário.
+                    Este grupo é usado nos fluxos automáticos de alerta de saldo e relatório diário.
                   </p>
                 </div>
               </div>
