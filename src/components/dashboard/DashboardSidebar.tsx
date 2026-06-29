@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import {
@@ -25,26 +26,23 @@ interface SidebarCliente {
 }
 
 export const DashboardSidebar = () => {
-  const [clients, setClients] = useState<SidebarCliente[]>([]);
-  const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const { signOut, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    (supabase as any)
-      .from("gestao_clientes")
-      .select("id, nome_cliente, numero_conta_anuncio, logo_url")
-      .eq("status", "ativo")
-      .order("nome_cliente")
-      .then(({ data, error }: any) => {
-        if (!error && data) {
-          setClients(data);
-        }
-        setLoading(false);
-      });
-  }, []);
+  const { data: clients = [], isLoading: loading } = useQuery({
+    queryKey: ['sidebar-clients'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("gestao_clientes")
+        .select("id, nome_cliente, numero_conta_anuncio, logo_url")
+        .eq("status", "ativo")
+        .order("nome_cliente");
+      if (error) throw error;
+      return (data ?? []) as SidebarCliente[];
+    },
+  });
 
   const handleSignOut = async () => {
     await signOut();

@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, useRef, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,9 +24,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [clienteVinculadoId, setClienteVinculadoId] = useState<string | null>(null);
   const [isRemoved, setIsRemoved] = useState(false);
   const [loadingRole, setLoadingRole] = useState(true);
+  const roleFetchedForUser = useRef<string | null>(null);
 
-  const fetchUserRole = async (userId: string) => {
-    setLoadingRole(true);
+  const fetchUserRole = async (userId: string, force = false) => {
+    if (!force && roleFetchedForUser.current === userId) return;
+
+    if (!roleFetchedForUser.current) {
+      setLoadingRole(true);
+    }
+
     try {
       const { data, error } = await supabase.rpc('user_is_admin', { user_id: userId });
       if (error) throw error;
@@ -57,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsRemoved(false);
         }
       }
+      roleFetchedForUser.current = userId;
     } catch (err) {
       console.error('Erro ao buscar papel do usuario:', err);
       setIsAdmin(false);
@@ -71,17 +78,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setClienteVinculadoId(null);
     setIsRemoved(false);
     setLoadingRole(false);
+    roleFetchedForUser.current = null;
   };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
         if (session?.user) {
-          fetchUserRole(session.user.id);
+          const isNewUser = event === 'SIGNED_IN' && roleFetchedForUser.current !== session.user.id;
+          fetchUserRole(session.user.id, isNewUser);
         } else {
           clearRole();
         }

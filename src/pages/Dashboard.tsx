@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { format, subDays } from 'date-fns';
 import {
@@ -67,48 +68,32 @@ type TabType = 'mensagem' | 'site';
 function ClienteDashboardView() {
   const { clienteVinculadoId } = useAuth();
 
-  const [clientName, setClientName] = useState('');
-  const [clientLogo, setClientLogo] = useState<string | null>(null);
-  const [accountId, setAccountId] = useState<string | null>(null);
-  const [reports, setReports] = useState<ReportData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingClient, setLoadingClient] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('mensagem');
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const [logoBroken, setLogoBroken] = useState(false);
-  const [missingAccount, setMissingAccount] = useState(false);
 
-  useEffect(() => {
-    if (!clienteVinculadoId) {
-      setLoadingClient(false);
-      return;
-    }
+  const { data: clienteInfo, isLoading: loadingClient } = useQuery({
+    queryKey: ['cliente-info', clienteVinculadoId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('gestao_clientes')
+        .select('id, nome_cliente, logo_url, numero_conta_anuncio')
+        .eq('id', clienteVinculadoId!)
+        .single();
+      return data as { nome_cliente: string; logo_url: string | null; numero_conta_anuncio: string | null } | null;
+    },
+    enabled: !!clienteVinculadoId,
+  });
 
-    supabase
-      .from('gestao_clientes')
-      .select('id, nome_cliente, logo_url, numero_conta_anuncio')
-      .eq('id', clienteVinculadoId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setClientName((data as any).nome_cliente ?? '');
-          setClientLogo((data as any).logo_url ?? null);
-          const conta = (data as any).numero_conta_anuncio;
-          if (conta) {
-            setAccountId(conta);
-          } else {
-            setMissingAccount(true);
-          }
-        }
-        setLoadingClient(false);
-      });
-  }, [clienteVinculadoId]);
+  const clientName = clienteInfo?.nome_cliente ?? '';
+  const clientLogo = clienteInfo?.logo_url ?? null;
+  const accountId = clienteInfo?.numero_conta_anuncio ?? null;
+  const missingAccount = !!clienteInfo && !accountId;
 
-  const fetchData = async () => {
-    if (!accountId || !clientName) return;
-    setLoading(true);
-    try {
+  const { data: reports = [], isLoading: loading, refetch: refetchReports } = useQuery({
+    queryKey: ['cliente-reports', accountId, clientName, startDate ? format(startDate, 'yyyy-MM-dd') : null, endDate ? format(endDate, 'yyyy-MM-dd') : null],
+    queryFn: async () => {
       const dataInicial = startDate ? format(startDate, 'dd/MM/yyyy') : format(subDays(new Date(), 7), 'dd/MM/yyyy');
       const dataFinal = endDate ? format(endDate, 'dd/MM/yyyy') : format(new Date(), 'dd/MM/yyyy');
 
@@ -125,21 +110,12 @@ function ClienteDashboardView() {
 
       if (!response.ok) throw new Error('Erro ao buscar relatorio');
       const result = await response.json();
-      setReports(Array.isArray(result) ? result : result.data || []);
-    } catch {
-      toast.error('Erro ao carregar dados');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return (Array.isArray(result) ? result : result.data || []) as ReportData[];
+    },
+    enabled: !!accountId && !!clientName,
+  });
 
-  useEffect(() => {
-    if (accountId && clientName) {
-      fetchData();
-    }
-  }, [accountId, clientName]);
-
-  const handleFilter = () => fetchData();
+  const handleFilter = () => refetchReports();
 
   if (loadingClient || (loading && reports.length === 0)) {
     return (
@@ -333,35 +309,17 @@ function ClienteDashboardView() {
 }
 
 function AdminDashboardView() {
-  const [data, setData] = useState<N8NResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await fetch('https://n8n.trafficsolutions.cloud/webhook/bm-clientes-ativos', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao buscar clientes');
-        }
-
-        const result = await response.json();
-        setData(result);
-      } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-        toast.error('Erro ao carregar dados dos clientes');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchClients();
-  }, []);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['admin-dashboard-clients'],
+    queryFn: async () => {
+      const response = await fetch('https://n8n.trafficsolutions.cloud/webhook/bm-clientes-ativos', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('Erro ao buscar clientes');
+      return (await response.json()) as N8NResponse;
+    },
+  });
 
   if (loading) {
     return (

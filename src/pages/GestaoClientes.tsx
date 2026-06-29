@@ -1,5 +1,6 @@
 // @ts-nocheck
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase as supabaseGestao } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
@@ -231,8 +232,7 @@ function TooltipIcon({ text }: { text: string }) {
 }
 
 export default function GestaoClientes() {
-  const [clientes, setClientes] = useState<GestaoCliente[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [filterContrato, setFilterContrato] = useState<string>('todos');
@@ -262,19 +262,22 @@ export default function GestaoClientes() {
 
   const { user } = useAuth();
 
-  const fetchClientes = async () => {
-    setLoading(true);
-    const { data, error } = await supabaseGestao
-      .from('gestao_clientes')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (!error && data) setClientes(data as GestaoCliente[]);
-    setLoading(false);
-  };
+  const { data: clientes = [], isLoading: loading } = useQuery({
+    queryKey: ['gestao-clientes'],
+    queryFn: async () => {
+      const { data, error } = await supabaseGestao
+        .from('gestao_clientes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as GestaoCliente[];
+    },
+  });
 
-  useEffect(() => {
-    fetchClientes();
-  }, []);
+  const invalidateClientes = () => {
+    qc.invalidateQueries({ queryKey: ['gestao-clientes'] });
+    qc.invalidateQueries({ queryKey: ['sidebar-clients'] });
+  };
 
   const filtered = useMemo(() => {
     return clientes.filter((c) => {
@@ -497,7 +500,7 @@ export default function GestaoClientes() {
         }
 
         setModalOpen(false);
-        fetchClientes();
+        invalidateClientes();
         return;
       }
 
@@ -621,7 +624,7 @@ export default function GestaoClientes() {
         'Cliente cadastrado! Os fluxos de automação serão criados em instantes.'
       );
       setModalOpen(false);
-      fetchClientes();
+      invalidateClientes();
     } catch (err: unknown) {
       console.error('Erro completo Supabase:', JSON.stringify(err, null, 2), err);
       toast.error(
@@ -642,7 +645,7 @@ export default function GestaoClientes() {
       toast.error('Erro ao atualizar status.');
     } else {
       toast.success(`Cliente ${next === 'ativo' ? 'ativado' : 'pausado'}.`);
-      fetchClientes();
+      invalidateClientes();
     }
   };
 
@@ -739,7 +742,7 @@ export default function GestaoClientes() {
       }
 
       toast.success('Status dos fluxos sincronizado com o n8n.');
-      fetchClientes();
+      invalidateClientes();
     } catch {
       toast.error('Erro ao sincronizar status dos fluxos.');
     } finally {
@@ -792,7 +795,7 @@ export default function GestaoClientes() {
       setModalOpen(false);
       setEditingCliente(null);
       setEditingId(null);
-      fetchClientes();
+      invalidateClientes();
     } catch (err) {
       toast.error(
         'Erro ao excluir cliente: ' +

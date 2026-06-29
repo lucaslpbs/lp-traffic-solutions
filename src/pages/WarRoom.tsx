@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Crosshair, Download, RefreshCw, Calendar, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,16 +28,11 @@ const DATE_PRESET_LABELS: Record<string, string> = {
 };
 
 const WarRoom = () => {
-  // Data
-  const [data, setData] = useState<AdNode[]>([]);
-  const [previousData, setPreviousData] = useState<AdNode[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // Metrics config
   const [globalMetrics, setGlobalMetrics] = useState<MetricConfig[]>([]);
   const [clientMetricsMap, setClientMetricsMap] = useState<ClientMetricsMap>({});
-  // Per-client, per-objective overrides: clientId -> objective -> MetricConfig[]
   const [clientObjectiveMetrics, setClientObjectiveMetrics] = useState<Record<string, Record<string, MetricConfig[]>>>({});
 
   // UI
@@ -48,7 +44,6 @@ const WarRoom = () => {
   const [clientFilter, setClientFilter] = useState('all');
   const [alertsOnly, setAlertsOnly] = useState(false);
 
-  const abortRef = useRef<AbortController | null>(null);
   const metricsInitialized = useRef(false);
 
   const buildEffectiveRange = useCallback((): DateRange => {
@@ -58,15 +53,12 @@ const WarRoom = () => {
     return dateRange;
   }, [dateRange, customStart, customEnd]);
 
-  const fetchWarRoom = useCallback(async (range: DateRange, initMetrics: boolean) => {
-    abortRef.current?.abort();
-    const ctrl = new AbortController();
-    abortRef.current = ctrl;
+  const effectiveRange = buildEffectiveRange();
 
-    setLoading(true);
-    setError(null);
-
-    try {
+  const { data: warRoomData, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['war-room', effectiveRange.preset, effectiveRange.customStart, effectiveRange.customEnd],
+    queryFn: async ({ signal }) => {
+      const range = effectiveRange;
       const { start: curStart, end: curEnd } = getCurrentPeriodDates(range);
       const { start: prevStart, end: prevEnd } = getPreviousPeriod(range);
 
@@ -74,100 +66,87 @@ const WarRoom = () => {
       const previousUrl = buildWarRoomUrl(prevStart, prevEnd);
 
       const fetches: Promise<Response | null>[] = [
-        fetch(currentUrl, { signal: ctrl.signal }),
-        fetch(previousUrl, { signal: ctrl.signal }).catch(() => null),
+        fetch(currentUrl, { signal }),
+        fetch(previousUrl, { signal }).catch(() => null),
       ];
 
-      if (initMetrics) {
+      if (!metricsInitialized.current) {
         fetches.push(
-          fetch(`${API_BASE}/get-metrics`, { signal: ctrl.signal }).catch(() => null)
+          fetch(`${API_BASE}/get-metrics`, { signal }).catch(() => null)
         );
       }
 
       const results = await Promise.all(fetches);
-      if (ctrl.signal.aborted) return;
-
       const [currentRes, previousRes, metricsRes] = results;
 
       const currentData: AdNode[] = currentRes?.ok ? await currentRes.json() : MOCK_DATA;
       const prevData: AdNode[] = previousRes?.ok ? await previousRes.json() : [];
 
-      setData(currentData);
-      setPreviousData(prevData);
+      return { currentData, prevData, metricsRes: metricsRes ?? null };
+    },
+  });
 
-      if (initMetrics) {
-        // Load all metrics from API only (no localStorage)
-let apiMetrics: Record<string, MetricConfig[]> = {};
-if (metricsRes?.ok) {
-try {
-  const raw = await metricsRes.text();
-  const parsed = JSON.parse(raw);
-  // Handle array format: [{clientId: "global", metrics: [...]}, ...]
-  // Handle object format: {global: [...], ...}
-  if (Array.isArray(parsed)) {
-    for (const item of parsed) {
-      const key: string | undefined = item?.clientId ?? item?.client_id;
-      const val = item?.metrics;
-      if (key && Array.isArray(val)) {
-        apiMetrics[key] = val;
-      }
+  const data = warRoomData?.currentData ?? [];
+  const previousData = warRoomData?.prevData ?? [];
+  const error = queryError ? 'Erro ao carregar dados. Verifique a conexão.' : null;
+
+  useEffect(() => {
+    if (!warRoomData || metricsInitialized.current) return;
+
+    const { currentData, metricsRes } = warRoomData;
+    if (!metricsRes) {
+      const availableIds = detectAvailableMetrics(currentData);
+      setGlobalMetrics(availableIds.length > 0 ? buildMetricsFromIds(availableIds, []) : DEFAULT_METRICS);
+      metricsInitialized.current = true;
+      return;
     }
-  } else if (parsed && typeof parsed === 'object') {
-    apiMetrics = parsed as Record<string, MetricConfig[]>;
-  }
-} catch (e) {
-  console.error('GET METRICS ERROR:', e);
-}
-}
 
-const availableIds = detectAvailableMetrics(currentData);
-const globalOverrides = apiMetrics['global'] ?? [];
+    (async () => {
+      let apiMetrics: Record<string, MetricConfig[]> = {};
+      try {
+        const raw = await metricsRes.text();
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            const key: string | undefined = item?.clientId ?? item?.client_id;
+            const val = item?.metrics;
+            if (key && Array.isArray(val)) apiMetrics[key] = val;
+          }
+        } else if (parsed && typeof parsed === 'object') {
+          apiMetrics = parsed as Record<string, MetricConfig[]>;
+        }
+      } catch (e) {
+        console.error('GET METRICS ERROR:', e);
+      }
 
-// Se veio config salva do servidor, usa direto sem reconstruir
-const newGlobal = globalOverrides.length > 0
-  ? globalOverrides
-  : (availableIds.length > 0 ? buildMetricsFromIds(availableIds, []) : DEFAULT_METRICS);
-setGlobalMetrics(newGlobal);
+      const availableIds = detectAvailableMetrics(currentData);
+      const globalOverrides = apiMetrics['global'] ?? [];
+      const newGlobal = globalOverrides.length > 0
+        ? globalOverrides
+        : (availableIds.length > 0 ? buildMetricsFromIds(availableIds, []) : DEFAULT_METRICS);
+      setGlobalMetrics(newGlobal);
 
-// Per-client overrides from API response
-const newClientMap: ClientMetricsMap = {};
-const newClientObjMetrics: Record<string, Record<string, MetricConfig[]>> = {};
-for (const client of currentData) {
-  const clientApi = apiMetrics[client.id];
-  if (clientApi) {
-    // Se veio config salva do servidor, usa direto
-    newClientMap[client.id] = clientApi;
-  }
-          // Per-client, per-tipo overrides (key: clientId__tipo)
-          for (const tipoKey of TIPO_KEYS) {
-            const apiKey = `${client.id}__${tipoKey}`;
-            if (apiMetrics[apiKey]) {
-              if (!newClientObjMetrics[client.id]) newClientObjMetrics[client.id] = {};
-              newClientObjMetrics[client.id][tipoKey] = apiMetrics[apiKey];
-            }
+      const newClientMap: ClientMetricsMap = {};
+      const newClientObjMetrics: Record<string, Record<string, MetricConfig[]>> = {};
+      for (const client of currentData) {
+        const clientApi = apiMetrics[client.id];
+        if (clientApi) newClientMap[client.id] = clientApi;
+        for (const tipoKey of TIPO_KEYS) {
+          const apiKey = `${client.id}__${tipoKey}`;
+          if (apiMetrics[apiKey]) {
+            if (!newClientObjMetrics[client.id]) newClientObjMetrics[client.id] = {};
+            newClientObjMetrics[client.id][tipoKey] = apiMetrics[apiKey];
           }
         }
-        setClientMetricsMap(newClientMap);
-        setClientObjectiveMetrics(newClientObjMetrics);
-        metricsInitialized.current = true;
       }
-    } catch (e: unknown) {
-      if (ctrl.signal.aborted) return;
-      setError('Erro ao carregar dados. Verifique a conexão.');
-    } finally {
-      if (!ctrl.signal.aborted) setLoading(false);
-    }
-  }, []);
-
-  // Initial load
-  useEffect(() => {
-    fetchWarRoom({ preset: 'last_7d' }, true);
-    return () => abortRef.current?.abort();
-  }, [fetchWarRoom]);
+      setClientMetricsMap(newClientMap);
+      setClientObjectiveMetrics(newClientObjMetrics);
+      metricsInitialized.current = true;
+    })();
+  }, [warRoomData]);
 
   const applyDateRange = (range: DateRange) => {
     setDateRange(range);
-    fetchWarRoom(range, false);
   };
 
   const handlePresetClick = (preset: DateRange['preset']) => {
@@ -423,7 +402,7 @@ for (const client of currentData) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchWarRoom(buildEffectiveRange(), !metricsInitialized.current)}
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['war-room'] })}
             className="border-white/10 text-gray-300 hover:bg-white/5"
           >
             <RefreshCw className="h-4 w-4 mr-2" /> Tentar novamente

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Users, ListChecks, Target, Workflow, LogOut, FileText, BookOpen, Library, Loader2, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ClienteGallery } from "@/components/sistema/ClienteGallery";
@@ -171,31 +172,24 @@ const clientSections = [
 
 function ClienteSistemaView() {
   const { clienteVinculadoId } = useAuth();
-  const [clientName, setClientName] = useState("");
-  const [clientLogo, setClientLogo] = useState<string | null>(null);
-  const [loadingClient, setLoadingClient] = useState(true);
   const [activeSection, setActiveSection] = useState<SectionId>(null);
   const [logoBroken, setLogoBroken] = useState(false);
 
-  useEffect(() => {
-    if (!clienteVinculadoId) {
-      setLoadingClient(false);
-      return;
-    }
+  const { data: clienteData, isLoading: loadingClient } = useQuery({
+    queryKey: ['sistema-cliente-info', clienteVinculadoId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("gestao_clientes")
+        .select("nome_cliente, logo_url")
+        .eq("id", clienteVinculadoId!)
+        .single();
+      return data as { nome_cliente: string; logo_url: string | null } | null;
+    },
+    enabled: !!clienteVinculadoId,
+  });
 
-    supabase
-      .from("gestao_clientes")
-      .select("nome_cliente, logo_url")
-      .eq("id", clienteVinculadoId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setClientName((data as any).nome_cliente ?? "");
-          setClientLogo((data as any).logo_url ?? null);
-        }
-        setLoadingClient(false);
-      });
-  }, [clienteVinculadoId]);
+  const clientName = clienteData?.nome_cliente ?? "";
+  const clientLogo = clienteData?.logo_url ?? null;
 
   if (loadingClient) {
     return (

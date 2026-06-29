@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -35,23 +36,23 @@ const formatDate = (iso: string) => {
 
 function ClienteChamadosView() {
   const { user, clienteVinculadoId } = useAuth();
-  const [chamados, setChamados] = useState<Chamado[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  const fetchChamados = async () => {
-    if (!clienteVinculadoId) { setLoading(false); return; }
-    const { data, error } = await (supabase as any)
-      .from("sistema_chamados")
-      .select("*")
-      .eq("client_id", clienteVinculadoId)
-      .order("created_at", { ascending: false });
-    if (!error && data) setChamados(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchChamados(); }, [clienteVinculadoId]);
+  const { data: chamados = [], isLoading: loading } = useQuery({
+    queryKey: ['chamados-cliente', clienteVinculadoId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("sistema_chamados")
+        .select("*")
+        .eq("client_id", clienteVinculadoId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Chamado[];
+    },
+    enabled: !!clienteVinculadoId,
+  });
 
   const enviar = async () => {
     if (!mensagem.trim() || !user || !clienteVinculadoId) return;
@@ -69,7 +70,7 @@ function ClienteChamadosView() {
     } else {
       toast.success("Chamado enviado com sucesso");
       setMensagem("");
-      fetchChamados();
+      qc.invalidateQueries({ queryKey: ['chamados-cliente'] });
     }
     setEnviando(false);
   };
@@ -149,43 +150,42 @@ type FilterTab = "aberto" | "respondido" | "concluido" | "todos";
 
 function AdminChamadosView() {
   const { user } = useAuth();
-  const [chamados, setChamados] = useState<Chamado[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [filter, setFilter] = useState<FilterTab>("aberto");
   const [respondendo, setRespondendo] = useState<Chamado | null>(null);
   const [resposta, setResposta] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  const fetchChamados = async () => {
-    const { data, error } = await (supabase as any)
-      .from("sistema_chamados")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const { data: chamados = [], isLoading: loading } = useQuery({
+    queryKey: ['chamados-admin'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("sistema_chamados")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (error) { console.error(error); setLoading(false); return; }
+      if (error) throw error;
 
-    const clientIds = [...new Set((data as any[]).map((c: any) => c.client_id))];
-    let clientesMap: Record<string, string> = {};
-    if (clientIds.length > 0) {
-      const { data: clientes } = await (supabase as any)
-        .from("gestao_clientes")
-        .select("id, nome_cliente")
-        .in("id", clientIds);
-      if (clientes) {
-        clientesMap = Object.fromEntries((clientes as any[]).map((c: any) => [c.id, c.nome_cliente]));
+      const clientIds = [...new Set((data as any[]).map((c: any) => c.client_id))];
+      let clientesMap: Record<string, string> = {};
+      if (clientIds.length > 0) {
+        const { data: clientes } = await (supabase as any)
+          .from("gestao_clientes")
+          .select("id, nome_cliente")
+          .in("id", clientIds);
+        if (clientes) {
+          clientesMap = Object.fromEntries((clientes as any[]).map((c: any) => [c.id, c.nome_cliente]));
+        }
       }
-    }
 
-    setChamados(
-      (data as any[]).map((c: any) => ({
+      return (data as any[]).map((c: any) => ({
         ...c,
         nome_cliente: clientesMap[c.client_id] || c.client_id,
-      }))
-    );
-    setLoading(false);
-  };
+      })) as Chamado[];
+    },
+  });
 
-  useEffect(() => { fetchChamados(); }, []);
+  const invalidateChamados = () => qc.invalidateQueries({ queryKey: ['chamados-admin'] });
 
   const filtered = filter === "todos" ? chamados : chamados.filter((c) => c.status === filter);
 
@@ -208,7 +208,7 @@ function AdminChamadosView() {
       toast.success("Resposta enviada");
       setRespondendo(null);
       setResposta("");
-      fetchChamados();
+      invalidateChamados();
     }
     setEnviando(false);
   };
@@ -226,7 +226,7 @@ function AdminChamadosView() {
       console.error(error);
     } else {
       toast.success("Chamado concluído");
-      fetchChamados();
+      invalidateChamados();
     }
   };
 
