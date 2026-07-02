@@ -51,6 +51,7 @@ import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 import ClienteDetailPage from "./pages/ClienteDetailPage";
 import SistemaMarketingPage from "./pages/sistema";
 import OrcamentoEscolaCearenceOftalmologia from "./pages/OrcamentoEscolaCearenceOftalmologia";
+import OrcamentoSeteMares from "./pages/OrcamentoSeteMares";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +90,7 @@ const HIDDEN_PATHS = [
   '/samysam-dashboard',
   '/sistema',
   '/orcamento-escola-cearence-oftalmologia',
+  '/orcamento-setemares',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -154,6 +156,7 @@ const AppRoutes = () => {
 
         <Route path="/sistema" element={<SistemaMarketingPage />} />
         <Route path="/orcamento-escola-cearence-oftalmologia" element={<OrcamentoEscolaCearenceOftalmologia />} />
+        <Route path="/orcamento-setemares" element={<OrcamentoSeteMares />} />
         <Route path="/login" element={<Login />} />
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
