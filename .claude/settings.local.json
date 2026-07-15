@@ -36,7 +36,14 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(xargs grep -l \"gestao_clientes\")",
       "Bash(xargs grep -l \"CadastroInstancia\\\\|import.meta.env\")",
-      "Bash(mkdir -p \"c:\\\\Users\\\\gabri\\\\source\\\\repos\\\\lp-traffic-solutions\\\\supabase\\\\functions\\\\manage-client-auth\")"
+      "Bash(mkdir -p \"c:\\\\Users\\\\gabri\\\\source\\\\repos\\\\lp-traffic-solutions\\\\supabase\\\\functions\\\\manage-client-auth\")",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36\" \"https://lpccapital.com.br/\" -o \"C:\\\\Users\\\\lucas\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-lucas-source-repos-lp-traffic-solutions\\\\d8fc0264-e90c-4dfe-bb8d-55fd630b8806\\\\scratchpad\\\\lpc.html\" -w \"%{http_code}\\\\n\")",
+      "Bash(grep -oE '#[0-9a-fA-F]{3,6}' \"C:\\\\Users\\\\lucas\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-lucas-source-repos-lp-traffic-solutions\\\\d8fc0264-e90c-4dfe-bb8d-55fd630b8806\\\\scratchpad\\\\lpc.html\")",
+      "Bash(curl -s -A \"Mozilla/5.0\" \"https://lpccapital.com.br/wp-content/uploads/elementor/css/post-7.css?ver=1782891621\" -o post-7.css)",
+      "Bash(curl -s -A \"Mozilla/5.0\" \"https://lpccapital.com.br/wp-content/uploads/elementor/css/post-53.css?ver=1782896459\" -o post-53.css)",
+      "Bash(curl -s -A \"Mozilla/5.0\" \"https://lpccapital.com.br/wp-content/uploads/elementor/css/post-175.css?ver=1782896459\" -o post-175.css)",
+      "Bash(curl -s -A \"Mozilla/5.0\" \"https://lpccapital.com.br/wp-content/uploads/elementor/css/post-182.css?ver=1782896459\" -o post-182.css)",
+      "Bash(curl -s -A \"Mozilla/5.0\" \"https://lpccapital.com.br/wp-content/uploads/elementor/css/post-187.css?ver=1782896459\" -o post-187.css)"
     ],
     "additionalDirectories": [
       "\\mnt\\c\\Users\\User\\Downloads",

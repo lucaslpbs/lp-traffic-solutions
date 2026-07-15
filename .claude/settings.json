@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"n8n.trafficsolutions.cloud/webhook\")",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\lucas\\\\source\\\\repos\\\\lp-traffic-solutions\\\\src\" -Recurse | Where-Object {!$_.PSIsContainer} | Select-Object FullName)"
+    ]
+  }
+}
