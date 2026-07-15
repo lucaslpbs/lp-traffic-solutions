@@ -5,8 +5,8 @@ import sideImg from '../../assets/bg2.png';
 
 export function SemFilas() {
   return (
-    <section className="lpc-noise bg-[#0a0a0a] relative overflow-hidden">
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#c9a227]/10 blur-[140px] pointer-events-none" />
+    <section className="lpc-noise bg-[#00325b] relative overflow-hidden">
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#c99900]/10 blur-[140px] pointer-events-none" />
 
       <div className="max-w-[1180px] mx-auto px-6 grid lg:grid-cols-[1.1fr_0.9fr] items-center gap-10">
         <motion.div
@@ -25,7 +25,7 @@ export function SemFilas() {
           </p>
           <Link
             to="/lpccapital/simulacao"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c9a227] to-[#e8c968] px-8 py-4 text-base font-bold text-[#0a0a0a] hover:shadow-[0_0_32px_rgba(201,162,39,0.5)] transition-shadow"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c99900] to-[#f3de74] px-8 py-4 text-base font-bold text-[#00325b] hover:shadow-[0_0_32px_rgba(201,153,0,0.5)] transition-shadow"
           >
             Simule agora mesmo sem custo!
             <ArrowRight className="w-5 h-5" />
@@ -41,8 +41,8 @@ export function SemFilas() {
         >
           <div className="relative rounded-3xl overflow-hidden w-[340px] aspect-[3/4]">
             <img src={sideImg} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/60 via-transparent to-transparent" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-[#c9a227]/25 rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#00325b]/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-[#c99900]/25 rounded-3xl" />
           </div>
         </motion.div>
       </div>

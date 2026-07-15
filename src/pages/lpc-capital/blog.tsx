@@ -25,10 +25,10 @@ export default function LPCBlog() {
 
       <Header />
 
-      <section className="lpc-noise bg-[#0a0a0a] py-16 lg:py-20">
+      <section className="lpc-noise bg-[#00325b] py-16 lg:py-20">
         <div className="max-w-[1180px] mx-auto px-6">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c9a227]">Blog</span>
-          <h1 className="lpc-serif text-white font-semibold text-[clamp(30px,4vw,48px)] mt-2 max-w-2xl">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c99900]">Blog</span>
+          <h1 className="lpc-display text-white font-semibold text-[clamp(30px,4vw,48px)] mt-2 max-w-2xl">
             Conteúdo para decidir com mais clareza
           </h1>
           <p className="text-white/55 mt-4 max-w-xl text-lg">
@@ -48,7 +48,7 @@ export default function LPCBlog() {
         >
           <Link
             to={`/lpccapital/blog/${destaque.slug}`}
-            className="group grid md:grid-cols-2 gap-8 items-center mb-20 rounded-3xl overflow-hidden bg-[#f7f3ea]"
+            className="group grid md:grid-cols-2 gap-8 items-center mb-20 rounded-3xl overflow-hidden bg-[#f4f7fa]"
           >
             <div className="relative h-64 md:h-full min-h-[280px] overflow-hidden">
               <img
@@ -58,18 +58,18 @@ export default function LPCBlog() {
               />
             </div>
             <div className="p-8 md:pr-12">
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#c9a227]">
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#c99900]">
                 {destaque.categoria}
               </span>
-              <h2 className="lpc-serif text-[#0f0e0c] font-semibold text-[clamp(22px,2.6vw,32px)] mt-3 mb-4 leading-snug">
+              <h2 className="lpc-display text-[#1d1d1d] font-semibold text-[clamp(22px,2.6vw,32px)] mt-3 mb-4 leading-snug">
                 {destaque.titulo}
               </h2>
-              <p className="text-[#0f0e0c]/60 leading-relaxed mb-6">{destaque.resumo}</p>
-              <div className="flex items-center justify-between text-sm text-[#0f0e0c]/45">
+              <p className="text-[#1d1d1d]/60 leading-relaxed mb-6">{destaque.resumo}</p>
+              <div className="flex items-center justify-between text-sm text-[#1d1d1d]/45">
                 <span>
                   {formatDate(destaque.data)} · {destaque.tempoLeitura}
                 </span>
-                <span className="inline-flex items-center gap-1 font-bold text-[#0a0a0a] group-hover:text-[#c9a227] transition-colors">
+                <span className="inline-flex items-center gap-1 font-bold text-[#00325b] group-hover:text-[#c99900] transition-colors">
                   Ler artigo <ArrowUpRight className="w-4 h-4" />
                 </span>
               </div>
@@ -95,14 +95,14 @@ export default function LPCBlog() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#c9a227]">
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#c99900]">
                   {post.categoria}
                 </span>
-                <h3 className="text-[#0f0e0c] font-bold text-lg mt-2 mb-2 leading-snug group-hover:text-[#c9a227] transition-colors">
+                <h3 className="text-[#1d1d1d] font-bold text-lg mt-2 mb-2 leading-snug group-hover:text-[#c99900] transition-colors">
                   {post.titulo}
                 </h3>
-                <p className="text-[#0f0e0c]/55 text-sm leading-relaxed mb-3">{post.resumo}</p>
-                <span className="text-xs text-[#0f0e0c]/40">
+                <p className="text-[#1d1d1d]/55 text-sm leading-relaxed mb-3">{post.resumo}</p>
+                <span className="text-xs text-[#1d1d1d]/40">
                   {formatDate(post.data)} · {post.tempoLeitura}
                 </span>
               </Link>

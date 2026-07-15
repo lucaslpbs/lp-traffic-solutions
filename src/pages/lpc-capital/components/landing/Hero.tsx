@@ -5,7 +5,7 @@ import heroImg from '../../assets/bg3.png';
 
 export function Hero() {
   return (
-    <section id="topo" className="lpc-noise bg-[#0a0a0a] relative overflow-hidden">
+    <section id="topo" className="lpc-noise bg-[#00325b] relative overflow-hidden">
       <div
         className="absolute inset-0 opacity-[0.05] pointer-events-none"
         style={{
@@ -14,7 +14,7 @@ export function Hero() {
           backgroundSize: '48px 48px',
         }}
       />
-      <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[560px] h-[560px] rounded-full bg-[#c9a227]/20 blur-[120px] pointer-events-none" />
+      <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[560px] h-[560px] rounded-full bg-[#c99900]/20 blur-[120px] pointer-events-none" />
 
       <div className="max-w-[1180px] mx-auto px-6 relative grid lg:grid-cols-[1.1fr_0.9fr] items-end">
         <motion.div
@@ -23,7 +23,7 @@ export function Hero() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="py-24 lg:py-32 relative z-10"
         >
-          <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#e8c968] mb-5 border border-[#c9a227]/40 rounded-full px-4 py-1.5">
+          <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#f3de74] mb-5 border border-[#c99900]/40 rounded-full px-4 py-1.5">
             Crédito com garantia de imóvel
           </span>
           <h1 className="text-white font-extrabold leading-[1.08] text-[clamp(32px,4.6vw,54px)] mb-6">
@@ -35,7 +35,7 @@ export function Hero() {
           </p>
           <Link
             to="/lpccapital/simulacao"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c9a227] to-[#e8c968] px-8 py-4 text-base font-bold text-[#0a0a0a] hover:shadow-[0_0_32px_rgba(201,162,39,0.5)] transition-shadow"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c99900] to-[#f3de74] px-8 py-4 text-base font-bold text-[#00325b] hover:shadow-[0_0_32px_rgba(201,153,0,0.5)] transition-shadow"
           >
             Simule seu crédito com garantia de imóvel
             <ArrowRight className="w-5 h-5" />

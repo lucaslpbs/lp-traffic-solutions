@@ -67,7 +67,7 @@ export function EtapaDados({ sim }: EtapaDadosProps) {
       exit={{ opacity: 0, x: -24 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
-      <h2 className="text-[#0a0a0a] font-extrabold text-2xl md:text-3xl mb-2">Seus dados</h2>
+      <h2 className="text-[#00325b] font-extrabold text-2xl md:text-3xl mb-2">Seus dados</h2>
       <p className="text-[#1d1d1d]/55 mb-9">
         Última etapa — nossa equipe entra em contato com o resultado da sua simulação.
       </p>
@@ -135,7 +135,7 @@ export function EtapaDados({ sim }: EtapaDadosProps) {
               placeholder="00000-000"
             />
             {buscandoCep && (
-              <Loader2 className="w-4 h-4 animate-spin text-[#0a0a0a]/50 absolute right-3 top-1/2 -translate-y-1/2" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#00325b]/50 absolute right-3 top-1/2 -translate-y-1/2" />
             )}
           </div>
         </Field>
@@ -195,15 +195,15 @@ export function EtapaDados({ sim }: EtapaDadosProps) {
         </Field>
       </div>
 
-      <div className="flex flex-col gap-3 mb-4 border-t border-[#0a0a0a]/10 pt-6">
+      <div className="flex flex-col gap-3 mb-4 border-t border-[#00325b]/10 pt-6">
         <Checkbox
           checked={data.aceitaTermos}
           onChange={(v) => update('aceitaTermos', v)}
           error={erros.termos}
         >
           Li e aceito os{' '}
-          <span className="underline text-[#0a0a0a] font-semibold">Termos de Uso</span> e a{' '}
-          <span className="underline text-[#0a0a0a] font-semibold">Política de Privacidade</span> da
+          <span className="underline text-[#00325b] font-semibold">Termos de Uso</span> e a{' '}
+          <span className="underline text-[#00325b] font-semibold">Política de Privacidade</span> da
           LPC Capital.
         </Checkbox>
         <Checkbox
@@ -223,7 +223,7 @@ export function EtapaDados({ sim }: EtapaDadosProps) {
           type="button"
           onClick={goPrev}
           disabled={enviando}
-          className="inline-flex items-center gap-2 rounded-lg border-2 border-[#0a0a0a]/20 px-7 py-4 text-base font-bold text-[#0a0a0a] hover:bg-[#0a0a0a]/5 transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-lg border-2 border-[#00325b]/20 px-7 py-4 text-base font-bold text-[#00325b] hover:bg-[#00325b]/5 transition-colors disabled:opacity-40"
         >
           <ArrowLeft className="w-5 h-5" />
           Voltar
@@ -232,7 +232,7 @@ export function EtapaDados({ sim }: EtapaDadosProps) {
           type="button"
           onClick={handleSubmit}
           disabled={enviando}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#c9a227] px-8 py-4 text-base font-bold text-[#0a0a0a] hover:bg-[#e8c968] transition-colors disabled:opacity-70"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#c99900] px-8 py-4 text-base font-bold text-[#00325b] hover:bg-[#f3de74] transition-colors disabled:opacity-70"
         >
           {enviando ? (
             <>
@@ -252,8 +252,8 @@ export function EtapaDados({ sim }: EtapaDadosProps) {
 }
 
 function inputClass(hasError: boolean) {
-  return `w-full rounded-lg border-2 px-4 py-3 text-[#0a0a0a] font-medium focus:outline-none transition-colors ${
-    hasError ? 'border-red-400' : 'border-[#0a0a0a]/15 focus:border-[#0a0a0a]'
+  return `w-full rounded-lg border-2 px-4 py-3 text-[#00325b] font-medium focus:outline-none transition-colors ${
+    hasError ? 'border-red-400' : 'border-[#00325b]/15 focus:border-[#00325b]'
   }`;
 }
 
@@ -270,7 +270,7 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <label className="text-sm font-semibold text-[#0a0a0a] mb-1.5 block">{label}</label>
+      <label className="text-sm font-semibold text-[#00325b] mb-1.5 block">{label}</label>
       {children}
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
@@ -295,7 +295,7 @@ function Checkbox({
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 w-4 h-4 accent-[#0a0a0a] shrink-0"
+          className="mt-0.5 w-4 h-4 accent-[#00325b] shrink-0"
         />
         <span className="text-sm text-[#1d1d1d]/70 leading-relaxed">{children}</span>
       </label>

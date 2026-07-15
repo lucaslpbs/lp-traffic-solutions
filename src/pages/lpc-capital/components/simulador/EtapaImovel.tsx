@@ -35,12 +35,12 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
       exit={{ opacity: 0, x: -24 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
-      <h2 className="text-[#0a0a0a] font-extrabold text-2xl md:text-3xl mb-2">Sobre o imóvel</h2>
+      <h2 className="text-[#00325b] font-extrabold text-2xl md:text-3xl mb-2">Sobre o imóvel</h2>
       <p className="text-[#1d1d1d]/55 mb-9">Só cliques — sem formulário chato.</p>
 
       {/* Tipo do imóvel */}
       <div className="mb-9">
-        <p className="text-sm font-semibold text-[#0a0a0a] mb-3">Tipo do imóvel</p>
+        <p className="text-sm font-semibold text-[#00325b] mb-3">Tipo do imóvel</p>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {TIPOS.map(({ label, icon: Icon }) => {
             const selected = data.tipoImovel === label;
@@ -51,12 +51,12 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
                 onClick={() => update('tipoImovel', label)}
                 className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-all ${
                   selected
-                    ? 'border-[#c9a227] bg-[#c9a227]/10 scale-[1.02] shadow-[0_0_0_3px_rgba(201,153,0,0.15)]'
-                    : 'border-[#0a0a0a]/12 hover:border-[#0a0a0a]/25'
+                    ? 'border-[#c99900] bg-[#c99900]/10 scale-[1.02] shadow-[0_0_0_3px_rgba(201,153,0,0.15)]'
+                    : 'border-[#00325b]/12 hover:border-[#00325b]/25'
                 }`}
               >
-                <Icon className={`w-6 h-6 ${selected ? 'text-[#c9a227]' : 'text-[#0a0a0a]/60'}`} />
-                <span className="text-xs font-semibold text-[#0a0a0a]">{label}</span>
+                <Icon className={`w-6 h-6 ${selected ? 'text-[#c99900]' : 'text-[#00325b]/60'}`} />
+                <span className="text-xs font-semibold text-[#00325b]">{label}</span>
               </button>
             );
           })}
@@ -71,7 +71,7 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
       />
       {data.imovelFinanciado && (
         <div className="mb-9 -mt-4">
-          <label className="text-sm font-semibold text-[#0a0a0a] mb-2 block">
+          <label className="text-sm font-semibold text-[#00325b] mb-2 block">
             Quanto falta para quitar?
           </label>
           <CurrencyField
@@ -91,7 +91,7 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
 
       {/* Propriedade */}
       <div className="mb-9">
-        <p className="text-sm font-semibold text-[#0a0a0a] mb-3">
+        <p className="text-sm font-semibold text-[#00325b] mb-3">
           O imóvel é próprio ou de outra pessoa?
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -104,8 +104,8 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
                 onClick={() => update('propriedadeImovel', label)}
                 className={`rounded-xl border-2 px-3 py-4 text-center text-sm font-semibold transition-all ${
                   selected
-                    ? 'border-[#c9a227] bg-[#c9a227]/10 text-[#0a0a0a] scale-[1.02] shadow-[0_0_0_3px_rgba(201,153,0,0.15)]'
-                    : 'border-[#0a0a0a]/12 text-[#0a0a0a]/70 hover:border-[#0a0a0a]/25'
+                    ? 'border-[#c99900] bg-[#c99900]/10 text-[#00325b] scale-[1.02] shadow-[0_0_0_3px_rgba(201,153,0,0.15)]'
+                    : 'border-[#00325b]/12 text-[#00325b]/70 hover:border-[#00325b]/25'
                 }`}
               >
                 {label}
@@ -118,7 +118,7 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
       {/* Valor + metragem */}
       <div className="grid sm:grid-cols-2 gap-6 mb-10">
         <div>
-          <label className="text-sm font-semibold text-[#0a0a0a] mb-2 block">
+          <label className="text-sm font-semibold text-[#00325b] mb-2 block">
             Valor estimado do imóvel
           </label>
           <CurrencyField
@@ -128,14 +128,14 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
           />
         </div>
         <div>
-          <label className="text-sm font-semibold text-[#0a0a0a] mb-2 block">Metragem (m²)</label>
+          <label className="text-sm font-semibold text-[#00325b] mb-2 block">Metragem (m²)</label>
           <input
             type="number"
             min={0}
             value={data.metragem}
             onChange={(e) => update('metragem', e.target.value)}
             placeholder="Ex: 85"
-            className="w-full rounded-lg border-2 border-[#0a0a0a]/15 px-4 py-3 text-[#0a0a0a] font-semibold focus:outline-none focus:border-[#0a0a0a] transition-colors"
+            className="w-full rounded-lg border-2 border-[#00325b]/15 px-4 py-3 text-[#00325b] font-semibold focus:outline-none focus:border-[#00325b] transition-colors"
           />
         </div>
       </div>
@@ -144,7 +144,7 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
         <button
           type="button"
           onClick={goPrev}
-          className="inline-flex items-center gap-2 rounded-lg border-2 border-[#0a0a0a]/20 px-7 py-4 text-base font-bold text-[#0a0a0a] hover:bg-[#0a0a0a]/5 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border-2 border-[#00325b]/20 px-7 py-4 text-base font-bold text-[#00325b] hover:bg-[#00325b]/5 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           Voltar
@@ -153,7 +153,7 @@ export function EtapaImovel({ sim }: EtapaImovelProps) {
           type="button"
           onClick={goNext}
           disabled={!podeAvancar}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#c9a227] px-8 py-4 text-base font-bold text-[#0a0a0a] hover:bg-[#e8c968] transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#c99900] px-8 py-4 text-base font-bold text-[#00325b] hover:bg-[#f3de74] transition-colors disabled:opacity-40 disabled:pointer-events-none"
         >
           Continuar
           <ArrowRight className="w-5 h-5" />
@@ -174,7 +174,7 @@ function BinaryQuestion({
 }) {
   return (
     <div className="mb-9">
-      <p className="text-sm font-semibold text-[#0a0a0a] mb-3">{label}</p>
+      <p className="text-sm font-semibold text-[#00325b] mb-3">{label}</p>
       <div className="flex gap-3">
         {[
           { label: 'Sim', v: true },
@@ -188,8 +188,8 @@ function BinaryQuestion({
               onClick={() => onChange(opt.v)}
               className={`flex-1 sm:flex-none sm:w-40 rounded-xl border-2 px-6 py-4 text-center font-bold transition-all ${
                 selected
-                  ? 'border-[#c9a227] bg-[#c9a227]/10 text-[#0a0a0a] scale-[1.02] shadow-[0_0_0_3px_rgba(201,153,0,0.15)]'
-                  : 'border-[#0a0a0a]/12 text-[#0a0a0a]/70 hover:border-[#0a0a0a]/25'
+                  ? 'border-[#c99900] bg-[#c99900]/10 text-[#00325b] scale-[1.02] shadow-[0_0_0_3px_rgba(201,153,0,0.15)]'
+                  : 'border-[#00325b]/12 text-[#00325b]/70 hover:border-[#00325b]/25'
               }`}
             >
               {opt.label}
@@ -217,7 +217,7 @@ function CurrencyField({
       value={value > 0 ? formatCurrencyPrecise(value) : ''}
       onChange={(e) => onChange(parseCurrencyInput(e.target.value))}
       placeholder={placeholder}
-      className="w-full rounded-lg border-2 border-[#0a0a0a]/15 px-4 py-3 text-[#0a0a0a] font-semibold focus:outline-none focus:border-[#0a0a0a] transition-colors"
+      className="w-full rounded-lg border-2 border-[#00325b]/15 px-4 py-3 text-[#00325b] font-semibold focus:outline-none focus:border-[#00325b] transition-colors"
     />
   );
 }

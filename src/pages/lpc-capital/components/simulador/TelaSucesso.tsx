@@ -30,7 +30,7 @@ export function TelaSucesso({ data, resultado }: TelaSucessoProps) {
         <CheckCircle2 className="w-9 h-9 text-[#0a8a4a]" />
       </motion.div>
 
-      <h2 className="text-[#0a0a0a] font-extrabold text-2xl md:text-3xl mb-3">
+      <h2 className="text-[#00325b] font-extrabold text-2xl md:text-3xl mb-3">
         Recebemos sua simulação!
       </h2>
       <p className="text-[#1d1d1d]/60 leading-relaxed mb-8">
@@ -38,7 +38,7 @@ export function TelaSucesso({ data, resultado }: TelaSucessoProps) {
         breve.
       </p>
 
-      <div className="rounded-2xl bg-[#f7f3ea] border border-[#0a0a0a]/10 p-6 text-left grid grid-cols-2 gap-4 mb-8">
+      <div className="rounded-2xl bg-[#f4f7fa] border border-[#00325b]/10 p-6 text-left grid grid-cols-2 gap-4 mb-8">
         <Resumo label="Valor solicitado" value={formatCurrency(data.valor)} />
         <Resumo label="Prazo" value={`${data.prazo} meses`} />
         <Resumo label="Tipo de imóvel" value={data.tipoImovel ?? '—'} />
@@ -60,7 +60,7 @@ export function TelaSucesso({ data, resultado }: TelaSucessoProps) {
 
         <Link
           to="/lpccapital/proposta"
-          className="inline-flex items-center gap-2 rounded-lg border-2 border-[#c9a227] px-8 py-4 text-base font-bold text-[#0a0a0a] hover:bg-[#c9a227]/10 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border-2 border-[#c99900] px-8 py-4 text-base font-bold text-[#00325b] hover:bg-[#c99900]/10 transition-colors"
         >
           Ver proposta
           <ArrowRight className="w-4 h-4" />
@@ -73,10 +73,10 @@ export function TelaSucesso({ data, resultado }: TelaSucessoProps) {
 function Resumo({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-wide text-[#0a0a0a]/45 font-semibold mb-0.5">
+      <p className="text-[11px] uppercase tracking-wide text-[#00325b]/45 font-semibold mb-0.5">
         {label}
       </p>
-      <p className="text-sm font-bold text-[#0a0a0a]">{value}</p>
+      <p className="text-sm font-bold text-[#00325b]">{value}</p>
     </div>
   );
 }

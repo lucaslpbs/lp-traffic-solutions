@@ -13,7 +13,7 @@ const DESTAQUES = [
 
 export function Destaques() {
   return (
-    <section className="lpc-noise bg-[#0a0a0a] py-24 lg:py-28">
+    <section className="lpc-noise bg-[#00325b] py-24 lg:py-28">
       <div className="max-w-[1180px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -22,8 +22,8 @@ export function Destaques() {
           transition={{ duration: 0.6 }}
           className="mb-14"
         >
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c9a227]">Destaques</span>
-          <h2 className="lpc-serif text-white font-semibold text-[clamp(26px,3vw,38px)] mt-2">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c99900]">Destaques</span>
+          <h2 className="lpc-display text-white font-semibold text-[clamp(26px,3vw,38px)] mt-2">
             Números que fazem a diferença
           </h2>
         </motion.div>
@@ -38,7 +38,7 @@ export function Destaques() {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className={`rounded-2xl p-7 flex flex-col gap-6 ${
                 i % 2 === 0
-                  ? 'bg-gradient-to-br from-[#c9a227] to-[#e8c968] text-[#0a0a0a]'
+                  ? 'bg-gradient-to-br from-[#c99900] to-[#f3de74] text-[#00325b]'
                   : 'bg-white/[0.04] border border-white/10 text-white'
               }`}
             >

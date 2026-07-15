@@ -23,24 +23,24 @@ export function ResumoLateral({ data, parcela, step }: ResumoLateralProps) {
   return (
     <>
       {/* Mobile: collapsible bar */}
-      <div className="lg:hidden sticky top-20 z-30 bg-white border-b border-[#0a0a0a]/10 shadow-sm">
+      <div className="lg:hidden sticky top-20 z-30 bg-white border-b border-[#00325b]/10 shadow-sm">
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
           className="w-full flex items-center justify-between px-5 py-3.5"
         >
           <div className="text-left">
-            <p className="text-[11px] uppercase tracking-wide text-[#0a0a0a]/50 font-semibold">
+            <p className="text-[11px] uppercase tracking-wide text-[#00325b]/50 font-semibold">
               Parcela estimada
             </p>
-            <p className="text-lg font-extrabold text-[#0a0a0a]">
+            <p className="text-lg font-extrabold text-[#00325b]">
               <AnimatedNumber value={parcela} format={formatCurrencyPrecise} />
-              <span className="text-xs font-medium text-[#0a0a0a]/50">/mês</span>
+              <span className="text-xs font-medium text-[#00325b]/50">/mês</span>
             </p>
-            <div className="h-0.5 w-8 bg-[#c9a227] rounded-full mt-1" />
+            <div className="h-0.5 w-8 bg-[#c99900] rounded-full mt-1" />
           </div>
           <ChevronDown
-            className={`w-5 h-5 text-[#0a0a0a] transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 text-[#00325b] transition-transform ${mobileOpen ? 'rotate-180' : ''}`}
           />
         </button>
         <AnimatePresence>
@@ -56,7 +56,7 @@ export function ResumoLateral({ data, parcela, step }: ResumoLateralProps) {
                 {linhas.map((l) => (
                   <div key={l.label} className="flex justify-between text-sm">
                     <span className="text-[#1d1d1d]/55">{l.label}</span>
-                    <span className="font-semibold text-[#0a0a0a]">{l.value}</span>
+                    <span className="font-semibold text-[#00325b]">{l.value}</span>
                   </div>
                 ))}
               </div>
@@ -67,11 +67,11 @@ export function ResumoLateral({ data, parcela, step }: ResumoLateralProps) {
 
       {/* Desktop: sticky sidebar */}
       <div className="hidden lg:block">
-        <div className="sticky top-28 bg-[#0a0a0a] rounded-2xl border-t-2 border-t-[#c9a227] shadow-[0_8px_32px_rgba(0,0,0,0.25)] p-6">
+        <div className="sticky top-28 bg-[#00325b] rounded-2xl border-t-2 border-t-[#c99900] shadow-[0_8px_32px_rgba(0,0,0,0.25)] p-6">
           <p className="text-[11px] uppercase tracking-wide text-white/45 font-semibold mb-1">
             Parcela estimada
           </p>
-          <p className="text-3xl font-extrabold text-[#e8c968] mb-1">
+          <p className="text-3xl font-extrabold text-[#f3de74] mb-1">
             <AnimatedNumber value={parcela} format={formatCurrencyPrecise} />
           </p>
           <p className="text-xs text-white/35 mb-6">por mês, na Tabela Price</p>

@@ -22,7 +22,7 @@ export function EtapaValor({ sim }: EtapaValorProps) {
       exit={{ opacity: 0, x: -24 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
-      <h2 className="text-[#0a0a0a] font-extrabold text-2xl md:text-3xl mb-2">
+      <h2 className="text-[#00325b] font-extrabold text-2xl md:text-3xl mb-2">
         Quanto você precisa?
       </h2>
       <p className="text-[#1d1d1d]/55 mb-9">Mova os controles e veja o resultado na hora.</p>
@@ -30,8 +30,8 @@ export function EtapaValor({ sim }: EtapaValorProps) {
       {/* Valor do empréstimo */}
       <div className="mb-10">
         <div className="flex items-baseline justify-between mb-3">
-          <label className="text-sm font-semibold text-[#0a0a0a]">Valor do empréstimo</label>
-          <span className="text-2xl font-extrabold text-[#0a0a0a]">
+          <label className="text-sm font-semibold text-[#00325b]">Valor do empréstimo</label>
+          <span className="text-2xl font-extrabold text-[#00325b]">
             <AnimatedNumber value={data.valor} format={formatCurrency} />
           </span>
         </div>
@@ -44,8 +44,8 @@ export function EtapaValor({ sim }: EtapaValorProps) {
               onClick={() => update('valor', v)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
                 data.valor === v
-                  ? 'bg-[#0a0a0a] text-white'
-                  : 'bg-[#0a0a0a]/[0.06] text-[#0a0a0a] hover:bg-[#0a0a0a]/10'
+                  ? 'bg-[#00325b] text-white'
+                  : 'bg-[#00325b]/[0.06] text-[#00325b] hover:bg-[#00325b]/10'
               }`}
             >
               {formatCurrency(v)}
@@ -70,8 +70,8 @@ export function EtapaValor({ sim }: EtapaValorProps) {
       {/* Prazo */}
       <div className="mb-10">
         <div className="flex items-baseline justify-between mb-3">
-          <label className="text-sm font-semibold text-[#0a0a0a]">Prazo</label>
-          <span className="text-2xl font-extrabold text-[#0a0a0a]">
+          <label className="text-sm font-semibold text-[#00325b]">Prazo</label>
+          <span className="text-2xl font-extrabold text-[#00325b]">
             <AnimatedNumber value={data.prazo} format={(n) => `${Math.round(n)} meses`} />
           </span>
         </div>
@@ -91,12 +91,12 @@ export function EtapaValor({ sim }: EtapaValorProps) {
       </div>
 
       {/* Resultado em tempo real */}
-      <div className="rounded-2xl bg-[#0a0a0a] p-6 md:p-7 grid sm:grid-cols-3 gap-6 mb-10">
+      <div className="rounded-2xl bg-[#00325b] p-6 md:p-7 grid sm:grid-cols-3 gap-6 mb-10">
         <div>
           <p className="text-[11px] uppercase tracking-wide text-white/50 font-semibold mb-1">
             Parcela mensal estimada
           </p>
-          <p className="text-2xl font-extrabold text-[#c9a227]">
+          <p className="text-2xl font-extrabold text-[#c99900]">
             <AnimatedNumber value={resultado.parcela} format={formatCurrencyPrecise} />
           </p>
         </div>
@@ -125,7 +125,7 @@ export function EtapaValor({ sim }: EtapaValorProps) {
       <button
         type="button"
         onClick={goNext}
-        className="inline-flex items-center gap-2 rounded-lg bg-[#c9a227] px-8 py-4 text-base font-bold text-[#0a0a0a] hover:bg-[#e8c968] transition-colors"
+        className="inline-flex items-center gap-2 rounded-lg bg-[#c99900] px-8 py-4 text-base font-bold text-[#00325b] hover:bg-[#f3de74] transition-colors"
       >
         Continuar
         <ArrowRight className="w-5 h-5" />

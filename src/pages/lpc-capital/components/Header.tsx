@@ -31,7 +31,7 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full bg-[#0a0a0a] transition-shadow duration-300 ${
+      className={`sticky top-0 z-50 w-full bg-[#00325b] transition-shadow duration-300 ${
         scrolled ? 'shadow-[0_4px_30px_rgba(0,0,0,0.5)]' : ''
       }`}
     >
@@ -46,10 +46,10 @@ export function Header() {
             <a
               key={item.label}
               href={resolveHref(item)}
-              className="relative text-[14px] font-semibold uppercase tracking-wide text-white/75 hover:text-[#e8c968] transition-colors group"
+              className="relative text-[14px] font-semibold uppercase tracking-wide text-white/75 hover:text-[#f3de74] transition-colors group"
             >
               {item.label}
-              <span className="absolute -bottom-1.5 left-0 w-0 h-px bg-[#c9a227] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-1.5 left-0 w-0 h-px bg-[#c99900] transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
         </nav>
@@ -57,7 +57,7 @@ export function Header() {
         <div className="hidden lg:block">
           <Link
             to="/lpccapital/simulacao"
-            className="inline-flex items-center rounded-full bg-gradient-to-r from-[#c9a227] to-[#e8c968] px-6 py-2.5 text-sm font-bold text-[#0a0a0a] hover:shadow-[0_0_24px_rgba(201,162,39,0.45)] transition-shadow"
+            className="inline-flex items-center rounded-full bg-gradient-to-r from-[#c99900] to-[#f3de74] px-6 py-2.5 text-sm font-bold text-[#00325b] hover:shadow-[0_0_24px_rgba(201,153,0,0.45)] transition-shadow"
           >
             Faça uma simulação
           </Link>
@@ -65,7 +65,7 @@ export function Header() {
 
         <button
           type="button"
-          className="lg:hidden p-2 text-[#e8c968]"
+          className="lg:hidden p-2 text-[#f3de74]"
           aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
           onClick={() => setMobileOpen((v) => !v)}
         >
@@ -74,7 +74,7 @@ export function Header() {
       </div>
 
       {mobileOpen && (
-        <div className="lg:hidden border-t border-white/10 bg-[#0a0a0a] px-6 py-5 flex flex-col gap-4">
+        <div className="lg:hidden border-t border-white/10 bg-[#00325b] px-6 py-5 flex flex-col gap-4">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.label}
@@ -88,7 +88,7 @@ export function Header() {
           <Link
             to="/lpccapital/simulacao"
             onClick={() => setMobileOpen(false)}
-            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#c9a227] to-[#e8c968] px-6 py-3 text-sm font-bold text-[#0a0a0a]"
+            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#c99900] to-[#f3de74] px-6 py-3 text-sm font-bold text-[#00325b]"
           >
             Faça uma simulação
           </Link>

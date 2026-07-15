@@ -1,21 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
 
+/*
+  Identidade visual oficial (manual de marca LPC Capital):
+  Azul  — Pantone 540 C — #00325B
+  Preto — Black C       — #1D1D1D (uso limitado: texto e versão PB do logo)
+  Dourado       — Pantone 117 C — #C99900
+  Dourado claro — Pantone 127 C — #F3DE74
+  Tipografia recomendada: família Gotham ("austera, elegante, com personalidade").
+  Poppins é usada aqui como alternativa gratuita de geometria equivalente.
+*/
 .lpc-root {
-  --lpc-black: #0a0a0a;
-  --lpc-black-2: #141311;
-  --lpc-black-3: #201e19;
-  --lpc-gold: #c9a227;
-  --lpc-gold-light: #e8c968;
-  --lpc-gold-dim: rgba(201, 162, 39, 0.14);
-  --lpc-cream: #f7f3ea;
-  --lpc-ink: #0f0e0c;
-  font-family: 'Montserrat', sans-serif;
-  color: var(--lpc-ink);
+  --lpc-navy: #00325b;
+  --lpc-navy-deep: #001b30;
+  --lpc-navy-light: #00477f;
+  --lpc-black: #1d1d1d;
+  --lpc-gold: #c99900;
+  --lpc-gold-light: #f3de74;
+  --lpc-gold-dim: rgba(201, 153, 0, 0.14);
+  --lpc-bg: #f4f7fa;
+  font-family: 'Poppins', sans-serif;
+  color: var(--lpc-black);
   background: #fff;
 }
 
-.lpc-serif {
-  font-family: 'Fraunces', serif;
+.lpc-display {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .lpc-root * {
@@ -23,12 +34,36 @@
 }
 
 .lpc-hairline {
-  background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(201, 153, 0, 0.5), transparent);
   height: 1px;
 }
 
 .lpc-noise {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* Corte diagonal dourado no canto — motivo recorrente no material impresso da marca */
+.lpc-corner-cut {
+  position: relative;
+  overflow: hidden;
+}
+
+.lpc-corner-cut::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, transparent 50%, var(--lpc-gold) 50%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Faixa/ribbon dourada — usada nos panfletos institucionais */
+.lpc-ribbon {
+  background: linear-gradient(90deg, var(--lpc-gold), var(--lpc-gold-light));
+  color: var(--lpc-navy);
 }
 
 @keyframes lpc-marquee {

@@ -13,8 +13,8 @@ export function HomeEquity() {
           transition={{ duration: 0.6 }}
           className="mb-10"
         >
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c9a227]">Home Equity</span>
-          <h2 className="lpc-serif text-[#0f0e0c] font-semibold text-[clamp(26px,3.2vw,38px)] mt-2">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c99900]">Home Equity</span>
+          <h2 className="lpc-display text-[#1d1d1d] font-semibold text-[clamp(26px,3.2vw,38px)] mt-2">
             Empréstimo com Garantia de Imóvel
           </h2>
         </motion.div>
@@ -26,8 +26,8 @@ export function HomeEquity() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="grid sm:grid-cols-[3px_1fr] gap-8 mb-10"
         >
-          <div className="hidden sm:block bg-gradient-to-b from-[#c9a227] to-transparent rounded-full" />
-          <div className="text-[#0f0e0c]/65 leading-relaxed space-y-5 text-[17px]">
+          <div className="hidden sm:block bg-gradient-to-b from-[#c99900] to-transparent rounded-full" />
+          <div className="text-[#1d1d1d]/65 leading-relaxed space-y-5 text-[17px]">
             <p>
               Na LPC Capital, oferecemos uma solução financeira inteligente para quem busca crédito
               com taxas mais baixas, prazos longos e total liberdade de uso: o empréstimo com
@@ -51,7 +51,7 @@ export function HomeEquity() {
 
         <Link
           to="/lpccapital/simulacao"
-          className="inline-flex items-center gap-2 rounded-full bg-[#0a0a0a] px-8 py-4 text-base font-bold text-white hover:bg-[#1a1a1a] transition-colors"
+          className="inline-flex items-center gap-2 rounded-full bg-[#00325b] px-8 py-4 text-base font-bold text-white hover:bg-[#00477f] transition-colors"
         >
           Simule agora mesmo sem custo!
           <ArrowRight className="w-5 h-5" />

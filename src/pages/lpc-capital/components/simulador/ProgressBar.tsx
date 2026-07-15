@@ -13,9 +13,9 @@ export function ProgressBar({ step }: ProgressBarProps) {
 
   return (
     <div className="max-w-[720px] mx-auto px-6 pt-8 pb-2">
-      <div className="relative h-1.5 rounded-full bg-[#0a0a0a]/10 mb-6">
+      <div className="relative h-1.5 rounded-full bg-[#00325b]/10 mb-6">
         <motion.div
-          className="absolute inset-y-0 left-0 rounded-full bg-[#c9a227]"
+          className="absolute inset-y-0 left-0 rounded-full bg-[#c99900]"
           initial={false}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -31,17 +31,17 @@ export function ProgressBar({ step }: ProgressBarProps) {
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   done
-                    ? 'bg-[#0a0a0a] text-white'
+                    ? 'bg-[#00325b] text-white'
                     : active
-                    ? 'bg-[#c9a227] text-[#0a0a0a]'
-                    : 'bg-[#0a0a0a]/10 text-[#0a0a0a]/40'
+                    ? 'bg-[#c99900] text-[#00325b]'
+                    : 'bg-[#00325b]/10 text-[#00325b]/40'
                 }`}
               >
                 {done ? <Check className="w-3.5 h-3.5" /> : n}
               </div>
               <span
                 className={`text-xs font-medium ${
-                  active || done ? 'text-[#0a0a0a]' : 'text-[#0a0a0a]/40'
+                  active || done ? 'text-[#00325b]' : 'text-[#00325b]/40'
                 }`}
               >
                 {label}

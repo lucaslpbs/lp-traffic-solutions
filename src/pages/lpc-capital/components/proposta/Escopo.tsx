@@ -45,13 +45,13 @@ export function Escopo() {
           transition={{ duration: 0.6 }}
           className="max-w-2xl mb-16"
         >
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c9a227]">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c99900]">
             Escopo do projeto
           </span>
-          <h2 className="lpc-serif text-[#0f0e0c] font-semibold text-[clamp(28px,3.4vw,42px)] mt-2 mb-4">
+          <h2 className="lpc-display text-[#1d1d1d] font-semibold text-[clamp(28px,3.4vw,42px)] mt-2 mb-4">
             O que está incluso no projeto completo
           </h2>
-          <p className="text-[#0f0e0c]/60 leading-relaxed text-lg">
+          <p className="text-[#1d1d1d]/60 leading-relaxed text-lg">
             Não é só o simulador — é o site inteiro, pensado como um sistema único.
           </p>
         </motion.div>
@@ -64,13 +64,13 @@ export function Escopo() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: (i % 3) * 0.1 }}
-              className="rounded-2xl border border-[#0a0a0a]/10 p-7 hover:border-[#c9a227]/40 transition-colors"
+              className="rounded-2xl border border-[#00325b]/10 p-7 hover:border-[#c99900]/40 transition-colors"
             >
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#c9a227] to-[#e8c968] flex items-center justify-center mb-5">
-                <item.icon className="w-5 h-5 text-[#0a0a0a]" strokeWidth={2} />
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#c99900] to-[#f3de74] flex items-center justify-center mb-5">
+                <item.icon className="w-5 h-5 text-[#00325b]" strokeWidth={2} />
               </div>
-              <h3 className="text-[#0f0e0c] font-bold text-lg mb-2">{item.titulo}</h3>
-              <p className="text-[#0f0e0c]/60 leading-relaxed text-sm">{item.texto}</p>
+              <h3 className="text-[#1d1d1d] font-bold text-lg mb-2">{item.titulo}</h3>
+              <p className="text-[#1d1d1d]/60 leading-relaxed text-sm">{item.texto}</p>
             </motion.div>
           ))}
         </div>

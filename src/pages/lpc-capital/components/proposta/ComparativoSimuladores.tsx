@@ -44,7 +44,7 @@ const PONTOS = [
 
 export function ComparativoSimuladores() {
   return (
-    <section className="bg-[#f7f3ea] py-24 lg:py-32">
+    <section className="bg-[#f4f7fa] py-24 lg:py-32">
       <div className="max-w-[1180px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -53,13 +53,13 @@ export function ComparativoSimuladores() {
           transition={{ duration: 0.6 }}
           className="max-w-2xl mb-16"
         >
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c9a227]">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c99900]">
             Antes × Depois
           </span>
-          <h2 className="lpc-serif text-[#0f0e0c] font-semibold text-[clamp(28px,3.4vw,42px)] mt-2 mb-4">
+          <h2 className="lpc-display text-[#1d1d1d] font-semibold text-[clamp(28px,3.4vw,42px)] mt-2 mb-4">
             O que mudou do simulador antigo para o novo
           </h2>
-          <p className="text-[#0f0e0c]/60 leading-relaxed text-lg">
+          <p className="text-[#1d1d1d]/60 leading-relaxed text-lg">
             Comparando <span className="font-semibold">/simulacao2</span> (o formulário atual) com{' '}
             <span className="font-semibold">/lpccapital/simulacao</span> (o que construímos).
           </p>
@@ -76,20 +76,20 @@ export function ComparativoSimuladores() {
               className="bg-white rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)]"
             >
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-9 h-9 rounded-full bg-[#0a0a0a] flex items-center justify-center shrink-0">
-                  <ponto.icon className="w-[18px] h-[18px] text-[#e8c968]" />
+                <div className="w-9 h-9 rounded-full bg-[#00325b] flex items-center justify-center shrink-0">
+                  <ponto.icon className="w-[18px] h-[18px] text-[#f3de74]" />
                 </div>
-                <h3 className="text-[#0f0e0c] font-bold text-base">{ponto.titulo}</h3>
+                <h3 className="text-[#1d1d1d] font-bold text-base">{ponto.titulo}</h3>
               </div>
 
               <div className="flex items-start gap-3 mb-3 opacity-60">
-                <X className="w-4 h-4 text-[#0f0e0c]/40 mt-0.5 shrink-0" strokeWidth={2.5} />
-                <p className="text-sm text-[#0f0e0c]/55 leading-relaxed">{ponto.antigo}</p>
+                <X className="w-4 h-4 text-[#1d1d1d]/40 mt-0.5 shrink-0" strokeWidth={2.5} />
+                <p className="text-sm text-[#1d1d1d]/55 leading-relaxed">{ponto.antigo}</p>
               </div>
 
               <div className="flex items-start gap-3">
-                <Check className="w-4 h-4 text-[#c9a227] mt-0.5 shrink-0" strokeWidth={2.5} />
-                <p className="text-sm text-[#0f0e0c] font-medium leading-relaxed">{ponto.novo}</p>
+                <Check className="w-4 h-4 text-[#c99900] mt-0.5 shrink-0" strokeWidth={2.5} />
+                <p className="text-sm text-[#1d1d1d] font-medium leading-relaxed">{ponto.novo}</p>
               </div>
             </motion.div>
           ))}

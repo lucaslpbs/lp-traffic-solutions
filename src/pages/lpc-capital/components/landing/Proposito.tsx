@@ -32,11 +32,11 @@ export function Proposito() {
           transition={{ duration: 0.6 }}
           className="max-w-2xl mb-16"
         >
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c9a227]">Sobre nós</span>
-          <h2 className="lpc-serif text-[#0f0e0c] font-semibold text-[clamp(28px,3.4vw,42px)] mt-2 mb-4">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#c99900]">Sobre nós</span>
+          <h2 className="lpc-display text-[#1d1d1d] font-semibold text-[clamp(28px,3.4vw,42px)] mt-2 mb-4">
             Nosso propósito
           </h2>
-          <p className="text-[#0f0e0c]/60 leading-relaxed text-lg">
+          <p className="text-[#1d1d1d]/60 leading-relaxed text-lg">
             A LPC Capital nasceu para transformar o acesso ao crédito em uma jornada mais
             consciente, simples e eficiente.
           </p>
@@ -59,12 +59,12 @@ export function Proposito() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-2xl" />
-                <span className="absolute top-4 left-4 w-8 h-8 rounded-full bg-[#0a0a0a] text-[#e8c968] text-sm font-bold flex items-center justify-center">
+                <span className="absolute top-4 left-4 w-8 h-8 rounded-full bg-[#00325b] text-[#f3de74] text-sm font-bold flex items-center justify-center">
                   {i + 1}
                 </span>
               </div>
-              <h3 className="text-[#0f0e0c] font-bold text-lg mb-2">{pilar.titulo}</h3>
-              <p className="text-[#0f0e0c]/60 leading-relaxed">{pilar.texto}</p>
+              <h3 className="text-[#1d1d1d] font-bold text-lg mb-2">{pilar.titulo}</h3>
+              <p className="text-[#1d1d1d]/60 leading-relaxed">{pilar.texto}</p>
             </motion.div>
           ))}
         </div>

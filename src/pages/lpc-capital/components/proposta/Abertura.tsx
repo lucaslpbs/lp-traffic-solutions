@@ -3,7 +3,7 @@ import { ChevronDown } from 'lucide-react';
 
 export function Abertura() {
   return (
-    <section className="lpc-noise bg-[#0a0a0a] relative overflow-hidden min-h-[92vh] flex items-center">
+    <section className="lpc-noise bg-[#00325b] relative overflow-hidden min-h-[92vh] flex items-center">
       <div
         className="absolute inset-0 opacity-[0.05] pointer-events-none"
         style={{
@@ -12,14 +12,14 @@ export function Abertura() {
           backgroundSize: '48px 48px',
         }}
       />
-      <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[#c9a227]/15 blur-[140px] pointer-events-none" />
+      <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[#c99900]/15 blur-[140px] pointer-events-none" />
 
       <div className="max-w-[900px] mx-auto px-6 relative z-10 text-center py-24">
         <motion.span
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#e8c968] mb-7 border border-[#c9a227]/40 rounded-full px-4 py-1.5"
+          className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#f3de74] mb-7 border border-[#c99900]/40 rounded-full px-4 py-1.5"
         >
           Proposta comercial · LPC Capital
         </motion.span>
