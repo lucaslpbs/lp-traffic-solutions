@@ -59,6 +59,8 @@ const fmtBRL = (v: number) =>
 const fmtPct = (v: number) => `${v.toFixed(2)}%`;
 const norm = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+// Leads do Kommo vindos de Meta Ads Forms/Messenger recebem nome padrão "Facebook №<psid>"
+const isFacebookLead = (r: LeadRecord) => norm((r.lead_nome as string) ?? '').includes('facebook');
 
 function parseDateBR(s: string): number {
   if (!s) return 0;
@@ -69,8 +71,11 @@ function parseDateBR(s: string): number {
 
 // Extrai a data de criação do lead como string YYYY-MM-DD (sem conversão de timezone)
 function extractLeadCreatedDate(r: LeadRecord): string {
+  // data_hora_criacao_lead é estável (mesmo valor em todas as linhas de um lead).
+  // lead_criado_em costuma vir vazio e, quando preenchido, na maioria das vezes reflete
+  // a data do evento de etapa daquela linha (não a criação real) — não usar como fonte primária.
   // Usa || (não ??) para que string vazia "" também faça fallback
-  const s = ((r.lead_criado_em as string) || (r.data_hora_criacao_lead as string) || '');
+  const s = ((r.data_hora_criacao_lead as string) || (r.lead_criado_em as string) || '');
   if (!s) return '';
   // Formato DD/MM/YYYY HH:MM:SS → converte para YYYY-MM-DD
   const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
@@ -268,7 +273,7 @@ function computeCicloEntries(records: LeadRecord[]): CicloEntry[] {
   const data = new Map<string, { createdAt: number; wonAt: number; produto: string; tags: string }>();
   for (const r of records) {
     const id = String(r.lead_id);
-    const created = parseDateBR(((r.lead_criado_em as string) || (r.data_hora_criacao_lead as string) || ''));
+    const created = parseDateBR(((r.data_hora_criacao_lead as string) || (r.lead_criado_em as string) || ''));
     const evt = parseDateBR(r.data_hora_etapa ?? '');
     if (!data.has(id)) data.set(id, { createdAt: 0, wonAt: 0, produto: '', tags: '' });
     const d = data.get(id)!;
@@ -506,6 +511,24 @@ function useXlsx(tab: 'interna' | 'externa') {
 }
 
 // ── Shared UI ──────────────────────────────────────────────────────────────
+function OrigemTabs({ active, onChange }: { active: 'todos' | 'trafego'; onChange: (v: 'todos' | 'trafego') => void }) {
+  const OPTS = [
+    ['todos', 'Todos os Leads'],
+    ['trafego', 'Tráfego (Facebook)'],
+  ] as const;
+  return (
+    <div className="inline-flex rounded-xl p-1 gap-1" style={{ background: D.cardHover, border: `1px solid ${D.border}` }}>
+      {OPTS.map(([v, label]) => (
+        <button key={v} onClick={() => onChange(v)}
+          className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
+          style={active === v ? { background: D.cyan, color: D.bg } : { color: D.textSec }}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function FunilTabs({ active, onChange }: { active: 'interna' | 'externa'; onChange: (v: 'interna' | 'externa') => void }) {
   return (
     <div className="inline-flex rounded-xl p-1 gap-1" style={{ background: D.card, border: `1px solid ${D.border}` }}>
@@ -947,6 +970,7 @@ function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas;
 // ── Main ───────────────────────────────────────────────────────────────────
 export default function KoruVendas() {
   const [activeTab, setActiveTab] = useState<'interna' | 'externa'>('interna');
+  const [origemLeads, setOrigemLeads] = useState<'todos' | 'trafego'>('todos');
 
   const today = new Date();
   const [dateStart, setDateStart] = useState(
@@ -995,16 +1019,29 @@ export default function KoruVendas() {
     return filterLeadsCreatedInPeriod(rawDataExterna, dateStart, dateEnd);
   }, [rawDataExterna, dateStart, dateEnd]);
 
+  // Seção II — aplica o filtro "Tráfego (Facebook)" por cima do filtro de período,
+  // sem alterar filteredInterna/filteredExterna usados pelas demais seções
+  const periodicoInterna = useMemo(
+    () => origemLeads === 'trafego' ? filteredInterna.filter(isFacebookLead) : filteredInterna,
+    [filteredInterna, origemLeads]
+  );
+  const periodicoExterna = useMemo(
+    () => origemLeads === 'trafego' ? filteredExterna.filter(isFacebookLead) : filteredExterna,
+    [filteredExterna, origemLeads]
+  );
+
   const metricasInterna = useMemo(() => computeMetricas(filteredInterna), [filteredInterna]);
   const metricasExterna = useMemo(() => computeMetricas(filteredExterna), [filteredExterna]);
 
-  // Seção III — usa o mesmo filtro por lead_criado_em da seção II
-  const filteredRecords = useMemo(
-    () => activeTab === 'interna' ? filteredInterna : filteredExterna,
-    [activeTab, filteredInterna, filteredExterna]
-  );
+  // Seção III — ROI/custo por lead só faz sentido contra quem de fato veio do tráfego pago
+  // (o "Valor Investido" é o gasto de anúncio), então usa sempre o recorte "Tráfego (Facebook)",
+  // independente do toggle "Todos/Tráfego" da Seção II.
+  const filteredRecordsTrafego = useMemo(() => {
+    const base = activeTab === 'interna' ? filteredInterna : filteredExterna;
+    return base.filter(isFacebookLead);
+  }, [activeTab, filteredInterna, filteredExterna]);
 
-  const metricas = useMemo(() => computeMetricas(filteredRecords), [filteredRecords]);
+  const metricas = useMemo(() => computeMetricas(filteredRecordsTrafego), [filteredRecordsTrafego]);
 
   // Seção IV — usa TODOS os registros do pipeline (sem filtro de data) para ciclo de vendas
   const pipelineAllRecords = useMemo(() => {
@@ -1101,15 +1138,26 @@ export default function KoruVendas() {
         {/* II — Periodic */}
         <Card
           title="(II) Análise Periódica"
-          sub={activeTab === 'interna'
-            ? 'Funil Vendas Internas · Leads criados no período selecionado'
-            : 'Funil Vendas Externas · Leads criados no período selecionado'}
+          sub={
+            (activeTab === 'interna' ? 'Funil Vendas Internas' : 'Funil Vendas Externas') +
+            (origemLeads === 'trafego' ? ' · somente leads com "Facebook" no nome' : '') +
+            ' · Leads criados no período selecionado'
+          }
           icon={<Calendar size={20} style={{ color: activeTab === 'interna' ? D.blue : D.purple }} />}
         >
+          <div className="mb-6">
+            <OrigemTabs active={origemLeads} onChange={setOrigemLeads} />
+            {origemLeads === 'trafego' && (
+              <p className="text-xs mt-2" style={{ color: D.textMuted }}>
+                Filtro: nome do lead contém "Facebook" (padrão do Kommo para leads de Meta Ads/Messenger) —
+                use para conferir a contagem com o relatório de tráfego pago.
+              </p>
+            )}
+          </div>
           {apiLoading && <Spinner />}
           {!apiLoading && activeTab === 'interna' && (
             rawDataInterna !== null
-              ? <SecaoPeriodica records={filteredInterna} />
+              ? <SecaoPeriodica records={periodicoInterna} />
               : !apiError && (
                 <p className="text-center py-16" style={{ color: D.textSec }}>
                   Clique em <strong>Atualizar</strong> para carregar os dados.
@@ -1118,7 +1166,7 @@ export default function KoruVendas() {
           )}
           {!apiLoading && activeTab === 'externa' && (
             rawDataExterna !== null
-              ? <SecaoPeriodica records={filteredExterna} />
+              ? <SecaoPeriodica records={periodicoExterna} />
               : !apiError && (
                 <p className="text-center py-16" style={{ color: D.textSec }}>
                   Clique em <strong>Atualizar</strong> para carregar os dados.
@@ -1130,7 +1178,7 @@ export default function KoruVendas() {
         {/* III — Investment */}
         <Card
           title="(III) Análise de Investimento"
-          sub="Insira o valor investido no período para calcular custos por etapa"
+          sub='Baseada em "Tráfego (Facebook)" · insira o valor investido no período para calcular custos por etapa'
           icon={<Calculator size={20} style={{ color: D.amber }} />}
         >
           {/* Inputs */}
