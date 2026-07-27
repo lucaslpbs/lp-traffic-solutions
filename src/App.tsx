@@ -58,6 +58,7 @@ import LPCSimulacao from "./pages/lpc-capital/simulacao.tsx";
 import LPCBlog from "./pages/lpc-capital/blog.tsx";
 import LPCBlogPost from "./pages/lpc-capital/blog-post.tsx";
 import LPCProposta from "./pages/lpc-capital/proposta.tsx";
+import RelatorioNCSaudeKommo from "./pages/RelatorioNCSaudeKommo";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +100,7 @@ const HIDDEN_PATHS = [
   '/orcamento-setemares',
   '/lpccapital',
   '/proposta-flavinha',
+  '/relatorio-ncsaude-kommo',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -171,6 +173,7 @@ const AppRoutes = () => {
         <Route path="/lpccapital/blog" element={<LPCBlog />} />
         <Route path="/lpccapital/blog/:slug" element={<LPCBlogPost />} />
         <Route path="/lpccapital/proposta" element={<LPCProposta />} />
+        <Route path="/relatorio-ncsaude-kommo" element={<RelatorioNCSaudeKommo />} />
         <Route path="/login" element={<Login />} />
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />

@@ -3,27 +3,32 @@ Allow: /
 Disallow: /dashboard
 Disallow: /login
 Disallow: /brinde-exclusivo
+Disallow: /relatorio-ncsaude-kommo
 
 User-agent: Bingbot
 Allow: /
 Disallow: /dashboard
 Disallow: /login
 Disallow: /brinde-exclusivo
+Disallow: /relatorio-ncsaude-kommo
 
 User-agent: Twitterbot
 Allow: /
 Disallow: /dashboard
 Disallow: /login
 Disallow: /brinde-exclusivo
+Disallow: /relatorio-ncsaude-kommo
 
 User-agent: facebookexternalhit
 Allow: /
 Disallow: /dashboard
 Disallow: /login
 Disallow: /brinde-exclusivo
+Disallow: /relatorio-ncsaude-kommo
 
 User-agent: *
 Allow: /
 Disallow: /dashboard
 Disallow: /login
 Disallow: /brinde-exclusivo
+Disallow: /relatorio-ncsaude-kommo
