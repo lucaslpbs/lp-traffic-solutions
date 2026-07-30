@@ -1,9 +1,9 @@
 import { Fragment, useState, useEffect, useMemo } from 'react';
 import {
   Users, ShoppingCart, TrendingUp, Search, RefreshCw,
-  ChevronDown, ChevronUp, MessageSquare, Star, AlertCircle,
+  ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Star, AlertCircle,
   CheckCircle2, Clock, XCircle, ThumbsUp, ThumbsDown, ArrowRight,
-  UserCheck, Heart,
+  UserCheck, Heart, ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,9 @@ interface ResumoLead {
   fez_followup: boolean | null;
   nome_lead?: string;
   telefone_lead?: string;
+  conversa_compacta?: string | null;
+  origem_lead?: string | null;
+  atendente?: string | null;
 }
 
 interface VendedorData {
@@ -64,19 +67,70 @@ const parseJsonArray = (val: string | null): string[] => {
 const qualidadeColor = (q: number) =>
   q >= 8 ? '#10b981' : q >= 5 ? '#f59e0b' : '#ef4444';
 
+// Normaliza para comparação: remove acentos, espaços extras e caixa.
+const DIACRITICS_REGEX = new RegExp('[\\u0300-\\u036f]', 'g');
+const normalizeKey = (s: string) =>
+  s.normalize('NFD').replace(DIACRITICS_REGEX, '').toLowerCase().trim().replace(/\s+/g, ' ');
+
+// Variações do mesmo atendente encontradas nos dados do n8n → nome canônico exibido.
+const ATENDENTE_ALIASES: Record<string, string> = {};
+
+const normalizeAtendente = (raw?: string | null): string | null => {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'null') return null;
+  const key = normalizeKey(trimmed);
+  return ATENDENTE_ALIASES[key] ?? trimmed;
+};
+
+interface MensagemConversa {
+  timestamp: string;
+  sender: 'LEAD' | 'VENDEDOR';
+  lines: string[];
+}
+
+const parseConversa = (conversa: string): MensagemConversa[] => {
+  const rawLines = conversa.split('\n');
+  const messages: MensagemConversa[] = [];
+  const headerRegex = /^\[(\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2})\] (LEAD|VENDEDOR): (.*)/;
+
+  for (const line of rawLines) {
+    const match = line.match(headerRegex);
+    if (match) {
+      const content = match[3].trim();
+      messages.push({
+        timestamp: match[1],
+        sender: match[2] as 'LEAD' | 'VENDEDOR',
+        lines: content ? [content] : [],
+      });
+    } else if (messages.length > 0) {
+      const trimmed = line.trim();
+      if (trimmed) messages[messages.length - 1].lines.push(trimmed);
+    }
+  }
+
+  return messages;
+};
+
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export default function NCSaudeDashboard() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedVendedorId, setSelectedVendedorId] = useState<number | 'todos'>('todos');
+  const [selectedAtendente, setSelectedAtendente] = useState<string | 'todos'>('todos');
 
   const [search, setSearch] = useState('');
   const [filterVendeu, setFilterVendeu] = useState<string>('all');
   const [filterQualidadeLead, setFilterQualidadeLead] = useState<string>('all');
+  const [filterOrigem, setFilterOrigem] = useState<string>('all');
+  const [filterDataInicio, setFilterDataInicio] = useState<string>('');
+  const [filterDataFim, setFilterDataFim] = useState<string>('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortField, setSortField] = useState<'created_at' | 'qualidade_lead'>('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 100;
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -128,9 +182,25 @@ export default function NCSaudeDashboard() {
     return data.vendedores.find(v => v.vendedor_id === selectedVendedorId)?.resumos ?? [];
   }, [data, selectedVendedorId, todosResumos]);
 
+  const origensUnicas = useMemo(() => {
+    const set = new Set<string>();
+    todosResumos.forEach(r => { if (r.origem_lead) set.add(r.origem_lead); });
+    return Array.from(set).sort();
+  }, [todosResumos]);
+
+  const atendentesUnicos = useMemo(() => {
+    const set = new Set<string>();
+    todosResumos.forEach(r => {
+      const nome = normalizeAtendente(r.atendente);
+      if (nome) set.add(nome);
+    });
+    return Array.from(set).sort();
+  }, [todosResumos]);
+
   const filtered = useMemo(() => {
     let result = [...resumosAtivos];
 
+    if (selectedAtendente !== 'todos') result = result.filter(r => normalizeAtendente(r.atendente) === selectedAtendente);
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(r =>
@@ -145,17 +215,38 @@ export default function NCSaudeDashboard() {
     if (filterQualidadeLead === 'alto') result = result.filter(r => r.qualidade_lead >= 8);
     if (filterQualidadeLead === 'medio') result = result.filter(r => r.qualidade_lead >= 5 && r.qualidade_lead < 8);
     if (filterQualidadeLead === 'baixo') result = result.filter(r => r.qualidade_lead < 5);
+    if (filterOrigem !== 'all') result = result.filter(r => r.origem_lead === filterOrigem);
+    if (filterDataInicio) {
+      const inicio = new Date(filterDataInicio);
+      result = result.filter(r => new Date(r.periodo_inicio) >= inicio);
+    }
+    if (filterDataFim) {
+      const fim = new Date(filterDataFim);
+      fim.setHours(23, 59, 59, 999);
+      result = result.filter(r => new Date(r.periodo_fim) <= fim);
+    }
 
     result.sort((a, b) => {
       if (sortField === 'qualidade_lead')
         return sortDir === 'asc' ? a.qualidade_lead - b.qualidade_lead : b.qualidade_lead - a.qualidade_lead;
       return sortDir === 'asc'
-        ? a.created_at.localeCompare(b.created_at)
-        : b.created_at.localeCompare(a.created_at);
+        ? a.periodo_inicio.localeCompare(b.periodo_inicio)
+        : b.periodo_inicio.localeCompare(a.periodo_inicio);
     });
 
     return result;
-  }, [resumosAtivos, search, filterVendeu, filterQualidadeLead, sortField, sortDir]);
+  }, [resumosAtivos, selectedAtendente, search, filterVendeu, filterQualidadeLead, filterOrigem, filterDataInicio, filterDataFim, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+    [filtered, page]
+  );
+
+  useEffect(() => { setPage(1); }, [
+    selectedVendedorId, selectedAtendente, search, filterVendeu,
+    filterQualidadeLead, filterOrigem, filterDataInicio, filterDataFim,
+  ]);
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
 
@@ -202,7 +293,7 @@ export default function NCSaudeDashboard() {
             </h1>
           </div>
           <p className="text-gray-400 text-sm mt-1">
-            Análise completa de conversas · Raquel · Arthur · Camila · Número Único
+            Análise completa de conversas, qualidade de leads e vendedores
           </p>
         </div>
         <Button
@@ -217,7 +308,7 @@ export default function NCSaudeDashboard() {
 
       {/* Navegação por vendedor */}
       <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white/[0.03] border border-emerald-500/20 rounded-xl">
-        <span className="text-xs text-gray-500 mr-1">Atendente:</span>
+        <span className="text-xs text-gray-500 mr-1">Vendedor:</span>
 
         <button
           onClick={() => { setSelectedVendedorId('todos'); setExpandedId(null); }}
@@ -245,14 +336,44 @@ export default function NCSaudeDashboard() {
         ))}
       </div>
 
+      {/* Navegação por atendente */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white/[0.03] border border-emerald-500/20 rounded-xl">
+        <span className="text-xs text-gray-500 mr-1">Atendente:</span>
+
+        <button
+          onClick={() => { setSelectedAtendente('todos'); setExpandedId(null); }}
+          className={`px-4 py-1.5 rounded-lg border text-sm transition-all ${
+            selectedAtendente === 'todos'
+              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+              : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          Todos
+        </button>
+
+        {atendentesUnicos.map(a => (
+          <button
+            key={a}
+            onClick={() => { setSelectedAtendente(a); setExpandedId(null); }}
+            className={`px-4 py-1.5 rounded-lg border text-sm transition-all ${
+              selectedAtendente === a
+                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {a}
+          </button>
+        ))}
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         {[
-          { title: 'Total Resumos', value: total, icon: Users, color: '#10b981' },
+          { title: 'Total Resumos', value: total, icon: Users, color: '#3b82f6' },
           { title: 'Vendas', value: totalVendeu, icon: ShoppingCart, color: '#10b981' },
           { title: 'Taxa Conversão', value: `${taxaConversao}%`, icon: TrendingUp, color: '#ec4899' },
           { title: 'Qual. Lead (Média)', value: avgQualidadeLead, icon: Star, color: '#f59e0b' },
-          { title: 'Qual. Vendedor (Média)', value: avgQualidadeVendedor, icon: UserCheck, color: '#10b981' },
+          { title: 'Qual. Vendedor (Média)', value: avgQualidadeVendedor, icon: UserCheck, color: '#3b82f6' },
         ].map(kpi => (
           <div
             key={kpi.title}
@@ -315,40 +436,78 @@ export default function NCSaudeDashboard() {
 
       {/* Filters */}
       <div className="bg-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/10 mb-6">
-        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Buscar no resumo, lead, motivo ou próximo passo..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500"
-            />
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Buscar no resumo, lead, motivo ou próximo passo..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Select value={filterVendeu} onValueChange={setFilterVendeu}>
+                <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-gray-300">
+                  <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
+                  <SelectValue placeholder="Vendeu?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="sim">Vendeu</SelectItem>
+                  <SelectItem value="nao">Não vendeu</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterQualidadeLead} onValueChange={setFilterQualidadeLead}>
+                <SelectTrigger className="w-[160px] bg-white/5 border-white/10 text-gray-300">
+                  <Star className="h-3.5 w-3.5 mr-1.5" />
+                  <SelectValue placeholder="Qual. Lead" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas Qualidades</SelectItem>
+                  <SelectItem value="alto">Alto (8-10)</SelectItem>
+                  <SelectItem value="medio">Médio (5-7)</SelectItem>
+                  <SelectItem value="baixo">Baixo (1-4)</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterOrigem} onValueChange={setFilterOrigem}>
+                <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-gray-300">
+                  <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+                  <SelectValue placeholder="Origem do Lead" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas Origens</SelectItem>
+                  {origensUnicas.map(o => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Select value={filterVendeu} onValueChange={setFilterVendeu}>
-              <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-gray-300">
-                <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
-                <SelectValue placeholder="Vendeu?" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="sim">Vendeu</SelectItem>
-                <SelectItem value="nao">Não vendeu</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterQualidadeLead} onValueChange={setFilterQualidadeLead}>
-              <SelectTrigger className="w-[160px] bg-white/5 border-white/10 text-gray-300">
-                <Star className="h-3.5 w-3.5 mr-1.5" />
-                <SelectValue placeholder="Qual. Lead" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas Qualidades</SelectItem>
-                <SelectItem value="alto">Alto (8-10)</SelectItem>
-                <SelectItem value="medio">Médio (5-7)</SelectItem>
-                <SelectItem value="baixo">Baixo (1-4)</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+            <span className="text-xs text-gray-500 whitespace-nowrap">Período:</span>
+            <Input
+              type="date"
+              value={filterDataInicio}
+              onChange={e => setFilterDataInicio(e.target.value)}
+              className="w-full md:w-[160px] bg-white/5 border-white/10 text-gray-300 [color-scheme:dark]"
+            />
+            <span className="text-xs text-gray-500">até</span>
+            <Input
+              type="date"
+              value={filterDataFim}
+              onChange={e => setFilterDataFim(e.target.value)}
+              className="w-full md:w-[160px] bg-white/5 border-white/10 text-gray-300 [color-scheme:dark]"
+            />
+            {(filterDataInicio || filterDataFim) && (
+              <button
+                onClick={() => { setFilterDataInicio(''); setFilterDataFim(''); }}
+                className="text-xs text-gray-500 hover:text-white transition-colors"
+              >
+                Limpar datas
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -368,7 +527,9 @@ export default function NCSaudeDashboard() {
                   { label: 'Vendeu?', field: null },
                   { label: 'Valor', field: null },
                   { label: 'Follow-up', field: null },
-                  { label: 'Data', field: 'created_at' as const },
+                  { label: 'Origem', field: null },
+                  { label: 'Atendente', field: null },
+                  { label: 'Período', field: 'created_at' as const },
                 ].map(col => (
                   <th
                     key={col.label}
@@ -389,7 +550,7 @@ export default function NCSaudeDashboard() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-white/5">
-                    {Array.from({ length: 9 }).map((_, j) => (
+                    {Array.from({ length: 11 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-4 bg-white/5 rounded animate-pulse" />
                       </td>
@@ -398,13 +559,13 @@ export default function NCSaudeDashboard() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
                     <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     Nenhum resumo encontrado
                   </td>
                 </tr>
               ) : (
-                filtered.map(r => {
+                paginated.map(r => {
                   const isExpanded = expandedId === r.id;
                   const pontosPositivos = parseJsonArray(r.pontos_positivos_vendedor);
                   const erros = parseJsonArray(r.erros_vendedor);
@@ -428,14 +589,18 @@ export default function NCSaudeDashboard() {
                           <p className="truncate">{r.resumo}</p>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-                            style={{ background: `${leadColor}22`, color: leadColor, border: `1px solid ${leadColor}44` }}>
+                          <span
+                            className="text-xs font-bold px-2.5 py-1 rounded-full"
+                            style={{ background: `${leadColor}22`, color: leadColor, border: `1px solid ${leadColor}44` }}
+                          >
                             {r.qualidade_lead}/10
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-                            style={{ background: `${vendedorColor}22`, color: vendedorColor, border: `1px solid ${vendedorColor}44` }}>
+                          <span
+                            className="text-xs font-bold px-2.5 py-1 rounded-full"
+                            style={{ background: `${vendedorColor}22`, color: vendedorColor, border: `1px solid ${vendedorColor}44` }}
+                          >
                             {r.qualidade_vendedor}/10
                           </span>
                         </td>
@@ -459,19 +624,65 @@ export default function NCSaudeDashboard() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-gray-500 text-xs">
-                          {new Date(r.created_at).toLocaleDateString('pt-BR')}
+                          {r.origem_lead ? (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs">
+                              {r.origem_lead}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-gray-300 text-xs">
+                          {normalizeAtendente(r.atendente) || '—'}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">
+                          <p>{new Date(r.periodo_inicio).toLocaleDateString('pt-BR')}</p>
+                          <p className="text-gray-600">{new Date(r.periodo_fim).toLocaleDateString('pt-BR')}</p>
                         </td>
                       </tr>
 
                       {isExpanded && (
                         <tr key={`${r.id}-detail`} className="border-b border-white/5 bg-white/[0.02]">
-                          <td colSpan={9} className="px-6 py-5">
+                          <td colSpan={11} className="px-6 py-5">
+                            {r.conversa_compacta && (
+                              <div className="mb-6">
+                                <h4 className="text-xs font-semibold text-gray-400 uppercase mb-3 flex items-center gap-1.5">
+                                  <MessageSquare className="h-3.5 w-3.5" /> Conversa
+                                </h4>
+                                <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+                                  {parseConversa(r.conversa_compacta).map((msg, i) => {
+                                    const isVendedor = msg.sender === 'VENDEDOR';
+                                    return (
+                                      <div key={i} className={`flex flex-col ${isVendedor ? 'items-end' : 'items-start'}`}>
+                                        <span className="text-[10px] text-gray-600 mb-0.5 px-1">{msg.timestamp}</span>
+                                        <div
+                                          className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                                            isVendedor
+                                              ? 'bg-emerald-500/20 text-emerald-100 rounded-tr-sm'
+                                              : 'bg-white/[0.07] text-gray-200 rounded-tl-sm'
+                                          }`}
+                                        >
+                                          {msg.lines.map((line, j) =>
+                                            line === '[Imagem]' ? (
+                                              <span key={j} className="flex items-center gap-1 text-gray-400 italic text-xs">
+                                                <ImageIcon className="h-3 w-3" /> Imagem
+                                              </span>
+                                            ) : (
+                                              <p key={j}>{line}</p>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div>
                                 <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2 flex items-center gap-1.5">
                                   <MessageSquare className="h-3.5 w-3.5" /> Resumo da Conversa
                                 </h4>
                                 <p className="text-sm text-gray-300 leading-relaxed">{r.resumo}</p>
+
                                 {r.motivo_nao_venda && (
                                   <div className="mt-4">
                                     <h4 className="text-xs font-semibold text-red-400 uppercase mb-1 flex items-center gap-1.5">
@@ -480,6 +691,7 @@ export default function NCSaudeDashboard() {
                                     <p className="text-sm text-gray-400">{r.motivo_nao_venda}</p>
                                   </div>
                                 )}
+
                                 {r.proximo_passo_sugerido && (
                                   <div className="mt-4">
                                     <h4 className="text-xs font-semibold text-emerald-400 uppercase mb-1 flex items-center gap-1.5">
@@ -489,6 +701,7 @@ export default function NCSaudeDashboard() {
                                   </div>
                                 )}
                               </div>
+
                               <div>
                                 {pontosPositivos.length > 0 && (
                                   <div className="mb-4">
@@ -505,6 +718,7 @@ export default function NCSaudeDashboard() {
                                     </ul>
                                   </div>
                                 )}
+
                                 {erros.length > 0 && (
                                   <div>
                                     <h4 className="text-xs font-semibold text-red-400 uppercase mb-2 flex items-center gap-1.5">
@@ -520,9 +734,11 @@ export default function NCSaudeDashboard() {
                                     </ul>
                                   </div>
                                 )}
+
                                 <div className="mt-4 flex gap-4 text-xs text-gray-500">
                                   <span>Lead ID: {r.lead_id}</span>
                                   <span>Vendedor ID: {r.vendedor_id}</span>
+                                  {normalizeAtendente(r.atendente) && <span>Atendente: {normalizeAtendente(r.atendente)}</span>}
                                   <span>Período: {new Date(r.periodo_inicio).toLocaleDateString('pt-BR')} – {new Date(r.periodo_fim).toLocaleDateString('pt-BR')}</span>
                                 </div>
                               </div>
@@ -538,12 +754,62 @@ export default function NCSaudeDashboard() {
           </table>
         </div>
 
-        <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-500">
-          <span>Exibindo {filtered.length} de {total} resumos</span>
-          {selectedVendedorId !== 'todos' && (
-            <span className="text-emerald-400">
-              Filtrando por: {data?.vendedores.find(v => v.vendedor_id === selectedVendedorId)?.nome}
+        <div className="px-4 py-3 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>
+              Exibindo {paginated.length === 0 ? 0 : (page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} de {filtered.length} resumos ({total} no total)
             </span>
+            {selectedVendedorId !== 'todos' && (
+              <span className="text-emerald-400">
+                Vendedor: {data?.vendedores.find(v => v.vendedor_id === selectedVendedorId)?.nome}
+              </span>
+            )}
+            {selectedAtendente !== 'todos' && (
+              <span className="text-emerald-400">
+                Atendente: {selectedAtendente}
+              </span>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                let p: number;
+                if (totalPages <= 7) p = i + 1;
+                else if (page <= 4) p = i + 1;
+                else if (page >= totalPages - 3) p = totalPages - 6 + i;
+                else p = page - 3 + i;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`px-2.5 py-1 rounded-lg border text-xs transition-colors ${
+                      page === p
+                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                        : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           )}
         </div>
       </div>
