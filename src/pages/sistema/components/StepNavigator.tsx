@@ -87,7 +87,7 @@ export default function StepNavigator() {
                 initial={{ opacity: 0, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ enter: { duration: 0.35, ease: "easeOut" }, exit: { duration: 0.15 } }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
                 className="w-full"
               >
                 <div className="mb-6">
