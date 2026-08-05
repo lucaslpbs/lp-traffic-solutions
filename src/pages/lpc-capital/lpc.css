@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+/*
+  Identidade visual oficial (manual de marca LPC Capital):
+  Azul  — Pantone 540 C — #00325B
+  Preto — Black C       — #1D1D1D (uso limitado: texto e versão PB do logo)
+  Dourado       — Pantone 117 C — #C99900
+  Dourado claro — Pantone 127 C — #F3DE74
+  Tipografia recomendada: família Gotham ("austera, elegante, com personalidade").
+  Poppins é usada aqui como alternativa gratuita de geometria equivalente.
+*/
+.lpc-root {
+  --lpc-navy: #00325b;
+  --lpc-navy-deep: #001b30;
+  --lpc-navy-light: #00477f;
+  --lpc-black: #1d1d1d;
+  --lpc-gold: #c99900;
+  --lpc-gold-light: #f3de74;
+  --lpc-gold-dim: rgba(201, 153, 0, 0.14);
+  --lpc-bg: #f4f7fa;
+  font-family: 'Poppins', sans-serif;
+  color: var(--lpc-black);
+  background: #fff;
+}
+
+.lpc-display {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.lpc-root * {
+  scroll-behavior: smooth;
+}
+
+.lpc-hairline {
+  background: linear-gradient(90deg, transparent, rgba(201, 153, 0, 0.5), transparent);
+  height: 1px;
+}
+
+.lpc-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* Corte diagonal dourado no canto — motivo recorrente no material impresso da marca */
+.lpc-corner-cut {
+  position: relative;
+  overflow: hidden;
+}
+
+.lpc-corner-cut::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, transparent 50%, var(--lpc-gold) 50%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Faixa/ribbon dourada — usada nos panfletos institucionais */
+.lpc-ribbon {
+  background: linear-gradient(90deg, var(--lpc-gold), var(--lpc-gold-light));
+  color: var(--lpc-navy);
+}
+
+@keyframes lpc-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.lpc-marquee-track {
+  animation: lpc-marquee 44s linear infinite;
+}
+
+.lpc-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes lpc-shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.lpc-shine-text {
+  background: linear-gradient(100deg, var(--lpc-gold) 30%, var(--lpc-gold-light) 45%, var(--lpc-gold) 60%);
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: lpc-shine 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lpc-root *,
+  .lpc-root *::before,
+  .lpc-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

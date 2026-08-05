@@ -1,7 +1,7 @@
 import { Fragment, useState, useEffect, useMemo } from 'react';
 import {
   Users, ShoppingCart, TrendingUp, Search, RefreshCw,
-  ChevronDown, ChevronUp, MessageSquare, Star, AlertCircle,
+  ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Star, AlertCircle,
   CheckCircle2, Clock, XCircle, ThumbsUp, ThumbsDown, ArrowRight,
   UserCheck, Pill, ImageIcon,
 } from 'lucide-react';
@@ -40,6 +40,7 @@ interface ResumoLead {
   telefone_lead?: string;
   conversa_compacta?: string | null;
   origem_lead?: string | null;
+  atendente?: string | null;
 }
 
 interface VendedorData {
@@ -62,6 +63,30 @@ const parseJsonArray = (val: string | null): string[] => {
 
 const qualidadeColor = (q: number) =>
   q >= 8 ? '#10b981' : q >= 5 ? '#f59e0b' : '#ef4444';
+
+// Normaliza para comparação: remove acentos, espaços extras e caixa.
+const DIACRITICS_REGEX = new RegExp('[\\u0300-\\u036f]', 'g');
+const normalizeKey = (s: string) =>
+  s.normalize('NFD').replace(DIACRITICS_REGEX, '').toLowerCase().trim().replace(/\s+/g, ' ');
+
+// Variações do mesmo atendente encontradas nos dados do n8n → nome canônico exibido.
+const ATENDENTE_ALIASES: Record<string, string> = {
+  'lucas': 'Lucas',
+  'lucas maia': 'Lucas',
+  'claudia': 'Cláudia',
+  'iris': 'Iris',
+  'iris uchoa': 'Iris',
+  'ronald': 'Ronaldo',
+  'ronaldo': 'Ronaldo',
+};
+
+const normalizeAtendente = (raw?: string | null): string | null => {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'null') return null;
+  const key = normalizeKey(trimmed);
+  return ATENDENTE_ALIASES[key] ?? trimmed;
+};
 
 interface MensagemConversa {
   timestamp: string;
@@ -98,6 +123,7 @@ function MsfarmaDashboardContent() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedVendedorId, setSelectedVendedorId] = useState<number | 'todos'>('todos');
+  const [selectedAtendente, setSelectedAtendente] = useState<string | 'todos'>('todos');
 
   const [search, setSearch] = useState('');
   const [filterVendeu, setFilterVendeu] = useState<string>('all');
@@ -108,6 +134,8 @@ function MsfarmaDashboardContent() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortField, setSortField] = useState<'created_at' | 'qualidade_lead'>('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 100;
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -156,9 +184,19 @@ function MsfarmaDashboardContent() {
     return Array.from(set).sort();
   }, [todosResumos]);
 
+  const atendentesUnicos = useMemo(() => {
+    const set = new Set<string>();
+    todosResumos.forEach(r => {
+      const nome = normalizeAtendente(r.atendente);
+      if (nome) set.add(nome);
+    });
+    return Array.from(set).sort();
+  }, [todosResumos]);
+
   const filtered = useMemo(() => {
     let result = [...resumosAtivos];
 
+    if (selectedAtendente !== 'todos') result = result.filter(r => normalizeAtendente(r.atendente) === selectedAtendente);
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(r =>
@@ -193,7 +231,18 @@ function MsfarmaDashboardContent() {
     });
 
     return result;
-  }, [resumosAtivos, search, filterVendeu, filterQualidadeLead, filterOrigem, filterDataInicio, filterDataFim, sortField, sortDir]);
+  }, [resumosAtivos, selectedAtendente, search, filterVendeu, filterQualidadeLead, filterOrigem, filterDataInicio, filterDataFim, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+    [filtered, page]
+  );
+
+  useEffect(() => { setPage(1); }, [
+    selectedVendedorId, selectedAtendente, search, filterVendeu,
+    filterQualidadeLead, filterOrigem, filterDataInicio, filterDataFim,
+  ]);
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
 
@@ -279,6 +328,36 @@ function MsfarmaDashboardContent() {
             }`}
           >
             {v.nome}
+          </button>
+        ))}
+      </div>
+
+      {/* Navegação por atendente */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white/[0.03] border border-emerald-500/20 rounded-xl">
+        <span className="text-xs text-gray-500 mr-1">Atendente:</span>
+
+        <button
+          onClick={() => { setSelectedAtendente('todos'); setExpandedId(null); }}
+          className={`px-4 py-1.5 rounded-lg border text-sm transition-all ${
+            selectedAtendente === 'todos'
+              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+              : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          Todos
+        </button>
+
+        {atendentesUnicos.map(a => (
+          <button
+            key={a}
+            onClick={() => { setSelectedAtendente(a); setExpandedId(null); }}
+            className={`px-4 py-1.5 rounded-lg border text-sm transition-all ${
+              selectedAtendente === a
+                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {a}
           </button>
         ))}
       </div>
@@ -445,6 +524,7 @@ function MsfarmaDashboardContent() {
                   { label: 'Valor', field: null },
                   { label: 'Follow-up', field: null },
                   { label: 'Origem', field: null },
+                  { label: 'Atendente', field: null },
                   { label: 'Período', field: 'created_at' as const },
                 ].map(col => (
                   <th
@@ -466,7 +546,7 @@ function MsfarmaDashboardContent() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-white/5">
-                    {Array.from({ length: 10 }).map((_, j) => (
+                    {Array.from({ length: 11 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-4 bg-white/5 rounded animate-pulse" />
                       </td>
@@ -475,13 +555,13 @@ function MsfarmaDashboardContent() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
                     <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     Nenhum resumo encontrado
                   </td>
                 </tr>
               ) : (
-                filtered.map(r => {
+                paginated.map(r => {
                   const isExpanded = expandedId === r.id;
                   const pontosPositivos = parseJsonArray(r.pontos_positivos_vendedor);
                   const erros = parseJsonArray(r.erros_vendedor);
@@ -546,6 +626,9 @@ function MsfarmaDashboardContent() {
                             </span>
                           ) : '—'}
                         </td>
+                        <td className="px-4 py-3 text-gray-300 text-xs">
+                          {normalizeAtendente(r.atendente) || '—'}
+                        </td>
                         <td className="px-4 py-3 text-gray-500 text-xs">
                           <p>{new Date(r.periodo_inicio).toLocaleDateString('pt-BR')}</p>
                           <p className="text-gray-600">{new Date(r.periodo_fim).toLocaleDateString('pt-BR')}</p>
@@ -554,7 +637,7 @@ function MsfarmaDashboardContent() {
 
                       {isExpanded && (
                         <tr key={`${r.id}-detail`} className="border-b border-white/5 bg-white/[0.02]">
-                          <td colSpan={10} className="px-6 py-5">
+                          <td colSpan={11} className="px-6 py-5">
                             {r.conversa_compacta && (
                               <div className="mb-6">
                                 <h4 className="text-xs font-semibold text-gray-400 uppercase mb-3 flex items-center gap-1.5">
@@ -651,6 +734,7 @@ function MsfarmaDashboardContent() {
                                 <div className="mt-4 flex gap-4 text-xs text-gray-500">
                                   <span>Lead ID: {r.lead_id}</span>
                                   <span>Vendedor ID: {r.vendedor_id}</span>
+                                  {normalizeAtendente(r.atendente) && <span>Atendente: {normalizeAtendente(r.atendente)}</span>}
                                   <span>Período: {new Date(r.periodo_inicio).toLocaleDateString('pt-BR')} – {new Date(r.periodo_fim).toLocaleDateString('pt-BR')}</span>
                                 </div>
                               </div>
@@ -666,12 +750,62 @@ function MsfarmaDashboardContent() {
           </table>
         </div>
 
-        <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-500">
-          <span>Exibindo {filtered.length} de {total} resumos</span>
-          {selectedVendedorId !== 'todos' && (
-            <span className="text-emerald-400">
-              Filtrando por: {data?.vendedores.find(v => v.vendedor_id === selectedVendedorId)?.nome}
+        <div className="px-4 py-3 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>
+              Exibindo {paginated.length === 0 ? 0 : (page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} de {filtered.length} resumos ({total} no total)
             </span>
+            {selectedVendedorId !== 'todos' && (
+              <span className="text-emerald-400">
+                Vendedor: {data?.vendedores.find(v => v.vendedor_id === selectedVendedorId)?.nome}
+              </span>
+            )}
+            {selectedAtendente !== 'todos' && (
+              <span className="text-emerald-400">
+                Atendente: {selectedAtendente}
+              </span>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                let p: number;
+                if (totalPages <= 7) p = i + 1;
+                else if (page <= 4) p = i + 1;
+                else if (page >= totalPages - 3) p = totalPages - 6 + i;
+                else p = page - 3 + i;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`px-2.5 py-1 rounded-lg border text-xs transition-colors ${
+                      page === p
+                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                        : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-lg border border-white/10 text-gray-400 hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           )}
         </div>
       </div>

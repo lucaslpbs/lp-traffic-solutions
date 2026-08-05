@@ -1,8 +1,9 @@
 import { useState, useMemo, useRef } from 'react';
-import { ChevronRight, AlertTriangle, CheckCircle2, Settings2, Image } from 'lucide-react';
+import { ChevronRight, AlertTriangle, CheckCircle2, Settings2, Image, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
+import { AdVideoModal } from '@/components/war-room/AdVideoModal';
 import {
   AdNode, MetricConfig, AlertStatus,
   getMetricStatus, getMetricTooltip, formatMetricValue,
@@ -109,15 +110,29 @@ function VariationBadge({ current, previous, config }: {
   );
 }
 
-function AdThumbnail({ node }: { node: AdNode }) {
+function AdThumbnail({ node, onOpenVideo }: { node: AdNode; onOpenVideo: (node: AdNode) => void }) {
   if (node.type !== 'ad') return null;
+  const hasVideo = !!(node.creative?.instagramPermalinkUrl || node.creative?.videoId);
+
   if (node.creative?.thumbnailUrl) {
     return (
-      <img
-        src={node.creative.thumbnailUrl}
-        alt=""
-        className="h-8 w-8 rounded object-cover flex-shrink-0"
-      />
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); onOpenVideo(node); }}
+        className="relative h-8 w-8 rounded flex-shrink-0 group/thumb"
+        title={hasVideo ? 'Ver vídeo' : undefined}
+      >
+        <img
+          src={node.creative.thumbnailUrl}
+          alt=""
+          className="h-8 w-8 rounded object-cover"
+        />
+        {hasVideo && (
+          <span className="absolute inset-0 flex items-center justify-center rounded bg-black/0 group-hover/thumb:bg-black/40 transition-colors">
+            <Play className="h-3.5 w-3.5 text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity fill-white" />
+          </span>
+        )}
+      </button>
     );
   }
   return (
@@ -143,7 +158,7 @@ function shouldShow(node: AdNode, metrics: MetricConfig[], alertsOnly: boolean):
 }
 
 const Row = ({
-  node, depth, metrics, alertsOnly, allMetricIds, previousMetricsMap,
+  node, depth, metrics, alertsOnly, allMetricIds, previousMetricsMap, onOpenVideo,
 }: {
   node: AdNode;
   depth: number;
@@ -151,6 +166,7 @@ const Row = ({
   alertsOnly: boolean;
   allMetricIds: string[];
   previousMetricsMap?: Record<string, Record<string, number | null>>;
+  onOpenVideo: (node: AdNode) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
@@ -185,7 +201,7 @@ const Row = ({
               <span className="w-4 flex-shrink-0" />
             )}
 
-            {node.type === 'ad' && <AdThumbnail node={node} />}
+            {node.type === 'ad' && <AdThumbnail node={node} onOpenVideo={onOpenVideo} />}
 
             {node.type === 'ad' && node.status && (
               <span className={cn(
@@ -274,6 +290,7 @@ const Row = ({
           alertsOnly={alertsOnly}
           allMetricIds={allMetricIds}
           previousMetricsMap={previousMetricsMap}
+          onOpenVideo={onOpenVideo}
         />
       ))}
     </>
@@ -281,7 +298,7 @@ const Row = ({
 };
 
 const ClientRow = ({
-  node, metrics, alertsOnly, allMetricIds, onOpenSettings, previousMetricsMap, objectiveMetrics,
+  node, metrics, alertsOnly, allMetricIds, onOpenSettings, previousMetricsMap, objectiveMetrics, onOpenVideo,
 }: {
   node: AdNode;
   metrics: MetricConfig[];
@@ -290,6 +307,7 @@ const ClientRow = ({
   onOpenSettings: () => void;
   previousMetricsMap?: Record<string, Record<string, number | null>>;
   objectiveMetrics: Record<string, MetricConfig[]>;
+  onOpenVideo: (node: AdNode) => void;
 }) => {
   const [expanded, setExpanded] = useState(true);
 
@@ -400,6 +418,7 @@ const ClientRow = ({
           alertsOnly={alertsOnly}
           allMetricIds={allMetricIds}
           previousMetricsMap={previousMetricsMap}
+          onOpenVideo={onOpenVideo}
         />
       ))}
     </>
@@ -409,6 +428,7 @@ const ClientRow = ({
 const NAME_COL_STORAGE_KEY = 'war-room-name-col-width';
 
 export const WarRoomTable = ({ data, clientMetricsMap, clientObjectiveMap, globalMetrics, alertsOnly, onOpenClientSettings, previousMetricsMap }: Props) => {
+  const [videoAd, setVideoAd] = useState<AdNode | null>(null);
   const [nameColWidth, setNameColWidth] = useState(() => {
     const stored = localStorage.getItem(NAME_COL_STORAGE_KEY);
     return stored ? parseInt(stored, 10) : 300;
@@ -499,10 +519,12 @@ export const WarRoomTable = ({ data, clientMetricsMap, clientObjectiveMap, globa
               onOpenSettings={() => onOpenClientSettings(client.id)}
               previousMetricsMap={previousMetricsMap}
               objectiveMetrics={clientObjectiveMap[client.id] ?? {}}
+              onOpenVideo={setVideoAd}
             />
           ))}
         </tbody>
       </table>
+      <AdVideoModal ad={videoAd} onOpenChange={open => { if (!open) setVideoAd(null); }} />
     </div>
   );
 };

@@ -11,7 +11,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import {
-  loadNucleoKommoData, formatResponseTime, dayOfWeekData, hourData,
+  loadNucleoKommoData, dayOfWeekData, hourData,
   type NucleoKommoData,
 } from '@/lib/nucleoOftalmologiaKommoUtils';
 
@@ -268,16 +268,6 @@ export default function NucleoOftalmologiaDashboardKommo() {
       desc: `${fmtPct(abertoPct)} da base ainda sem agendamento ou perda registrados`,
     });
 
-    if (data.responseTime.median > 1) {
-      list.push({
-        variant: 'yellow',
-        icon: Clock,
-        title: 'Tempo de resposta acima da meta',
-        value: formatResponseTime(data.responseTime.median),
-        desc: 'Mediana acima da meta ideal de 1 hora de resposta',
-      });
-    }
-
     const relevantFunnels = data.funnels.filter(f => f.total >= 10);
     const worst = [...relevantFunnels].sort((a, b) => a.conversao - b.conversao)[0];
     const best = [...relevantFunnels].sort((a, b) => b.conversao - a.conversao)[0];
@@ -420,13 +410,6 @@ export default function NucleoOftalmologiaDashboardKommo() {
             label="Taxa de Conversão Real"
             delta={data.taxaConversao >= benchmarkConversao ? '▲ Acima da média do setor' : '▼ Abaixo da média do setor'}
             deltaColor={data.taxaConversao >= benchmarkConversao ? 'up' : 'dn'}
-          />
-          <KpiCard
-            icon={Clock} iconColor={C.cyan}
-            value={formatResponseTime(data.responseTime.median)}
-            label="Tempo Médio de Resposta"
-            delta={data.responseTime.median > 1 ? '▼ Mediana · Meta: <1h' : '▲ Mediana · dentro da meta'}
-            deltaColor={data.responseTime.median > 1 ? 'dn' : 'up'}
           />
           <KpiCard
             icon={Users} iconColor={C.purple}
@@ -716,56 +699,7 @@ export default function NucleoOftalmologiaDashboardKommo() {
 
         {/* Eficiência & Alertas */}
         <SectionLabel>Eficiência &amp; Alertas</SectionLabel>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <Card>
-            <div className="font-display text-[15px] font-semibold mb-1">Análise de Tempo de Resposta</div>
-            <div className="text-[11px] text-white/35 mb-5">Distribuição do tempo de atualização dos leads</div>
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/65">⚡ Média geral</span>
-                <span className="text-[13px] font-semibold text-[#FF6B6B]">{formatResponseTime(data.responseTime.mean)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/65">📍 Mediana (50% dos leads)</span>
-                <span className="text-[13px] font-semibold text-[#FFD166]">{formatResponseTime(data.responseTime.median)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/65">✅ 25% mais rápidos</span>
-                <span className="text-[13px] font-semibold text-[#00E59B]">até {formatResponseTime(data.responseTime.p25)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/65">🔴 25% mais lentos</span>
-                <span className="text-[13px] font-semibold text-[#FF6B6B]">mais de {formatResponseTime(data.responseTime.p75)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/65">🏆 Mais rápido registrado</span>
-                <span className="text-[13px] font-semibold text-[#00D4FF]">{formatResponseTime(data.responseTime.min)}</span>
-              </div>
-            </div>
-            <div className="h-36 mt-5">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={[
-                    { name: '25% mais rápidos', value: data.responseTime.p25, color: C.green },
-                    { name: '50% (mediana)', value: data.responseTime.median, color: C.yellow },
-                    { name: '75% quartil', value: data.responseTime.p75, color: C.coral },
-                    { name: 'Máximo (outlier)', value: data.responseTime.max, color: C.coral },
-                  ]}
-                >
-                  <XAxis type="number" scale="log" domain={[1, 'dataMax']} allowDataOverflow tick={tick} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v)}h`} />
-                  <YAxis type="category" dataKey="name" tick={{ ...tick, fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
-                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => formatResponseTime(v)} />
-                  <Bar dataKey="value" radius={[0, 5, 5, 0]}>
-                    {[C.green, C.yellow, C.coral, C.coral].map((c, i) => (
-                      <Cell key={i} fill={c} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
+        <div className="grid grid-cols-1 gap-5 mb-5">
           <Card>
             <div className="font-display text-[15px] font-semibold mb-1">Alertas &amp; Oportunidades</div>
             <div className="text-[11px] text-white/35 mb-4">Pontos críticos que exigem ação</div>

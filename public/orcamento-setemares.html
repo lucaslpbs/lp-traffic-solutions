@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traffic Solutions × Sete Mares — Orçamento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #12151a;
+    --navy-deep: #082347;
+    --blue-vivid: #184892;
+    --blue-glow: #2f6fd6;
+    --fog: #F0F1F2;
+    --fog-dim: #a7b0b9;
+    --line: rgba(240,241,242,0.10);
+    --sun: #F2A63C;
+    --sun-soft: rgba(242,166,60,0.14);
+    --card: #171b21;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--fog);
+    font-family:'Inter',sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  ::selection{background:var(--sun);color:var(--ink);}
+  a{color:inherit;text-decoration:none;}
+
+  .display{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.02em;}
+  .eyebrow{
+    font-family:'Inter',sans-serif;font-weight:600;letter-spacing:0.24em;
+    text-transform:uppercase;font-size:0.7rem;color:var(--sun);
+  }
+
+  section{position:relative;padding:110px 6vw;max-width:1200px;margin:0 auto;}
+  @media (max-width:760px){section{padding:70px 6vw;}}
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 6vw;background:rgba(18,21,26,0.75);
+    backdrop-filter:blur(14px);border-bottom:1px solid var(--line);
+  }
+  .nav-brand{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.95rem;letter-spacing:0.02em;white-space:nowrap;}
+  .nav-brand span{color:var(--blue-glow);}
+  .nav-meta{font-size:0.78rem;color:var(--fog-dim);text-align:right;}
+  @media (max-width:600px){
+    nav{padding:16px 5vw;}
+    .nav-meta{font-size:0.68rem;max-width:52vw;line-height:1.35;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding-top:96px;overflow:hidden;}
+  .hero-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  .hero-glow{
+    position:absolute;top:-18%;right:-14%;width:56vw;height:56vw;min-width:420px;min-height:420px;max-width:900px;max-height:900px;
+    background:radial-gradient(circle at 32% 32%, rgba(47,111,214,0.32), rgba(24,72,146,0.14) 42%, transparent 68%);
+    filter:blur(2px);
+  }
+  .hero-glow-2{
+    position:absolute;bottom:-10%;left:-10%;width:32vw;height:32vw;min-width:260px;max-width:520px;
+    background:radial-gradient(circle at 50% 50%, rgba(242,166,60,0.10), transparent 70%);
+  }
+  .hero-grid{
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(240,241,242,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240,241,242,0.05) 1px, transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:linear-gradient(to bottom, transparent, rgba(0,0,0,0.9) 35%, rgba(0,0,0,0.9) 75%, transparent);
+    mask-image:linear-gradient(to bottom, transparent, rgba(0,0,0,0.9) 35%, rgba(0,0,0,0.9) 75%, transparent);
+  }
+  .hero-wave{position:absolute;bottom:-2px;left:0;width:100%;line-height:0;z-index:1;}
+  .hero-wave svg{display:block;width:100%;height:auto;}
+  .hero-fade{position:absolute;left:0;right:0;bottom:0;height:35%;background:linear-gradient(to bottom, transparent, var(--ink) 92%);z-index:1;}
+  .hero-content{position:relative;z-index:2;max-width:780px;}
+  .hero h1{
+    font-size:clamp(2rem,8vw,4.4rem);font-weight:700;line-height:1.1;
+    margin:20px 0 20px;word-wrap:break-word;
+  }
+  .hero h1 em{font-style:normal;color:var(--blue-glow);}
+  .hero p.lede{font-size:clamp(0.95rem,3vw,1.08rem);color:var(--fog-dim);max-width:560px;}
+  .hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:30px;}
+  .tag{
+    display:flex;align-items:center;gap:8px;font-size:0.74rem;color:var(--fog-dim);
+    border:1px solid var(--line);padding:7px 12px;border-radius:100px;white-space:nowrap;
+    background:rgba(18,21,26,0.4);backdrop-filter:blur(6px);
+  }
+  .tag .dot{width:6px;height:6px;border-radius:50%;background:var(--sun);flex-shrink:0;}
+  @media (max-width:480px){
+    .hero{min-height:auto;padding-bottom:60px;}
+    .hero-glow{width:80vw;height:80vw;top:-30%;right:-30%;}
+  }
+
+  /* ---------- REVEAL ---------- */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+
+  /* ---------- SECTION HEAD ---------- */
+  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px;flex-wrap:wrap;}
+  .sec-head h2{font-size:clamp(1.5rem,6vw,2.5rem);font-weight:700;margin-top:10px;}
+  .sec-head p{max-width:340px;color:var(--fog-dim);font-size:0.92rem;}
+  @media (max-width:600px){
+    .sec-head{margin-bottom:36px;}
+    .sec-head p{max-width:none;}
+  }
+
+  /* ---------- SERVICE CARDS ---------- */
+  .services{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:20px;overflow:hidden;}
+  @media (max-width:980px){.services{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){.services{grid-template-columns:1fr;}}
+  .svc{background:var(--card);padding:32px 26px;transition:background .3s ease;}
+  .svc:hover{background:#1c2129;}
+  .svc .num{font-size:0.72rem;color:var(--fog-dim);letter-spacing:0.1em;}
+  .svc h3{font-family:'Space Grotesk',sans-serif;font-size:1.28rem;margin:14px 0 10px;}
+  .svc p.desc{color:var(--fog-dim);font-size:0.9rem;margin-bottom:16px;}
+  .svc .example{
+    font-size:0.82rem;color:var(--fog);background:rgba(47,111,214,0.10);
+    border-left:2px solid var(--blue-glow);padding:10px 12px;border-radius:0 8px 8px 0;margin-bottom:18px;
+  }
+  .svc .example b{color:var(--blue-glow);font-weight:600;display:block;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
+  .svc .price{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:600;}
+  .svc .price small{font-family:'Inter',sans-serif;font-size:0.7rem;color:var(--fog-dim);font-weight:500;display:block;margin-top:2px;}
+  @media (max-width:560px){
+    .svc{padding:26px 22px;}
+  }
+
+  /* ---------- CADENCE ---------- */
+  .cadence-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media (max-width:760px){.cadence-grid{grid-template-columns:1fr;}}
+  .cad-card{border:1px solid var(--line);border-radius:18px;padding:30px;background:var(--card);}
+  .cad-card .big{font-family:'Space Grotesk',sans-serif;font-size:2.6rem;font-weight:700;color:var(--sun);line-height:1;}
+  .cad-card .big span{font-size:1rem;color:var(--fog-dim);font-family:'Inter',sans-serif;font-weight:500;margin-left:6px;}
+  .cad-card h4{margin:14px 0 8px;font-size:1rem;}
+  .cad-card p{color:var(--fog-dim);font-size:0.88rem;}
+  .note-flex{
+    margin-top:20px;display:flex;gap:10px;align-items:flex-start;
+    background:var(--sun-soft);border:1px solid rgba(242,166,60,0.3);
+    border-radius:12px;padding:14px 16px;font-size:0.85rem;color:var(--fog);
+  }
+
+  /* ---------- INVESTMENT ---------- */
+  .invest-wrap{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--card);}
+  .invest-list{padding:8px;}
+  .invest-row{
+    display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 22px;
+    border-bottom:1px solid var(--line);
+  }
+  .invest-row:last-child{border-bottom:none;}
+  .invest-row .lbl{font-weight:600;font-size:0.98rem;}
+  .invest-row .sub{color:var(--fog-dim);font-size:0.82rem;margin-top:3px;}
+  .invest-row .val{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.05rem;color:var(--fog);white-space:nowrap;flex-shrink:0;}
+  .invest-total{
+    background:linear-gradient(120deg,var(--navy-deep),var(--blue-vivid));
+    padding:34px 30px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  }
+  @media (max-width:560px){
+    .invest-row{padding:16px 18px;}
+    .invest-row .lbl{font-size:0.9rem;}
+    .invest-row .sub{font-size:0.76rem;}
+    .invest-row .val{font-size:0.95rem;}
+    .invest-total{flex-direction:column;align-items:flex-start;padding:28px 22px;gap:18px;}
+    .invest-total .badge{align-self:flex-start;}
+  }
+  .invest-total .lbl{font-size:0.82rem;text-transform:uppercase;letter-spacing:0.14em;color:rgba(240,241,242,0.75);}
+  .invest-total .amount{
+    font-family:'Space Grotesk',sans-serif;font-size:clamp(2.1rem,8vw,3rem);font-weight:700;color:#fff;
+    display:flex;align-items:baseline;flex-wrap:wrap;gap:2px;
+  }
+  .invest-total .amount .unit{font-size:1rem;font-family:'Inter',sans-serif;font-weight:500;color:rgba(240,241,242,0.75);}
+  .invest-total .badge{
+    font-size:0.75rem;background:rgba(255,255,255,0.14);padding:8px 14px;border-radius:100px;color:#fff;
+    white-space:nowrap;
+  }
+
+  .conditions{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:760px){.conditions{grid-template-columns:1fr;}}
+  .cond-item{border:1px solid var(--line);border-radius:14px;padding:20px;font-size:0.85rem;color:var(--fog-dim);}
+  .cond-item b{color:var(--fog);display:block;margin-bottom:6px;font-size:0.92rem;}
+  @media (max-width:480px){
+    .cad-card{padding:24px;}
+    .cad-card .big{font-size:2.2rem;}
+  }
+
+  /* ---------- CTA ---------- */
+  .cta{text-align:center;padding-top:60px;padding-bottom:140px;}
+  .cta h2{font-size:clamp(1.8rem,4vw,2.6rem);max-width:620px;margin:0 auto 18px;}
+  .cta p{color:var(--fog-dim);max-width:480px;margin:0 auto 32px;}
+  .cta-btn{
+    display:inline-block;background:var(--sun);color:var(--ink);font-weight:700;
+    padding:16px 34px;border-radius:100px;font-size:0.95rem;transition:transform .25s ease;
+  }
+  .cta-btn:hover{transform:translateY(-2px);}
+  footer{text-align:center;padding:26px 6vw 40px;color:var(--fog-dim);font-size:0.76rem;border-top:1px solid var(--line);}
+  @media (max-width:480px){
+    .cta{padding-top:40px;padding-bottom:90px;}
+    .cta-btn{width:100%;text-align:center;padding:15px 24px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Traffic<span>Solutions</span></div>
+  <div class="nav-meta">Orçamento · Sete Mares · Julho 2026</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-glow"></div>
+    <div class="hero-glow-2"></div>
+    <div class="hero-grid"></div>
+  </div>
+  <div class="hero-wave">
+    <svg viewBox="0 0 1200 220" xmlns="http://www.w3.org/2000/svg">
+      <g transform="scale(1,0.55)">
+        <path d="M0,340 C150,300 250,380 400,330 C550,280 650,360 800,300 C950,240 1050,320 1200,260 L1200,400 L0,400 Z" fill="rgba(24,72,146,0.30)"/>
+        <path d="M0,370 C180,330 300,390 450,350 C600,310 720,380 880,330 C1000,295 1100,340 1200,310 L1200,400 L0,400 Z" fill="rgba(47,111,214,0.24)"/>
+        <path id="risingLine" d="M0,360 C150,320 260,300 380,260 C500,220 600,230 720,180 C840,130 950,150 1080,90 C1140,60 1170,45 1200,20" fill="none" stroke="#F2A63C" stroke-width="4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      </g>
+    </svg>
+  </div>
+  <div class="hero-fade"></div>
+  <div class="hero-content">
+    <div class="eyebrow">Proposta comercial · Plano anual</div>
+    <h1 class="display">Sete mares, uma <em>única maré</em> de crescimento.</h1>
+    <p class="lede">Tráfego pago, vídeo e conteúdo estratégico trabalhando juntos para levar a Sete Mares do feed para o carrinho — mês após mês, com consistência de time completo.</p>
+    <div class="hero-tags">
+      <div class="tag"><span class="dot"></span>Tráfego pago</div>
+      <div class="tag"><span class="dot"></span>Vídeomaker</div>
+      <div class="tag"><span class="dot"></span>Estratégia &amp; postagens</div>
+      <div class="tag"><span class="dot"></span>Design</div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVIÇOS -->
+<section id="servicos">
+  <div class="sec-head reveal">
+    <div>
+      <div class="eyebrow">01 · O que compõe o projeto</div>
+      <h2 class="display">Quatro frentes, um só resultado</h2>
+    </div>
+    <p>Cada entrega tem uma função clara dentro da jornada — do primeiro clique até a compra.</p>
+  </div>
+
+  <div class="services">
+    <div class="svc reveal">
+      <div class="num">— 01</div>
+      <h3>Tráfego Pago</h3>
+      <p class="desc">Gestão de campanhas no Meta Ads (Instagram e Facebook), com foco em conversão de vendas e teste constante de criativos e públicos.</p>
+      <div class="example"><b>Exemplo</b>Campanha de remarketing para quem visitou a página de um biquíni e não finalizou a compra.</div>
+      <div class="price">R$ 800<small>por mês · fixo no plano anual</small></div>
+    </div>
+
+    <div class="svc reveal" style="transition-delay:.06s">
+      <div class="num">— 02</div>
+      <h3>Vídeomaker</h3>
+      <p class="desc">Gravação e edição de vídeos para tráfego pago e conteúdo orgânico, em sessões semanais ou quinzenais.</p>
+      <div class="example"><b>Exemplo</b>Vídeo de "3 formas de usar o mesmo biquíni" gravado na praia para testar como criativo de anúncio.</div>
+      <div class="price">R$ 1.500<small>por mês</small></div>
+    </div>
+
+    <div class="svc reveal" style="transition-delay:.12s">
+      <div class="num">— 03</div>
+      <h3>Estratégia &amp; Postagens</h3>
+      <p class="desc">Planejamento de calendário editorial, legendas e curadoria do feed, alinhados ao momento de coleção da marca.</p>
+      <div class="example"><b>Exemplo</b>Carrossel "Guia de tamanhos" publicado na semana de lançamento de uma nova estampa.</div>
+      <div class="price">R$ 1.500<small>por mês</small></div>
+    </div>
+
+    <div class="svc reveal" style="transition-delay:.18s">
+      <div class="num">— 04</div>
+      <h3>Design</h3>
+      <p class="desc">Peças gráficas de apoio: capas de destaque, artes de campanha e identidade visual das postagens.</p>
+      <div class="example"><b>Exemplo</b>Capas de Stories em destaque organizadas por coleção (praia, fitness, lançamentos).</div>
+      <div class="price">R$ 500<small>por mês</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- RITMO -->
+<section id="ritmo">
+  <div class="sec-head reveal">
+    <div>
+      <div class="eyebrow">02 · Ritmo de produção</div>
+      <h2 class="display">Volume pensado para o Instagram da Sete Mares</h2>
+    </div>
+    <p>Baseado no que já performa no perfil, ajustado para dar espaço a testes.</p>
+  </div>
+
+  <div class="cadence-grid">
+    <div class="cad-card reveal">
+      <div class="big">4<span>posts / semana</span></div>
+      <h4>Estratégia &amp; postagens</h4>
+      <p>Ritmo de feed consistente — em torno de 16 a 17 publicações por mês, entre fotos, carrosséis e reels orgânicos.</p>
+    </div>
+    <div class="cad-card reveal" style="transition-delay:.06s">
+      <div class="big">6<span>vídeos / semana</span></div>
+      <h4>Material para tráfego pago</h4>
+      <p>Volume necessário para testar ganchos, formatos e ofertas diferentes nas campanhas, encontrando os vídeos que mais convertem.</p>
+      <div class="note-flex">A gravação da vídeomaker acompanha esse volume e pode acontecer <b>1x por semana</b> (6 vídeos por sessão) ou <b>quinzenal</b> (12 vídeos por sessão) — o que encaixar melhor na agenda da Sete Mares.</div>
+    </div>
+  </div>
+</section>
+
+<!-- INVESTIMENTO -->
+<section id="investimento">
+  <div class="sec-head reveal">
+    <div>
+      <div class="eyebrow">03 · Investimento</div>
+      <h2 class="display">Plano anual</h2>
+    </div>
+    <p>Valor de tráfego pago fixo o ano inteiro — sem reajuste depois dos primeiros meses.</p>
+  </div>
+
+  <div class="invest-wrap reveal">
+    <div class="invest-list">
+      <div class="invest-row">
+        <div><div class="lbl">Tráfego pago</div><div class="sub">Gestão de campanhas Meta Ads</div></div>
+        <div class="val">R$ 800</div>
+      </div>
+      <div class="invest-row">
+        <div><div class="lbl">Vídeomaker</div><div class="sub">Gravação + edição, semanal ou quinzenal</div></div>
+        <div class="val">R$ 1.500</div>
+      </div>
+      <div class="invest-row">
+        <div><div class="lbl">Estratégia &amp; postagens</div><div class="sub">4 posts por semana + calendário editorial</div></div>
+        <div class="val">R$ 1.500</div>
+      </div>
+      <div class="invest-row">
+        <div><div class="lbl">Design</div><div class="sub">Peças gráficas de apoio</div></div>
+        <div class="val">R$ 500</div>
+      </div>
+    </div>
+    <div class="invest-total">
+      <div>
+        <div class="lbl">Investimento mensal total</div>
+        <div class="amount">R$&nbsp;<span id="counter">0</span><span class="unit">/mês</span></div>
+      </div>
+      <div class="badge">Plano anual · 12 meses</div>
+    </div>
+  </div>
+
+  <div class="conditions reveal">
+    <div class="cond-item"><b>Vigência</b>Contrato anual, com valor de tráfego pago travado em R$800/mês do início ao fim.</div>
+    <div class="cond-item"><b>Cadência</b>4 postagens/semana e 6 vídeos/semana, com gravação semanal ou quinzenal.</div>
+    <div class="cond-item"><b>Pagamento</b>Mensal, referente ao mês vigente — condições de faturamento a combinar.</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="eyebrow reveal">Vamos começar?</div>
+  <h2 class="display reveal">Pronta pra colocar a Sete Mares na próxima maré?</h2>
+  <p class="reveal">Retorne essa proposta com um "topo" e já organizamos o primeiro calendário de gravação.</p>
+  <a href="#" class="cta-btn reveal">Aprovar orçamento</a>
+</section>
+
+<footer>Traffic Solutions · Proposta válida por 7 dias a partir do envio</footer>
+
+<script>
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  }, {threshold:0.15});
+  revealEls.forEach(el => io.observe(el));
+
+  // count-up on total investment
+  const counterEl = document.getElementById('counter');
+  const target = 4300;
+  let started = false;
+  const totalBlock = document.querySelector('.invest-total');
+  const io2 = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting && !started){
+        started = true;
+        let start = 0;
+        const duration = 900;
+        const t0 = performance.now();
+        function tick(now){
+          const p = Math.min(1, (now - t0)/duration);
+          const val = Math.floor(p * target);
+          counterEl.textContent = val.toLocaleString('pt-BR');
+          if(p < 1) requestAnimationFrame(tick);
+          else counterEl.textContent = target.toLocaleString('pt-BR');
+        }
+        requestAnimationFrame(tick);
+        io2.unobserve(totalBlock);
+      }
+    });
+  }, {threshold:0.4});
+  io2.observe(totalBlock);
+
+  // draw rising wave line
+  const path = document.getElementById('risingLine');
+  const len = path.getTotalLength();
+  path.style.strokeDasharray = len;
+  path.style.strokeDashoffset = len;
+  requestAnimationFrame(() => {
+    path.style.transition = 'stroke-dashoffset 1.8s ease';
+    path.style.strokeDashoffset = 0;
+  });
+</script>
+
+</body>
+</html>

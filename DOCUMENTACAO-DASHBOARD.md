@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O dashboard é uma aplicação React (TypeScript + Vite) que exibe métricas de campanhas do Meta Ads para os clientes da Traffic Solutions. A autenticação é feita via Supabase e os dados são obtidos através de webhooks N8N que consultam a API do Meta.
+O dashboard é uma aplicação React (TypeScript + Vite) que exibe métricas de campanhas do Meta Ads para os clientes da Traffic Solutions, além de um módulo administrativo de **Gestão de Clientes** (cadastro, contratos, cobrança e automações). A autenticação é feita via Supabase. Os dados de campanhas vêm de webhooks N8N que consultam a API do Meta, enquanto a Gestão de Clientes lê/grava diretamente em uma tabela Supabase dedicada e dispara webhooks N8N para acionar automações.
 
 ---
 
@@ -14,9 +14,11 @@ Browser
   ├── Login (Supabase Auth)
   │
   └── Dashboard
-        ├── Lista de Clientes  →  webhook: bm-clientes-ativos
-        ├── Relatório do Cliente  →  webhook: relatorio-meta-insights
-        └── Quarto de Guerra  →  webhook: war-room + get-metrics + save-metrics
+        ├── Lista de Clientes      →  webhook: bm-clientes-ativos
+        ├── Relatório do Cliente   →  webhook: relatorio-meta-insights
+        ├── Quarto de Guerra       →  webhook: war-room + get-metrics + save-metrics
+        └── Gestão de Clientes     →  Supabase "Gestão" (tabela gestao_clientes)
+                                       + webhooks: novo-cliente-cadastrado, cobrar-cliente
 ```
 
 **Stack:**
@@ -24,7 +26,7 @@ Browser
 - Tailwind CSS + shadcn-ui
 - Recharts (gráficos)
 - React Query (cache de dados)
-- Supabase Auth
+- Supabase (Auth + projeto dedicado de Gestão de Clientes)
 - N8N (orquestração de webhooks)
 - html2pdf.js (exportação em PDF)
 
@@ -36,8 +38,9 @@ Browser
 |------|-----------|----------|
 | `/login` | Tela de login | Pública |
 | `/dashboard` | Lista de clientes | Autenticada |
-| `/dashboard/:clientId` | Relatório do cliente | Autenticada |
 | `/dashboard/guerra` | Quarto de Guerra | Autenticada |
+| `/dashboard/gestao-clientes` | Gestão de Clientes (cadastro, contratos, cobrança) | Autenticada |
+| `/dashboard/:clientId` | Relatório do cliente | Autenticada |
 
 ---
 
@@ -416,18 +419,283 @@ A interpretação de melhora/piora leva em conta a `direction` da métrica (ex: 
 
 ---
 
+## Tela 4: Gestão de Clientes (`/dashboard/gestao-clientes`)
+
+Painel administrativo para cadastrar e gerenciar os contratos dos clientes da agência: dados de cobrança, WhatsApp, configurações de alerta do Meta Ads e o disparo das automações (fluxos N8N) de cada cliente. É a tela de **"criar clientes"**.
+
+### Fonte de dados
+
+Ao contrário das outras telas (que consultam webhooks N8N), a Gestão de Clientes lê e grava **diretamente em uma tabela do Supabase**, usando um projeto Supabase **separado** do projeto de autenticação:
+
+```ts
+// src/integrations/supabase/clientGestao.ts
+export const supabaseGestao = createClient(
+  import.meta.env.VITE_SUPABASE_GESTAO_URL,
+  import.meta.env.VITE_SUPABASE_GESTAO_KEY,
+  { auth: { persistSession: false, autoRefreshToken: false } }
+);
+```
+
+Toda a tela opera sobre a tabela `gestao_clientes`.
+
+---
+
+### KPIs do cabeçalho (Gestão de Clientes)
+
+| KPI | Cálculo |
+|-----|---------|
+| **Total de Clientes** | `clientes.length` (todos os registros) |
+| **Clientes Ativos** | quantidade com `status = 'ativo'` |
+| **MRR Total** | soma de `valor_mensalidade` dos clientes ativos |
+| **Vencendo esta semana** | clientes ativos cujo `dia_vencimento` está entre hoje e +7 dias (do dia do mês) |
+
+---
+
+### Filtros e busca
+
+| Controle | Função |
+|----------|--------|
+| Busca | Filtra por `nome_cliente` ou `numero_conta_anuncio` (case-insensitive) |
+| Status | Todos / Ativo / Pausado / Cancelado |
+| Tipo de contrato | Todos / Semanal / Mensal / Trimestral / Semestral / Anual |
+
+---
+
+### Tabela de clientes
+
+Colunas: `#`, Nome (+ segmento abaixo do nome), Conta Anúncio, WhatsApp, Valor, Vencimento, Status, Último Contato, Cobrança, Fluxos, Ações.
+
+**Badges:**
+
+| Badge | Valores | Origem |
+|-------|---------|--------|
+| Status | Ativo (verde) / Pausado (amarelo) / Cancelado (vermelho) | `status` |
+| Cobrança | Enviada (verde) / Pendente (amarelo, default) / outro valor (cinza) | `status_cobranca` |
+| Fluxos | "✓ Automações ativas" (azul) se `fluxos_criados = true`, senão "⏳ Aguardando" (amarelo) | `fluxos_criados` |
+
+**Linha expandida** (ícone de olho/chevron): mostra ID do Grupo WhatsApp, Tipo de Contrato, Início do Contrato, Limite Mín. de Saldo, Responsável (se houver), Fim do Contrato (se houver), Observações (se houver) e se o **Webhook de cadastro foi disparado** (Sim/Não, de `webhook_cadastro_disparado`).
+
+**Ações por linha:**
+
+| Ícone | Ação |
+|-------|------|
+| Olho / Chevron (Eye/ChevronUp) | Expande/colapsa os detalhes da linha |
+| Balão (MessageSquare) | Abre o modal "Confirmar Cobrança" |
+| Lápis (Pencil) | Abre o modal de edição preenchido com os dados do cliente |
+| Pausa / Play (PauseCircle/PlayCircle) | Alterna `status` entre `ativo` ⇄ `pausado` diretamente no Supabase |
+
+---
+
+### Modal "Novo Cliente" / "Editar Cliente"
+
+Aberto pelo botão **"Novo Cliente"** (cabeçalho) ou pelo ícone de editar de uma linha. Dividido em 5 seções:
+
+#### 1. Identificação
+
+| Campo | Obrigatório | Observações |
+|-------|:---:|---|
+| Nome do Cliente | Sim | Texto livre. Ex: "Livet Indústria" |
+| Nº Conta de Anúncio Meta | Sim | ID numérico da conta Meta Ads (ex: `705340254145484`) |
+| Segmento | Não | Select: Saúde, Moda, Varejo, Educação, Serviços, Outro |
+| Responsável Interno | Não | Texto livre |
+
+#### 2. WhatsApp
+
+| Campo | Obrigatório | Observações |
+|-------|:---:|---|
+| Nº WhatsApp do Cliente | Sim | Número pessoal do cliente, usado para **cobrança** (ex: `5585999999999`) |
+| ID do Grupo WhatsApp | Sim | ID do grupo para onde vão alertas e relatórios automáticos (ex: `120363425141584579`). Obtido abrindo o grupo no WhatsApp Web e lendo o ID na URL |
+
+#### 3. Contrato & Financeiro
+
+| Campo | Obrigatório | Observações |
+|-------|:---:|---|
+| Valor da Mensalidade (R$) | Sim* | Editável normalmente. Se "Plano personalizado" estiver ativo, fica **somente leitura** e é preenchido automaticamente com o valor da 1ª parcela |
+| Tipo de Contrato | Sim | Semanal / Mensal / Trimestral / Semestral / Anual |
+| Plano de parcelas personalizado | Não | Toggle (switch) |
+| Dia de Vencimento | Sim** | 1–31. **Não obrigatório para contrato Semanal** (assume `1` se vazio) |
+| Data de Início | Sim | Default: data atual |
+| Data de Fim | Não | Opcional |
+
+**Plano de parcelas personalizado** (quando ativado):
+- Mostra uma lista de "grupos de parcelas", cada um com: **Parcelas** (quantidade), **Valor R$**, **Início** (data).
+- Botão **"Adicionar grupo de parcelas"** cria novos grupos; cada grupo (exceto o primeiro) pode ser removido.
+- Uma **linha do tempo** é renderizada automaticamente abaixo, listando cada grupo (`Nx de R$Y — a partir de DD/MM/AAAA`) e o **total geral** (Σ parcelas × valor).
+- O valor da 1ª parcela (`parcelas[0].valor`) alimenta automaticamente o campo "Valor da Mensalidade".
+
+#### 4. Configurações Meta Ads
+
+| Campo | Obrigatório | Observações |
+|-------|:---:|---|
+| Limite Mínimo de Saldo (R$) | Não (default `58.00`) | Quando o saldo da conta de anúncio cair abaixo deste valor, o alerta automático é disparado |
+
+#### 5. Observações
+
+Campo de texto livre (textarea), anotações internas.
+
+---
+
+### Validação ao salvar
+
+O formulário bloqueia o envio (toast "Preencha todos os campos obrigatórios.") se faltar:
+- `nome_cliente`
+- `numero_conta_anuncio`
+- `numero_whatsapp_cliente`
+- `numero_grupo_whatsapp`
+- valor da mensalidade (considera `parcelas[0].valor` se plano personalizado)
+- `dia_vencimento` — **dispensado** se `tipo_contrato === 'semanal'`
+
+---
+
+### Fluxo: Cadastrar Novo Cliente
+
+1. **Insert** na tabela `gestao_clientes` (Supabase – projeto Gestão), com o payload:
+
+```ts
+{
+  nome_cliente, numero_conta_anuncio, segmento, responsavel_interno,
+  numero_whatsapp_cliente, numero_grupo_whatsapp,
+  valor_mensalidade,           // calculado: parcelas[0].valor se plano_personalizado, senão form.valor_mensalidade
+  tipo_contrato,
+  dia_vencimento,              // parseInt, default 1
+  data_inicio, data_fim, observacoes,
+  limite_minimo_saldo,         // default 58
+  plano_personalizado,
+  parcelas_detalhes,           // array de {parcelas, valor, inicio} se plano_personalizado, senão null
+}
+```
+
+2. Se o insert tiver sucesso, dispara um **POST** para o webhook N8N:
+
+```
+POST https://n8n.trafficsolutions.cloud/webhook/novo-cliente-cadastrado
+```
+
+payload:
+
+```json
+{
+  "action": "novo_cliente",
+  "id": "<uuid do registro criado>",
+  "timestamp": "2026-06-09T12:00:00.000Z",
+  "clientName": "Nome do Cliente",
+  "accountId": "705340254145484",
+  "numero": "120363425141584579",
+  "limiteMinimo": 58,
+  "numero_whatsapp_cliente": "5585999999999",
+  "valor_mensalidade": 1500,
+  "dia_vencimento": 10,
+  "tipo_contrato": "mensal",
+  "data_inicio": "2026-06-09",
+  "responsavel_interno": "...",
+  "segmento": "...",
+  "plano_personalizado": false,
+  "parcelas_detalhes": null
+}
+```
+
+> `numero` = ID do grupo de WhatsApp (não o número pessoal).
+
+3. Se o webhook responder, o front atualiza `webhook_cadastro_disparado = true` no registro recém-criado. **Falha no webhook não bloqueia o cadastro** (é tratada silenciosamente, `catch` vazio).
+4. Toast de sucesso: *"Cliente cadastrado! Os fluxos de automação serão criados em instantes."*
+5. Modal fecha e a lista é recarregada (`fetchClientes`).
+
+> O fluxo N8N `novo-cliente-cadastrado` é responsável por criar as automações do cliente (alerta de saldo mínimo, relatório diário no grupo, cobrança recorrente). Ao concluir, esse fluxo deve atualizar `fluxos_criados = true` na tabela — refletido no badge "✓ Automações ativas" da listagem.
+
+---
+
+### Fluxo: Editar Cliente
+
+- Apenas um **update** na tabela `gestao_clientes` com o mesmo payload do cadastro (sem disparo de webhook).
+- Toast: *"Cliente atualizado com sucesso!"*
+
+---
+
+### Fluxo: Ativar/Pausar
+
+- Alterna `status` entre `'ativo'` e `'pausado'` com um update direto no Supabase.
+- Toast: *"Cliente ativado."* ou *"Cliente pausado."*
+- Não existe botão para `status = 'cancelado'` na UI — precisa ser feito via edição direta no banco.
+
+---
+
+### Fluxo: Cobrar Cliente
+
+1. Clique no ícone de balão abre o modal **"Confirmar Cobrança"**, mostrando: nome do cliente, valor da mensalidade, dia de vencimento e número de WhatsApp.
+2. Ao confirmar, **POST**:
+
+```
+POST https://n8n.trafficsolutions.cloud/webhook/cobrar-cliente
+```
+
+payload:
+
+```json
+{
+  "action": "cobrar_cliente",
+  "timestamp": "2026-06-09T12:00:00.000Z",
+  "id": "<uuid>",
+  "nome_cliente": "...",
+  "numero_conta_anuncio": "...",
+  "numero_whatsapp_cliente": "...",
+  "numero_grupo_whatsapp": "...",
+  "valor_mensalidade": 1500,
+  "dia_vencimento": 10,
+  "tipo_contrato": "mensal"
+}
+```
+
+3. O fluxo N8N envia a mensagem de cobrança via WhatsApp para o número pessoal do cliente (`numero_whatsapp_cliente`).
+4. Toast: *"Cobrança enviada para {nome} via WhatsApp!"*
+5. Os campos `status_cobranca` e `ultimo_contato_cobranca` (exibidos na tabela) são atualizados pelo fluxo N8N após o envio.
+
+---
+
+### Tabela `gestao_clientes` (schema)
+
+| Coluna | Tipo | Default | Descrição |
+|--------|------|---------|-----------|
+| `id` | uuid | `gen_random_uuid()` | Chave primária |
+| `created_at` / `updated_at` | timestamptz | `now()` | Auditoria |
+| `nome_cliente` | text | — | Nome do cliente |
+| `numero_conta_anuncio` | text | — | ID da conta Meta Ads |
+| `numero_whatsapp_cliente` | text | — | WhatsApp pessoal (cobrança) |
+| `numero_grupo_whatsapp` | text | — | ID do grupo de alertas/relatórios |
+| `valor_mensalidade` | numeric | — | Valor mensal do contrato |
+| `tipo_contrato` | `semanal`\|`mensal`\|`trimestral`\|`semestral`\|`anual` | `mensal` | Periodicidade do contrato |
+| `dia_vencimento` | integer | — | Dia do mês de vencimento |
+| `limite_minimo_saldo` | numeric | `58` | Limite que dispara alerta de saldo no Meta Ads |
+| `status` | `ativo`\|`pausado`\|`cancelado` | `ativo` | Status do contrato |
+| `data_inicio` | date | — | Início do contrato |
+| `data_fim` | date \| null | — | Fim do contrato (opcional) |
+| `observacoes` | text \| null | — | Anotações internas |
+| `responsavel_interno` | text \| null | — | Responsável pela conta |
+| `segmento` | text \| null | — | Segmento de mercado |
+| `webhook_cadastro_disparado` | boolean | — | Se o webhook `novo-cliente-cadastrado` já foi chamado com sucesso |
+| `fluxos_criados` | boolean | — | Se as automações N8N do cliente já foram criadas |
+| `ultimo_relatorio_enviado` | timestamptz \| null | — | Última vez que o relatório automático foi enviado |
+| `plano_personalizado` | boolean | — | Se o contrato usa parcelas customizadas |
+| `parcelas_detalhes` | jsonb \| null | — | Array de `{ parcelas, valor, inicio }` quando `plano_personalizado = true` |
+| `status_cobranca` | text \| null | — | `pendente` (default) \| `enviada` \| outro |
+| `ultimo_contato_cobranca` | timestamptz \| null | — | Data/hora da última cobrança enviada |
+
+---
+
 ## Resumo dos Webhooks
 
 | Endpoint | Método | Quem chama | Para que |
 |----------|--------|------------|---------|
-| `bm-clientes-ativos` | GET | Dashboard (lista) | Buscar clientes ativos e KPIs do cabeçalho |
+| `bm-clientes-ativos` | GET | Dashboard (lista) e Sidebar | Buscar clientes ativos e KPIs do cabeçalho |
 | `relatorio-meta-insights` | POST | Relatório do cliente | Buscar dados diários de campanhas por cliente e período |
 | `war-room` | GET | Quarto de Guerra | Buscar hierarquia completa (cliente → campanha → conjunto → anúncio) |
 | `get-metrics` | GET | Quarto de Guerra | Ler configurações de métricas salvas |
 | `save-metrics` | POST | Quarto de Guerra | Salvar configurações de métricas (global, por cliente, por objetivo) |
+| `novo-cliente-cadastrado` | POST | Gestão de Clientes | Acionar criação das automações (alertas, relatórios, cobrança) de um cliente recém-cadastrado |
+| `cobrar-cliente` | POST | Gestão de Clientes | Disparar mensagem de cobrança via WhatsApp para o cliente |
 
 Todos os webhooks estão sob o domínio:
-```
+
+```text
 https://n8n.trafficsolutions.cloud/webhook/
 ```
 
@@ -439,3 +707,4 @@ https://n8n.trafficsolutions.cloud/webhook/
 - Método: email + senha
 - Sessão persistida via localStorage
 - Rotas protegidas pelo componente `ProtectedRoute` – redireciona para `/login` se não autenticado
+- A **Gestão de Clientes** usa um **segundo projeto Supabase**, dedicado, acessado sem sessão (`persistSession: false`) — serve apenas como banco de dados (CRUD da tabela `gestao_clientes`), independente do projeto de autenticação do dashboard
