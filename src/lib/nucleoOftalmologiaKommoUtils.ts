@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -441,12 +440,7 @@ export function hourData(byHour: number[]): { name: string; value: number }[] {
 
 // ── Main builder ──────────────────────────────────────────────────────────────
 
-function buildDashboardFromBuffer(arrayBuffer: ArrayBuffer): NucleoKommoData {
-  const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array', cellDates: false });
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
-  const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }) as Record<string, unknown>[];
-
+function buildDashboardFromRows(rawData: Record<string, unknown>[]): NucleoKommoData {
   const leads = parseLeads(rawData);
 
   const totalLeads = leads.length;
@@ -480,15 +474,18 @@ function buildDashboardFromBuffer(arrayBuffer: ArrayBuffer): NucleoKommoData {
   };
 }
 
-export async function loadNucleoKommoData(
-  filePath = '/data/Dashboard Nucleo Oftalmologia.xlsx'
-): Promise<NucleoKommoData> {
-  const url = filePath
-    .split('/')
-    .map((part, i) => (i === 0 ? part : encodeURIComponent(part)))
-    .join('/');
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Falha ao carregar arquivo: ${response.statusText}`);
-  const arrayBuffer = await response.arrayBuffer();
-  return buildDashboardFromBuffer(arrayBuffer);
+const NUCLEO_DASHBOARD_FUNCTION_URL =
+  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nucleo-oftalmologia-dashboard-data`;
+
+export async function loadNucleoKommoData(): Promise<NucleoKommoData> {
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const response = await fetch(NUCLEO_DASHBOARD_FUNCTION_URL, {
+    headers: {
+      Authorization: `Bearer ${anonKey}`,
+      apikey: anonKey,
+    },
+  });
+  if (!response.ok) throw new Error(`Falha ao carregar dados: ${response.statusText}`);
+  const rawData = (await response.json()) as Record<string, unknown>[];
+  return buildDashboardFromRows(rawData);
 }
