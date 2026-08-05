@@ -474,11 +474,14 @@ function buildDashboardFromRows(rawData: Record<string, unknown>[]): NucleoKommo
   };
 }
 
-const NUCLEO_DASHBOARD_FUNCTION_URL =
-  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nucleo-oftalmologia-dashboard-data`;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://twclltazkfvtufbsehsv.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Y2xsdGF6a2Z2dHVmYnNlaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDAzNDEsImV4cCI6MjA5NDg3NjM0MX0.9tlBCuOcBNYYR0GZYztMRMLQH0uZdbuKhUX4s6mQHO0';
+
+const NUCLEO_DASHBOARD_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/nucleo-oftalmologia-dashboard-data`;
 
 export async function loadNucleoKommoData(): Promise<NucleoKommoData> {
-  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const anonKey = SUPABASE_ANON_KEY;
   const response = await fetch(NUCLEO_DASHBOARD_FUNCTION_URL, {
     headers: {
       Authorization: `Bearer ${anonKey}`,
