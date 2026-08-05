@@ -13,6 +13,7 @@ import { CalendarioEditorialForm } from "./forms/CalendarioEditorialForm";
 import { RelatoriosForm } from "./forms/RelatoriosForm";
 import { OtimizacaoForm } from "./forms/OtimizacaoForm";
 import { DiarioBordoForm } from "./forms/DiarioBordoForm";
+import { CriativosGallery } from "./CriativosGallery";
 
 interface ClienteContentProps {
   clientId: string;
@@ -35,6 +36,7 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
       case "Calendário editorial": return <CalendarioEditorialForm />;
       case "Relatórios": return <RelatoriosForm />;
       case "Otimização": return <OtimizacaoForm clientId={clientId} />;
+      case "Criativos": return <CriativosGallery clientId={clientId} />;
       case "Diário de Bordo": return <DiarioBordoForm />;
       default:
         return (

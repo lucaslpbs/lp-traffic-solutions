@@ -108,6 +108,7 @@ export const subAreasModal = {
     "Calendário editorial",
     "Relatórios",
     "Otimização",
+    "Criativos",
     "Diário de Bordo",
   ],
 };
