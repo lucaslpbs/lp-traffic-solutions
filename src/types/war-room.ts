@@ -18,7 +18,12 @@ export interface AdNode {
   status?: string;
   objective?: string;
   tipo?: string;
-  creative?: { imageUrl: string | null; thumbnailUrl: string | null };
+  creative?: {
+    imageUrl: string | null;
+    thumbnailUrl: string | null;
+    videoId?: string | null;
+    instagramPermalinkUrl?: string | null;
+  };
   metrics: Record<string, number | null>;
   children?: AdNode[];
 }
