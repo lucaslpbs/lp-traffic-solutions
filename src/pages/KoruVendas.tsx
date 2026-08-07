@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 // ── Constants ──────────────────────────────────────────────────────────────
 const API_URL = 'https://n8n.trafficsolutions.cloud/webhook/buscar-leads-koru-engenharia';
 const FUNIL_SNAPSHOT_FUNCTION_URL = 'https://twclltazkfvtufbsehsv.supabase.co/functions/v1/get-funil-interno-snapshot';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Y2xsdGF6a2Z2dHVmYnNlaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDAzNDEsImV4cCI6MjA5NDg3NjM0MX0.9tlBCuOcBNYYR0GZYztMRMLQH0uZdbuKhUX4s6mQHO0';
 const FUNIL_INTERNA = 'Funil Vendas Internas';
 const FUNIS_EXTERNA = ['Atendimento Geral', 'Funil Rodrigo Jefferson', 'Agenda Imobiliárias'];
 const DEFAULT_TICKET = 245000;
@@ -472,7 +473,12 @@ function useFunilSnapshot(tab: 'interna' | 'externa') {
   useEffect(() => {
     setLoading(true); setError(null);
 
-    fetch(FUNIL_SNAPSHOT_FUNCTION_URL)
+    fetch(FUNIL_SNAPSHOT_FUNCTION_URL, {
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+    })
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((json: { etapa_lead: string | null; funil_vendas: string | null }[]) => {
         if (!Array.isArray(json) || !json.length) { setRows([]); return; }
