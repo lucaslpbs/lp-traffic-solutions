@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import * as XLSX from 'xlsx';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LabelList,
@@ -13,7 +12,7 @@ import { Link } from 'react-router-dom';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const API_URL = 'https://n8n.trafficsolutions.cloud/webhook/buscar-leads-koru-engenharia';
-const XLSX_PATH = '/data/Koru%20engenharia.xlsx';
+const FUNIL_SNAPSHOT_FUNCTION_URL = 'https://twclltazkfvtufbsehsv.supabase.co/functions/v1/get-funil-interno-snapshot';
 const FUNIL_INTERNA = 'Funil Vendas Internas';
 const FUNIS_EXTERNA = ['Atendimento Geral', 'Funil Rodrigo Jefferson', 'Agenda Imobiliárias'];
 const DEFAULT_TICKET = 245000;
@@ -465,36 +464,29 @@ function CicloHBarChart({ data, color = D.blue }: { data: CicloAgente[]; color?:
 const FAIXA_CC = [D.green, D.cyan, D.amber, D.orange, D.red, '#B91C1C'];
 
 // ── Hooks ──────────────────────────────────────────────────────────────────
-function useXlsx(tab: 'interna' | 'externa') {
+function useFunilSnapshot(tab: 'interna' | 'externa') {
   const [rows, setRows] = useState<EtapaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true); setError(null);
-    fetch(XLSX_PATH)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); })
-      .then(buf => {
-        const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: '' });
-        if (!json.length) { setRows([]); return; }
-        const etapaKey = Object.keys(json[0]).find(k => norm(k).includes('etapa do lead')) ?? '';
-        const funilKey = Object.keys(json[0]).find(k => norm(k).includes('funil de vendas')) ?? '';
-        if (!etapaKey) { setRows([]); return; }
 
-        const filtered = funilKey
-          ? json.filter(row => {
-              const funil = String(row[funilKey] ?? '').trim();
-              return tab === 'interna'
-                ? funil === FUNIL_INTERNA
-                : FUNIS_EXTERNA.includes(funil);
-            })
-          : json;
+    fetch(FUNIL_SNAPSHOT_FUNCTION_URL)
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then((json: { etapa_lead: string | null; funil_vendas: string | null }[]) => {
+        if (!Array.isArray(json) || !json.length) { setRows([]); return; }
+
+        const filtered = json.filter(row => {
+          const funil = (row.funil_vendas ?? '').trim();
+          return tab === 'interna'
+            ? funil === FUNIL_INTERNA
+            : FUNIS_EXTERNA.includes(funil);
+        });
 
         const map = new Map<string, number>();
         for (const row of filtered) {
-          const e = String(row[etapaKey] ?? '').trim();
+          const e = (row.etapa_lead ?? '').trim();
           if (!e) continue;
           if (ETAPAS_TERMINAL.some(t => norm(e).includes(norm(t)))) continue;
           map.set(e, (map.get(e) ?? 0) + 1);
@@ -503,7 +495,7 @@ function useXlsx(tab: 'interna' | 'externa') {
           .map(([etapa, quantidade]) => ({ etapa, quantidade }))
           .sort((a, b) => b.quantidade - a.quantidade));
       })
-      .catch(err => setError(err instanceof Error ? err.message : 'Erro ao carregar planilha'))
+      .catch(err => setError(err instanceof Error ? err.message : 'Erro ao carregar dados do Supabase'))
       .finally(() => setLoading(false));
   }, [tab]);
 
@@ -599,7 +591,7 @@ const PTip = ({ active, payload }: { active?: boolean; payload?: { name: string;
 
 // ── Section I ──────────────────────────────────────────────────────────────
 function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
-  const { rows, loading, error } = useXlsx(tab);
+  const { rows, loading, error } = useFunilSnapshot(tab);
   const total = rows.reduce((s, r) => s + r.quantidade, 0);
   const chartH = Math.max(rows.length * 52 + 20, 180);
   const pieData = rows.filter(r => r.quantidade > 0);
@@ -1129,7 +1121,7 @@ export default function KoruVendas() {
         {/* I — Static */}
         <Card
           title="(I) Análise Estática — Situação Atual do Funil"
-          sub="Dados da planilha exportada do Kommo · Arquivo em /data/"
+          sub="Dados sincronizados automaticamente do Kommo · Atualização diária via n8n"
           icon={<BarChart2 size={20} style={{ color: D.blue }} />}
         >
           <SecaoEstatica tab={activeTab} />
