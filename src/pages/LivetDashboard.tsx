@@ -3,7 +3,7 @@ import {
   Users, ShoppingCart, TrendingUp, Search, RefreshCw,
   ChevronDown, ChevronUp, MessageSquare, Star, AlertCircle,
   CheckCircle2, Clock, XCircle, ThumbsUp, ThumbsDown, ArrowRight,
-  UserCheck, Smartphone, ImageIcon,
+  UserCheck, Smartphone, ImageIcon, CalendarDays, DollarSign, Trophy, Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,10 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
+import {
+  format, startOfWeek, startOfMonth, parseISO,
+} from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -51,6 +55,10 @@ interface VendedorData {
 interface ApiResponse {
   vendedores: VendedorData[];
 }
+
+// ── Estilo compartilhado dos dropdowns (evita texto preto sobre fundo claro) ──
+const SELECT_CONTENT_CLASS = 'bg-[#111] border-white/10 text-gray-200';
+const SELECT_ITEM_CLASS = 'text-gray-200 focus:bg-white/10 focus:text-white';
 
 // ── Instâncias da Livet ───────────────────────────────────────────────────────
 // IDs dos vendedores da Livet conforme tabela de vendedores (instâncias 12, 13, 14)
@@ -111,6 +119,8 @@ export default function LivetDashboard() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortField, setSortField] = useState<'created_at' | 'qualidade_lead'>('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [leadsAgrupamento, setLeadsAgrupamento] = useState<'dia' | 'semana' | 'mes'>('dia');
+  const [ganhosFiltro, setGanhosFiltro] = useState<'todos' | 'pago'>('todos');
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -229,6 +239,74 @@ export default function LivetDashboard() {
     { name: 'Médio (5-7)', value: resumosAtivos.filter(r => r.qualidade_lead >= 5 && r.qualidade_lead < 8).length, color: '#f59e0b' },
     { name: 'Baixo (1-4)', value: resumosAtivos.filter(r => r.qualidade_lead < 5).length, color: '#ef4444' },
   ], [resumosAtivos]);
+
+  // ── Análise de Leads: por período ────────────────────────────────────────
+
+  const leadsPorPeriodo = useMemo(() => {
+    const buckets = new Map<string, { label: string; sortKey: string; total: number }>();
+
+    resumosAtivos.forEach(r => {
+      const data = parseISO(r.periodo_inicio);
+      let key: string;
+      let label: string;
+
+      if (leadsAgrupamento === 'dia') {
+        key = format(data, 'yyyy-MM-dd');
+        label = format(data, 'dd/MM', { locale: ptBR });
+      } else if (leadsAgrupamento === 'semana') {
+        const inicioSemana = startOfWeek(data, { weekStartsOn: 1 });
+        key = format(inicioSemana, 'yyyy-MM-dd');
+        label = `${format(inicioSemana, 'dd/MM', { locale: ptBR })}`;
+      } else {
+        const inicioMes = startOfMonth(data);
+        key = format(inicioMes, 'yyyy-MM');
+        label = format(inicioMes, 'MMM/yy', { locale: ptBR });
+      }
+
+      const existente = buckets.get(key);
+      if (existente) existente.total += 1;
+      else buckets.set(key, { label, sortKey: key, total: 1 });
+    });
+
+    return Array.from(buckets.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+  }, [resumosAtivos, leadsAgrupamento]);
+
+  // ── Análise de Leads: por origem ─────────────────────────────────────────
+
+  const leadsPorOrigem = useMemo(() => {
+    const buckets = new Map<string, number>();
+    resumosAtivos.forEach(r => {
+      const origem = r.trafego_pago || 'Não informado';
+      buckets.set(origem, (buckets.get(origem) ?? 0) + 1);
+    });
+    return Array.from(buckets.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [resumosAtivos]);
+
+  const ORIGEM_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'];
+
+  // ── Análise de Leads: ganhos ──────────────────────────────────────────────
+
+  const ganhos = useMemo(
+    () => resumosAtivos.filter(r => r.vendeu),
+    [resumosAtivos]
+  );
+
+  const ganhosFiltrados = useMemo(
+    () => ganhosFiltro === 'pago' ? ganhos.filter(r => !!r.trafego_pago) : ganhos,
+    [ganhos, ganhosFiltro]
+  );
+
+  const valorTotalGanho = useMemo(
+    () => ganhosFiltrados.reduce((s, r) => s + (r.valor_vendido ?? 0), 0),
+    [ganhosFiltrados]
+  );
+
+  const ticketMedio = ganhosFiltrados.length > 0 ? valorTotalGanho / ganhosFiltrados.length : 0;
+
+  const formatBRL = (v: number) =>
+    v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   const toggleSort = (field: 'created_at' | 'qualidade_lead') => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -363,6 +441,174 @@ export default function LivetDashboard() {
         </div>
       </div>
 
+      {/* Análise de Leads */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-2 rounded-lg bg-pink-500/20 border border-pink-500/30">
+            <TrendingUp className="h-4 w-4 text-pink-400" />
+          </div>
+          <h2 className="text-lg font-bold text-white">Análise de Leads</h2>
+        </div>
+
+        {/* Leads por período */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5">
+              <CalendarDays className="h-4 w-4 text-gray-400" /> Leads ao Longo do Tempo
+            </h3>
+            <div className="flex gap-1.5">
+              {([
+                { key: 'dia', label: 'Dia' },
+                { key: 'semana', label: 'Semana' },
+                { key: 'mes', label: 'Mês' },
+              ] as const).map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => setLeadsAgrupamento(opt.key)}
+                  className={`px-3 py-1 rounded-lg border text-xs transition-all ${
+                    leadsAgrupamento === opt.key
+                      ? 'bg-pink-500/20 border-pink-500/40 text-pink-300'
+                      : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="h-64">
+            {leadsPorPeriodo.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+                Sem dados para o período
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={leadsPorPeriodo}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="label" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
+                    formatter={(value: number) => [value, 'Leads']}
+                  />
+                  <Bar dataKey="total" name="Leads" fill="#ec4899" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Leads por origem */}
+          <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-1.5">
+              <Target className="h-4 w-4 text-gray-400" /> Leads por Origem
+            </h3>
+            <div className="h-56">
+              {leadsPorOrigem.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+                  Sem dados de origem
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={leadsPorOrigem} layout="vertical" margin={{ left: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                    <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={110}
+                      tick={{ fill: '#9ca3af', fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
+                      formatter={(value: number) => [value, 'Leads']}
+                    />
+                    <Bar dataKey="value" name="Leads" radius={[0, 6, 6, 0]}>
+                      {leadsPorOrigem.map((_, i) => (
+                        <Cell key={i} fill={ORIGEM_COLORS[i % ORIGEM_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Ganhos */}
+          <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+              <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-1.5">
+                <Trophy className="h-4 w-4 text-gray-400" /> Ganhos
+              </h3>
+              <div className="flex gap-1.5">
+                {([
+                  { key: 'todos', label: 'Todos' },
+                  { key: 'pago', label: 'Tráfego Pago' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setGanhosFiltro(opt.key)}
+                    className={`px-3 py-1 rounded-lg border text-xs transition-all ${
+                      ganhosFiltro === opt.key
+                        ? 'bg-green-500/20 border-green-500/40 text-green-300'
+                        : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                <p className="text-[11px] text-gray-400">Leads Ganhos</p>
+                <p className="text-xl font-bold text-white mt-0.5">{ganhosFiltrados.length}</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                <p className="text-[11px] text-gray-400">Valor Total</p>
+                <p className="text-xl font-bold text-green-400 mt-0.5">{formatBRL(valorTotalGanho)}</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                <p className="text-[11px] text-gray-400">Ticket Médio</p>
+                <p className="text-xl font-bold text-white mt-0.5">{formatBRL(ticketMedio)}</p>
+              </div>
+            </div>
+            <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+              {ganhosFiltrados.length === 0 ? (
+                <div className="flex items-center justify-center text-gray-500 text-sm h-24">
+                  Nenhum ganho no período
+                </div>
+              ) : (
+                ganhosFiltrados
+                  .slice()
+                  .sort((a, b) => (b.valor_vendido ?? 0) - (a.valor_vendido ?? 0))
+                  .map(r => (
+                    <div
+                      key={r.id}
+                      className="flex items-center justify-between gap-3 bg-white/[0.03] rounded-lg px-3 py-2 border border-white/5"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm text-white truncate">{r.nome_lead || `Lead ${r.lead_id}`}</p>
+                        <p className="text-[11px] text-gray-500">
+                          {new Date(r.periodo_inicio).toLocaleDateString('pt-BR')}
+                          {r.trafego_pago ? ` · ${r.trafego_pago}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 text-green-400 text-sm font-semibold">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        {r.valor_vendido != null ? formatBRL(r.valor_vendido) : '—'}
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="bg-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/10 mb-6">
         <div className="flex flex-col gap-3">
@@ -382,10 +628,10 @@ export default function LivetDashboard() {
                   <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
                   <SelectValue placeholder="Vendeu?" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="sim">Vendeu</SelectItem>
-                  <SelectItem value="nao">Não vendeu</SelectItem>
+                <SelectContent className={SELECT_CONTENT_CLASS}>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="all">Todos</SelectItem>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="sim">Vendeu</SelectItem>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="nao">Não vendeu</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterQualidadeLead} onValueChange={setFilterQualidadeLead}>
@@ -393,11 +639,11 @@ export default function LivetDashboard() {
                   <Star className="h-3.5 w-3.5 mr-1.5" />
                   <SelectValue placeholder="Qual. Lead" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas Qualidades</SelectItem>
-                  <SelectItem value="alto">Alto (8-10)</SelectItem>
-                  <SelectItem value="medio">Médio (5-7)</SelectItem>
-                  <SelectItem value="baixo">Baixo (1-4)</SelectItem>
+                <SelectContent className={SELECT_CONTENT_CLASS}>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="all">Todas Qualidades</SelectItem>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="alto">Alto (8-10)</SelectItem>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="medio">Médio (5-7)</SelectItem>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="baixo">Baixo (1-4)</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterOrigem} onValueChange={setFilterOrigem}>
@@ -405,10 +651,10 @@ export default function LivetDashboard() {
                   <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
                   <SelectValue placeholder="Origem do Lead" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas Origens</SelectItem>
+                <SelectContent className={SELECT_CONTENT_CLASS}>
+                  <SelectItem className={SELECT_ITEM_CLASS} value="all">Todas Origens</SelectItem>
                   {origensUnicas.map(o => (
-                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                    <SelectItem className={SELECT_ITEM_CLASS} key={o} value={o}>{o}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
