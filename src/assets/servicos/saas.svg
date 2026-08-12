@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 672" width="512" height="672" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1626"/>
+      <stop offset="1" stop-color="#05070d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.34" r="0.62">
+      <stop offset="0" stop-color="hsl(217,91%,60%)" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="hsl(217,91%,60%)" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="1.6" cy="1.6" r="1.6" fill="hsl(217,91%,60%)" opacity="0.16"/>
+    </pattern>
+    <linearGradient id="col" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="hsl(217,91%,45%)"/>
+      <stop offset="1" stop-color="hsl(217,91%,68%)"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="672" fill="url(#bg)"/>
+  <rect width="512" height="672" fill="url(#dots)"/>
+  <rect width="512" height="672" fill="url(#glow)"/>
+
+  <rect x="40" y="40" width="152" height="34" rx="17" fill="hsl(217,91%,60%)" fill-opacity="0.12" stroke="hsl(217,91%,60%)" stroke-opacity="0.35"/>
+  <text x="60" y="63" fill="hsl(217,91%,72%)" font-size="15" font-weight="700" letter-spacing="2">PLATAFORMA</text>
+
+  <!-- app window -->
+  <g>
+    <rect x="40" y="104" width="432" height="332" rx="18" fill="#0b1424" stroke="hsl(217,91%,60%)" stroke-opacity="0.3" stroke-width="2"/>
+    <rect x="40" y="104" width="112" height="332" rx="18" fill="#101d33"/>
+    <rect x="140" y="104" width="12" height="332" fill="#101d33"/>
+
+    <!-- sidebar -->
+    <circle cx="70" cy="136" r="10" fill="hsl(217,91%,60%)"/>
+    <rect x="88" y="130" width="46" height="10" rx="5" fill="#ffffff" fill-opacity="0.6"/>
+    <g fill="#ffffff" fill-opacity="0.22">
+      <rect x="58" y="176" width="76" height="10" rx="5"/>
+      <rect x="58" y="204" width="60" height="10" rx="5"/>
+      <rect x="58" y="232" width="70" height="10" rx="5"/>
+      <rect x="58" y="260" width="52" height="10" rx="5"/>
+    </g>
+    <rect x="50" y="196" width="94" height="26" rx="8" fill="hsl(217,91%,60%)" fill-opacity="0.18"/>
+    <rect x="50" y="196" width="4" height="26" rx="2" fill="hsl(217,91%,60%)"/>
+
+    <!-- header do conteúdo -->
+    <rect x="176" y="128" width="130" height="12" rx="6" fill="#ffffff" fill-opacity="0.7"/>
+    <rect x="176" y="150" width="88" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.28"/>
+    <rect x="368" y="126" width="84" height="30" rx="15" fill="hsl(217,91%,55%)"/>
+    <text x="410" y="146" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">+ Novo</text>
+
+    <!-- KPI tiles -->
+    <g>
+      <rect x="176" y="180" width="86" height="64" rx="12" fill="#ffffff" fill-opacity="0.06"/>
+      <rect x="272" y="180" width="86" height="64" rx="12" fill="#ffffff" fill-opacity="0.06"/>
+      <rect x="368" y="180" width="84" height="64" rx="12" fill="#ffffff" fill-opacity="0.06"/>
+      <text x="192" y="212" fill="#ffffff" font-size="20" font-weight="800">128</text>
+      <text x="288" y="212" fill="#ffffff" font-size="20" font-weight="800">37%</text>
+      <text x="384" y="212" fill="#ffffff" font-size="20" font-weight="800">R$ 84k</text>
+      <rect x="192" y="224" width="46" height="7" rx="3.5" fill="hsl(217,91%,60%)" fill-opacity="0.6"/>
+      <rect x="288" y="224" width="46" height="7" rx="3.5" fill="hsl(217,91%,60%)" fill-opacity="0.6"/>
+      <rect x="384" y="224" width="46" height="7" rx="3.5" fill="hsl(217,91%,60%)" fill-opacity="0.6"/>
+    </g>
+
+    <!-- gráfico -->
+    <g>
+      <rect x="176" y="260" width="276" height="156" rx="12" fill="#ffffff" fill-opacity="0.05"/>
+      <g fill="url(#col)">
+        <rect x="200" y="352" width="26" height="46" rx="6" opacity="0.55"/>
+        <rect x="240" y="330" width="26" height="68" rx="6" opacity="0.65"/>
+        <rect x="280" y="342" width="26" height="56" rx="6" opacity="0.6"/>
+        <rect x="320" y="306" width="26" height="92" rx="6" opacity="0.8"/>
+        <rect x="360" y="288" width="26" height="110" rx="6" opacity="0.9"/>
+        <rect x="400" y="272" width="26" height="126" rx="6"/>
+      </g>
+      <rect x="196" y="404" width="234" height="2" rx="1" fill="#ffffff" fill-opacity="0.12"/>
+      <rect x="196" y="278" width="70" height="8" rx="4" fill="#ffffff" fill-opacity="0.3"/>
+    </g>
+  </g>
+
+  <rect x="40" y="486" width="56" height="4" rx="2" fill="hsl(217,91%,60%)"/>
+  <text x="40" y="540" fill="#ffffff" font-size="40" font-weight="800">SAAS</text>
+  <text x="40" y="582" fill="#ffffff" fill-opacity="0.62" font-size="20">Sistema para organização e</text>
+  <text x="40" y="610" fill="#ffffff" fill-opacity="0.62" font-size="20">crescimento na sua empresa</text>
+</svg>

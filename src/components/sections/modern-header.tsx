@@ -14,7 +14,10 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) =>
+    path === "/"
+      ? location.pathname === path
+      : location.pathname === path || location.pathname.startsWith(path + "/");
   const isHome = location.pathname === "/";
 
   const navItems = [

@@ -1,0 +1,17 @@
+Imagens da página /servicos/na-pratica (vitrine visual dos serviços).
+
+Basta salvar o arquivo aqui com o nome exato abaixo — nenhum código precisa
+ser alterado, o card passa a exibir a imagem no lugar do placeholder.
+
+  trafego-pago-resultados.png      → card "Tráfego Pago"
+  trafego-organico.png             → card "Tráfego Orgânico (Social Media)"
+  seo.png                          → card "Tráfego Orgânico (SEO)"
+  crm-automacao.png                → card "CRM & Automação"
+  criacao-sites.png                → card "Criação de Sites"
+  analytics-bi.png                 → card "Analytics & BI"
+
+Só o "trafego-pago-resultados.png" já está apontado no código; para os demais,
+avise que eu ligo cada card ao seu arquivo (ou edite `showcases` em
+src/pages/ServicosNaPratica.tsx e preencha o campo `image`).
+
+Formato recomendado: 16:9 (ex.: 1600x900), PNG ou JPG, até ~500 KB.

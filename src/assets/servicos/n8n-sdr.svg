@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 672" width="512" height="672" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1626"/>
+      <stop offset="1" stop-color="#05070d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.34" r="0.62">
+      <stop offset="0" stop-color="hsl(217,91%,60%)" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="hsl(217,91%,60%)" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="1.6" cy="1.6" r="1.6" fill="hsl(217,91%,60%)" opacity="0.16"/>
+    </pattern>
+  </defs>
+
+  <rect width="512" height="672" fill="url(#bg)"/>
+  <rect width="512" height="672" fill="url(#dots)"/>
+  <rect width="512" height="672" fill="url(#glow)"/>
+
+  <!-- label -->
+  <rect x="40" y="40" width="152" height="34" rx="17" fill="hsl(217,91%,60%)" fill-opacity="0.12" stroke="hsl(217,91%,60%)" stroke-opacity="0.35"/>
+  <text x="60" y="63" fill="hsl(217,91%,72%)" font-size="15" font-weight="700" letter-spacing="2">AUTOMAÇÃO</text>
+
+  <!-- fluxo n8n -->
+  <g stroke="hsl(217,91%,60%)" stroke-opacity="0.55" stroke-width="3" fill="none">
+    <path d="M110 232 C 150 232, 160 190, 200 190"/>
+    <path d="M110 232 C 150 232, 160 274, 200 274"/>
+    <path d="M282 190 C 322 190, 332 232, 372 232"/>
+    <path d="M282 274 C 322 274, 332 232, 372 232"/>
+  </g>
+  <g>
+    <circle cx="94" cy="232" r="26" fill="#0b1526" stroke="hsl(217,91%,60%)" stroke-width="3"/>
+    <circle cx="94" cy="232" r="8" fill="hsl(217,91%,60%)"/>
+    <rect x="200" y="166" width="82" height="48" rx="12" fill="#0f1e34" stroke="hsl(217,91%,60%)" stroke-opacity="0.5" stroke-width="2"/>
+    <rect x="216" y="182" width="50" height="6" rx="3" fill="hsl(217,91%,60%)" fill-opacity="0.75"/>
+    <rect x="216" y="194" width="32" height="6" rx="3" fill="#ffffff" fill-opacity="0.25"/>
+    <rect x="200" y="250" width="82" height="48" rx="12" fill="#0f1e34" stroke="hsl(217,91%,60%)" stroke-opacity="0.5" stroke-width="2"/>
+    <rect x="216" y="266" width="50" height="6" rx="3" fill="hsl(217,91%,60%)" fill-opacity="0.75"/>
+    <rect x="216" y="278" width="32" height="6" rx="3" fill="#ffffff" fill-opacity="0.25"/>
+    <circle cx="398" cy="232" r="26" fill="#0b1526" stroke="#25D366" stroke-width="3"/>
+    <path d="M386 244 l3-9 a10 10 0 1 1 4 4 l-7 5 z" fill="#25D366"/>
+  </g>
+
+  <!-- balões de conversa -->
+  <g>
+    <rect x="96" y="326" width="196" height="46" rx="16" fill="#122a1e" stroke="#25D366" stroke-opacity="0.4" stroke-width="2"/>
+    <rect x="116" y="345" width="120" height="8" rx="4" fill="#25D366" fill-opacity="0.55"/>
+    <rect x="216" y="386" width="200" height="46" rx="16" fill="#0f1e34" stroke="hsl(217,91%,60%)" stroke-opacity="0.4" stroke-width="2"/>
+    <circle cx="252" cy="409" r="5" fill="hsl(217,91%,70%)"/>
+    <circle cx="272" cy="409" r="5" fill="hsl(217,91%,70%)" fill-opacity="0.7"/>
+    <circle cx="292" cy="409" r="5" fill="hsl(217,91%,70%)" fill-opacity="0.45"/>
+  </g>
+
+  <!-- textos -->
+  <rect x="40" y="486" width="56" height="4" rx="2" fill="hsl(217,91%,60%)"/>
+  <text x="40" y="540" fill="#ffffff" font-size="40" font-weight="800">N8N · SDR</text>
+  <text x="40" y="582" fill="#ffffff" fill-opacity="0.62" font-size="20">Agente especializado em</text>
+  <text x="40" y="610" fill="#ffffff" fill-opacity="0.62" font-size="20">atendimento humanizado</text>
+  <text x="40" y="638" fill="#ffffff" fill-opacity="0.62" font-size="20">no WhatsApp</text>
+</svg>

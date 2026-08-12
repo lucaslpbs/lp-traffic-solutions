@@ -11,6 +11,7 @@ import { ProtectedAdminRoute } from "@/components/dashboard/ProtectedAdminRoute"
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import Home from "./pages/Home";
 import Services from "./pages/Services";
+import ServicosNaPratica from "./pages/ServicosNaPratica";
 import About from "./pages/About";
 import Cases from "./pages/Cases";
 import Contact from "./pages/Contact";
@@ -133,6 +134,7 @@ const AppRoutes = () => {
         {/* Páginas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/servicos" element={<Services />} />
+        <Route path="/servicos/na-pratica" element={<ServicosNaPratica />} />
         <Route path="/sobre" element={<About />} />
         <Route path="/cases" element={<Cases />} />
         <Route path="/contato" element={<Contact />} />

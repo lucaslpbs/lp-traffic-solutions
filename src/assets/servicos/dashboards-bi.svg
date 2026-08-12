@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 672" width="512" height="672" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1626"/>
+      <stop offset="1" stop-color="#05070d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.34" r="0.62">
+      <stop offset="0" stop-color="hsl(217,91%,60%)" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="hsl(217,91%,60%)" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="1.6" cy="1.6" r="1.6" fill="hsl(217,91%,60%)" opacity="0.16"/>
+    </pattern>
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="hsl(217,91%,60%)" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="hsl(217,91%,60%)" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="672" fill="url(#bg)"/>
+  <rect width="512" height="672" fill="url(#dots)"/>
+  <rect width="512" height="672" fill="url(#glow)"/>
+
+  <rect x="40" y="40" width="152" height="34" rx="17" fill="hsl(217,91%,60%)" fill-opacity="0.12" stroke="hsl(217,91%,60%)" stroke-opacity="0.35"/>
+  <text x="60" y="63" fill="hsl(217,91%,72%)" font-size="15" font-weight="700" letter-spacing="2">DADOS</text>
+
+  <!-- KPIs -->
+  <g>
+    <rect x="40" y="104" width="136" height="82" rx="14" fill="#0f1e34" stroke="hsl(217,91%,60%)" stroke-opacity="0.25" stroke-width="2"/>
+    <text x="58" y="134" fill="#ffffff" fill-opacity="0.45" font-size="14" letter-spacing="1">LEADS</text>
+    <text x="58" y="166" fill="#ffffff" font-size="26" font-weight="800">1.284</text>
+    <rect x="188" y="104" width="136" height="82" rx="14" fill="#0f1e34" stroke="hsl(217,91%,60%)" stroke-opacity="0.25" stroke-width="2"/>
+    <text x="206" y="134" fill="#ffffff" fill-opacity="0.45" font-size="14" letter-spacing="1">CPL</text>
+    <text x="206" y="166" fill="#ffffff" font-size="26" font-weight="800">R$ 7,40</text>
+    <rect x="336" y="104" width="136" height="82" rx="14" fill="#0f1e34" stroke="hsl(217,91%,60%)" stroke-opacity="0.25" stroke-width="2"/>
+    <text x="354" y="134" fill="#ffffff" fill-opacity="0.45" font-size="14" letter-spacing="1">CONVERSÃO</text>
+    <text x="354" y="166" fill="#ffffff" font-size="26" font-weight="800">18,6%</text>
+  </g>
+
+  <!-- gráfico de linha -->
+  <g>
+    <rect x="40" y="204" width="432" height="164" rx="14" fill="#ffffff" fill-opacity="0.05"/>
+    <path d="M72 336 L72 300 L136 312 L200 268 L264 284 L328 236 L392 248 L440 212 L440 336 Z" fill="url(#area)"/>
+    <polyline points="72,300 136,312 200,268 264,284 328,236 392,248 440,212" fill="none" stroke="hsl(217,91%,64%)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="440" cy="212" r="7" fill="hsl(217,91%,70%)" stroke="#05070d" stroke-width="3"/>
+    <rect x="64" y="336" width="384" height="2" rx="1" fill="#ffffff" fill-opacity="0.12"/>
+    <rect x="64" y="224" width="76" height="8" rx="4" fill="#ffffff" fill-opacity="0.3"/>
+  </g>
+
+  <!-- origem dos leads -->
+  <g>
+    <rect x="40" y="386" width="432" height="82" rx="14" fill="#ffffff" fill-opacity="0.05"/>
+    <g>
+      <rect x="64" y="410" width="180" height="12" rx="6" fill="hsl(217,91%,60%)"/>
+      <rect x="64" y="432" width="128" height="12" rx="6" fill="hsl(217,91%,60%)" fill-opacity="0.6"/>
+      <rect x="64" y="454" width="72" height="8" rx="4" fill="hsl(217,91%,60%)" fill-opacity="0.35"/>
+      <text x="392" y="422" fill="#ffffff" fill-opacity="0.6" font-size="15" text-anchor="end">Meta 54%</text>
+      <text x="392" y="444" fill="#ffffff" fill-opacity="0.45" font-size="15" text-anchor="end">Google 31%</text>
+    </g>
+  </g>
+
+  <rect x="40" y="486" width="56" height="4" rx="2" fill="hsl(217,91%,60%)"/>
+  <text x="40" y="540" fill="#ffffff" font-size="38" font-weight="800">DASHBOARDS</text>
+  <text x="40" y="582" fill="#ffffff" fill-opacity="0.62" font-size="20">Todos os seus números em</text>
+  <text x="40" y="610" fill="#ffffff" fill-opacity="0.62" font-size="20">tempo real, em um só lugar</text>
+</svg>
