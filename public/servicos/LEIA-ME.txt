@@ -1,17 +1,39 @@
-Imagens da página /servicos/na-pratica (vitrine visual dos serviços).
+Imagens da página /servicos/na-pratica.
 
 Basta salvar o arquivo aqui com o nome exato abaixo — nenhum código precisa
-ser alterado, o card passa a exibir a imagem no lugar do placeholder.
+ser alterado. Enquanto o arquivo não existir, aparece um placeholder no lugar.
 
-  trafego-pago-resultados.png      → card "Tráfego Pago"
-  trafego-organico.png             → card "Tráfego Orgânico (Social Media)"
-  seo.png                          → card "Tráfego Orgânico (SEO)"
-  crm-automacao.png                → card "CRM & Automação"
-  criacao-sites.png                → card "Criação de Sites"
-  analytics-bi.png                 → card "Analytics & BI"
 
-Só o "trafego-pago-resultados.png" já está apontado no código; para os demais,
-avise que eu ligo cada card ao seu arquivo (ou edite `showcases` em
-src/pages/ServicosNaPratica.tsx e preencha o campo `image`).
+=== 1) BANNERS EM TELA CHEIA (imagem navegável) ==========================
 
-Formato recomendado: 16:9 (ex.: 1600x900), PNG ou JPG, até ~500 KB.
+  n8n-fluxo.png                → banner "Automação · N8N"
+     Imagem BEM LARGA: ~3200x1000 px (proporção 3:1 ou mais).
+     A imagem é encaixada pela ALTURA do banner, então o que sobra de
+     largura é o que vira o "arrastar para explorar". Se ela for menos
+     larga que 2,5x a altura, não sobra nada e ela só aparece centralizada.
+     Exporte o fluxo inteiro do canvas do n8n, da esquerda à direita.
+
+  trafego-pago-resultados.png  → banner "Tráfego Pago"   [JÁ ESTÁ NA PASTA]
+     Tela cheia comum: ~2000x1200 px.
+     A versão atual tem 1024 px de largura e fica um pouco mole esticada
+     na tela toda — se puder, substitua por uma maior com o mesmo nome.
+
+  site-dashboard.png           → banner "Sites e Dashboards"
+     Imagem BEM ALTA: ~1600x2600 px.
+     É a altura que sobra que dá a sensação de rolar a tela real, então
+     capture o dashboard inteiro, do topo até o rodapé (print de página
+     inteira, não só o que cabe na tela).
+     Atenção: confira se não há dado sensível de cliente visível.
+
+
+=== 2) CARDS COMPACTOS (grade no fim da página) ==========================
+
+  trafego-organico.png         → card "Tráfego Orgânico (Social Media)"  [JÁ ESTÁ NA PASTA]
+  seo.png                      → card "Tráfego Orgânico (SEO)"
+  crm-automacao.png            → card "CRM & Automação"
+  analytics-bi.png             → card "Analytics & BI"
+
+  Formato 16:9 (ex.: 1600x900).
+
+
+Formato geral: PNG ou WebP, de preferência abaixo de 600 KB por arquivo.

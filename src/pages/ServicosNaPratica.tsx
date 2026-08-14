@@ -4,7 +4,6 @@ import {
   TrendingUp,
   Search,
   Users,
-  Globe,
   BarChart3,
   ArrowRight,
   Smartphone,
@@ -13,6 +12,7 @@ import {
 import { Link } from "react-router-dom";
 import { ServicosTabs } from "@/components/sections/ServicosTabs";
 import SocialCards, { type CardItem } from "@/components/sections/SocialCards";
+import { ServiceBanner, type ServiceBannerProps } from "@/components/sections/ServiceBanner";
 
 /* ── Cards do carrossel (7 serviços) ─────────────────────────────────
    As artes em SVG são provisórias: quando tiver as fotos dos projetos,
@@ -26,14 +26,103 @@ import ImgSaas from "../assets/servicos/saas.svg";
 import ImgCrmKommo from "../assets/servicos/crm-kommo.svg";
 import ImgDashboards from "../assets/servicos/dashboards-bi.svg";
 
+/* `linkUrl` leva a âncora da seção correspondente mais abaixo na página. */
 const projetos: CardItem[] = [
-  { imgUrl: ImgN8nSdr, alt: "N8N SDR — agente de atendimento humanizado no WhatsApp" },
-  { imgUrl: ImgTrafegoPago, alt: "Tráfego pago — métricas de campanhas" },
-  { imgUrl: ImgTrafegoOrganico, alt: "Tráfego orgânico — organização e engajamento no Instagram" },
-  { imgUrl: ImgCriacaoSites, alt: "Criação de sites para vendas" },
-  { imgUrl: ImgSaas, alt: "SaaS — sistema de organização e crescimento" },
-  { imgUrl: ImgCrmKommo, alt: "Aulas de CRM Kommo" },
-  { imgUrl: ImgDashboards, alt: "Dashboards — números em tempo real" },
+  {
+    imgUrl: ImgN8nSdr,
+    alt: "N8N SDR — agente de atendimento humanizado no WhatsApp",
+    linkUrl: "#n8n-sdr",
+  },
+  { imgUrl: ImgTrafegoPago, alt: "Tráfego pago — métricas de campanhas", linkUrl: "#trafego-pago" },
+  {
+    imgUrl: ImgTrafegoOrganico,
+    alt: "Tráfego orgânico — organização e engajamento no Instagram",
+    linkUrl: "#outros-servicos",
+  },
+  { imgUrl: ImgCriacaoSites, alt: "Criação de sites para vendas", linkUrl: "#sites-dashboards" },
+  {
+    imgUrl: ImgSaas,
+    alt: "SaaS — sistema de organização e crescimento",
+    linkUrl: "#sites-dashboards",
+  },
+  { imgUrl: ImgCrmKommo, alt: "Aulas de CRM Kommo", linkUrl: "#outros-servicos" },
+  {
+    imgUrl: ImgDashboards,
+    alt: "Dashboards — números em tempo real",
+    linkUrl: "#sites-dashboards",
+  },
+];
+
+/* ── BANNERS (as 3 seções em tela cheia) ─────────────────────────────
+   Para carregar as imagens: salve o arquivo em `public/servicos/` com o
+   nome indicado em `image`. Nada mais precisa ser alterado — o banner
+   troca o placeholder pela imagem sozinho.
+
+   Tamanhos recomendados (quanto maior a tela, mais a imagem aparece):
+     • pan-x    → BEM larga: ~3200x1000 (proporção 3:1 ou mais). A imagem
+                  encaixa pela altura do banner, então só a largura que
+                  sobra vira o "arrastar para explorar". Ex.: o fluxo do
+                  n8n inteiro, exportado do canvas.
+     • pan-y    → BEM alta: ~1600x2600. A altura excedente é o que dá a
+                  sensação de rolar a tela. Ex.: print do dashboard
+                  inteiro, de cima até o rodapé.
+     • parallax → tela cheia comum: ~2000x1200.
+   Formato: PNG ou WebP, de preferência abaixo de 600 KB cada.          */
+const banners: ServiceBannerProps[] = [
+  {
+    id: "n8n-sdr",
+    eyebrow: "Automação · N8N",
+    title: "Um SDR que não dorme,",
+    highlight: "não esquece e não perde lead",
+    description:
+      "Esse é um dos nossos fluxos em produção: recebe a conversa no WhatsApp, qualifica, responde como gente e entrega o lead pronto para o time de vendas.",
+    bullets: [
+      "Atendimento humanizado 24/7, sem robô travado",
+      "Qualificação automática antes de chegar no vendedor",
+      "Integração direta com o CRM e com a agenda",
+    ],
+    image: "/servicos/n8n-fluxo.png",
+    imageAlt: "Fluxo de automação do N8N usado no atendimento por WhatsApp",
+    motion: "pan-x",
+    align: "left",
+    cta: { label: "Quero esse fluxo rodando", to: "/contato" },
+  },
+  {
+    id: "trafego-pago",
+    eyebrow: "Tráfego Pago",
+    title: "A estratégia por trás",
+    highlight: "dos números que sobem",
+    description:
+      "Campanha não é sorte: é estrutura de conta, criativo testado e verba indo para o que converte. Esse é o retrato de uma operação nossa em andamento.",
+    bullets: [
+      "Estrutura de campanhas por etapa do funil",
+      "Testes de criativo e público toda semana",
+      "Verba realocada para o que traz lead mais barato",
+    ],
+    image: "/servicos/trafego-pago-resultados.png",
+    imageAlt: "Estratégia e resultados de campanhas de tráfego pago",
+    motion: "parallax",
+    align: "right",
+    cta: { label: "Ver o que fazemos pela sua conta", to: "/contato" },
+  },
+  {
+    id: "sites-dashboards",
+    eyebrow: "Sites e Dashboards",
+    title: "Seu site vendendo e",
+    highlight: "seus números em tempo real",
+    description:
+      "Entregamos o site pensado para converter e o painel que mostra o que ele está gerando — origem do lead, custo e conversão, tudo em um lugar só.",
+    bullets: [
+      "Site e landing pages feitos para conversão",
+      "Dashboard ao vivo com CPL, ROI e origem dos leads",
+      "Relatórios que o time inteiro entende",
+    ],
+    image: "/servicos/site-dashboard.png",
+    imageAlt: "Dashboard de resultados de um cliente",
+    motion: "pan-y",
+    align: "left",
+    cta: { label: "Quero meu site e meu painel", to: "/contato" },
+  },
 ];
 
 function useScrollReveal(ref: React.RefObject<HTMLElement>) {
@@ -81,15 +170,9 @@ type Showcase = {
   image?: string;
 };
 
+/* Tráfego Pago, N8N e Sites saíram daqui: viraram os banners acima.
+   Estes são os serviços que continuam em cards compactos.            */
 const showcases: Showcase[] = [
-  {
-    icon: TrendingUp,
-    title: "Tráfego Pago",
-    description:
-      "Campanhas rodando no Google, Meta e LinkedIn — criativos, segmentação e resultado no painel.",
-    tags: ["Google Ads", "Meta Ads", "LinkedIn Ads"],
-    image: "/servicos/trafego-pago-resultados.png",
-  },
   {
     icon: Smartphone,
     title: "Tráfego Orgânico (Social Media)",
@@ -113,14 +196,6 @@ const showcases: Showcase[] = [
       "Funis, fluxos de nutrição e follow-up automático — nenhum lead esquecido.",
     tags: ["Funil", "Automação", "Follow-up"],
     image: "/servicos/crm-automacao.png",
-  },
-  {
-    icon: Globe,
-    title: "Criação de Sites",
-    description:
-      "Landing pages e sites feitos para converter, rápidos e responsivos em qualquer tela.",
-    tags: ["Landing Page", "Site", "Conversão"],
-    image: "/servicos/criacao-sites.png",
   },
   {
     icon: BarChart3,
@@ -214,32 +289,35 @@ export default function ServicosNaPratica() {
       <ServicosTabs />
 
       {/* CARROSSEL DE PROJETOS */}
-      <section className="pt-16 pb-8 bg-background overflow-hidden">
+      <section className="pt-8 pb-4 bg-background overflow-hidden">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-4">
-            <span className="inline-block text-primary text-xs font-semibold tracking-widest uppercase mb-4 border border-primary/30 rounded-full px-4 py-1.5">
+          <div className="text-center">
+            <span className="inline-block text-primary text-xs font-semibold tracking-widest uppercase border border-primary/30 rounded-full px-4 py-1.5">
               Projetos
             </span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Nossas Soluções <span className="text-primary">em Imagens</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Passe o mouse sobre os cards para explorar cada frente de trabalho.
-            </p>
           </div>
         </div>
         <SocialCards cards={projetos} />
       </section>
 
-      {/* VITRINE VISUAL */}
-      <section ref={showcaseRef as React.RefObject<HTMLElement>} className="py-24 bg-background">
+      {/* BANNERS EM TELA CHEIA — imagem navegável */}
+      {banners.map((banner) => (
+        <ServiceBanner key={banner.image} {...banner} />
+      ))}
+
+      {/* DEMAIS SERVIÇOS — cards compactos, cada um leva ao contato */}
+      <section
+        id="outros-servicos"
+        ref={showcaseRef as React.RefObject<HTMLElement>}
+        className="py-24 bg-background scroll-mt-[240px] sm:scroll-mt-[172px]"
+      >
         <div className="container mx-auto px-6">
           <div className="animate-on-scroll text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Cada Serviço, <span className="text-primary">Visualmente</span>
+              E também <span className="text-primary">cuidamos disso</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Uma amostra visual do que entregamos em cada frente de trabalho.
+              As frentes que sustentam o crescimento no dia a dia.
             </p>
           </div>
 
@@ -247,35 +325,38 @@ export default function ServicosNaPratica() {
             {showcases.map((item, index) => {
               const Icon = item.icon;
               return (
-                <article
-                  key={index}
-                  className="animate-on-scroll group overflow-hidden rounded-2xl border border-border/40 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30"
-                >
-                  <div className="aspect-video w-full overflow-hidden">
-                    <ShowcaseVisual item={item} />
-                  </div>
-                  <div className="p-6">
-                    <div className="mb-3 flex items-center gap-3">
-                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </span>
-                      <h3 className="font-display text-lg font-bold leading-tight">
-                        {item.title}
-                      </h3>
+                <Link key={index} to="/contato" className="animate-on-scroll block h-full">
+                  <article className="group h-full overflow-hidden rounded-2xl border border-border/40 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30">
+                    <div className="aspect-video w-full overflow-hidden">
+                      <ShowcaseVisual item={item} />
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {item.tags.map((tag, ti) => (
-                        <span
-                          key={ti}
-                          className="rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-xs font-medium text-primary"
-                        >
-                          {tag}
+                    <div className="p-6">
+                      <div className="mb-3 flex items-center gap-3">
+                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                          <Icon className="h-5 w-5 text-primary" />
                         </span>
-                      ))}
+                        <h3 className="font-display text-lg font-bold leading-tight">
+                          {item.title}
+                        </h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
+                      <div className="flex flex-wrap gap-2 mb-5">
+                        {item.tags.map((tag, ti) => (
+                          <span
+                            key={ti}
+                            className="rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-xs font-medium text-primary"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                        Falar com um especialista
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </span>
                     </div>
-                  </div>
-                </article>
+                  </article>
+                </Link>
               );
             })}
           </div>
