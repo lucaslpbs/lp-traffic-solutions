@@ -14,6 +14,8 @@ import {
   Users,
   FolderKanban,
   Headphones,
+  Trophy,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -147,6 +149,34 @@ export const DashboardSidebar = () => {
           <Headphones className="h-5 w-5 flex-shrink-0" />
           {!collapsed && <span className="font-medium">Chamados</span>}
         </Link>
+
+        <Link
+          to="/dashboard/ranking"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
+            location.pathname === '/dashboard/ranking'
+              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          <Trophy className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Ranking</span>}
+        </Link>
+
+        {isAdmin && (
+          <Link
+            to="/dashboard/ranking/admin"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
+              location.pathname.startsWith('/dashboard/ranking/admin')
+                ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
+                : "text-gray-400 hover:bg-white/5 hover:text-white"
+            )}
+          >
+            <ShieldCheck className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="font-medium">Admin Ranking</span>}
+          </Link>
+        )}
 
         {/* Clients Section — admin only */}
         {isAdmin && (

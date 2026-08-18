@@ -81,7 +81,8 @@ export default {
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-modern': 'var(--gradient-modern)',
 				'gradient-card': 'var(--gradient-card)',
-				'gradient-subtle': 'var(--gradient-subtle)'
+				'gradient-subtle': 'var(--gradient-subtle)',
+				'gradient-conic': 'conic-gradient(var(--conic-position), var(--tw-gradient-stops))'
 			},
 			boxShadow: {
 				'premium': 'var(--shadow-premium)',
