@@ -18,6 +18,8 @@ export interface Venda {
   data: string;
   foto_url: string | null;
   descricao: string | null;
+  /** Comprador vinculado a venda (ranking_clientes_finais.id) */
+  cliente_final_id: string | null;
   created_by: string | null;
   created_at: string;
 }

@@ -40,6 +40,8 @@ import {
   type RankingRow,
   type Venda,
 } from '@/components/ranking/types';
+import { ClientesFinaisPanel } from '@/components/ranking/ClientesFinaisPanel';
+import { useClientesFinais } from '@/components/ranking/clientesFinais';
 import { uploadPerfilFoto, validateRankingImage } from '@/lib/rankingStorage';
 import { cn } from '@/lib/utils';
 
@@ -142,6 +144,14 @@ export default function RankingPage() {
     [ranking, clienteVinculadoId]
   );
 
+  // Nome do comprador para exibir em cada venda
+  const { data: clientesFinais = [] } = useClientesFinais(clienteVinculadoId);
+  const nomeComprador = useMemo(() => {
+    const m = new Map<string, string>();
+    clientesFinais.forEach((c) => m.set(c.id, c.nome));
+    return m;
+  }, [clientesFinais]);
+
   // Totais calculados a partir das proprias vendas — usados como fallback
   // caso a RPC ranking_geral nao responda (ex.: SQL ainda nao atualizado).
   const totaisLocais = useMemo(() => {
@@ -180,6 +190,7 @@ export default function RankingPage() {
   const invalidar = () => {
     qc.invalidateQueries({ queryKey: ['ranking-geral'] });
     qc.invalidateQueries({ queryKey: ['minhas-vendas'] });
+    qc.invalidateQueries({ queryKey: ['clientes-finais-resumo'] });
   };
 
   // ── Foto de perfil ──
@@ -461,6 +472,9 @@ export default function RankingPage() {
           </div>
         )}
 
+        {/* ── Meus clientes (compradores) ── */}
+        {clienteVinculadoId && <ClientesFinaisPanel clientId={clienteVinculadoId} />}
+
         {/* ── Minhas vendas ── */}
         {clienteVinculadoId && (
           <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
@@ -498,7 +512,14 @@ export default function RankingPage() {
                     )}
 
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-white tabular-nums">{formatBRL(v.valor)}</p>
+                      <p className="font-semibold text-white tabular-nums">
+                        {formatBRL(v.valor)}
+                        {v.cliente_final_id && nomeComprador.get(v.cliente_final_id) && (
+                          <span className="ml-2 text-sm font-normal text-[#60a5fa]">
+                            {nomeComprador.get(v.cliente_final_id)}
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-zinc-500">
                         {formatDataBR(v.data)}
                         {v.descricao ? ` • ${v.descricao}` : ''}

@@ -28,6 +28,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { uploadVendaPrint, validateRankingImage } from '@/lib/rankingStorage';
 import { parseDateOnly, type Venda } from './types';
+import { ClienteFinalPicker } from './ClienteFinalPicker';
 import { cn } from '@/lib/utils';
 
 interface ClienteOption {
@@ -62,6 +63,7 @@ export const VendaDialog = ({
   const [data, setData] = useState<Date>(new Date());
   const [descricao, setDescricao] = useState('');
   const [clienteSel, setClienteSel] = useState<string>('');
+  const [clienteFinalId, setClienteFinalId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -75,12 +77,14 @@ export const VendaDialog = ({
       setData(parseDateOnly(venda.data));
       setDescricao(venda.descricao ?? '');
       setClienteSel(venda.client_id);
+      setClienteFinalId(venda.cliente_final_id ?? null);
       setPreview(venda.foto_url);
     } else {
       setValor('');
       setData(new Date());
       setDescricao('');
       setClienteSel(clientId ?? '');
+      setClienteFinalId(null);
       setPreview(null);
     }
     setFile(null);
@@ -132,6 +136,7 @@ export const VendaDialog = ({
         data: format(data, 'yyyy-MM-dd'),
         descricao: descricao.trim() || null,
         foto_url: fotoUrl,
+        cliente_final_id: clienteFinalId,
       };
 
       if (venda) {
@@ -175,7 +180,13 @@ export const VendaDialog = ({
           {modoAdmin && (
             <div className="space-y-1.5">
               <Label className="text-zinc-300">Cliente</Label>
-              <Select value={clienteSel} onValueChange={setClienteSel}>
+              <Select
+                value={clienteSel}
+                onValueChange={(v) => {
+                  setClienteSel(v);
+                  setClienteFinalId(null);
+                }}
+              >
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
@@ -189,6 +200,12 @@ export const VendaDialog = ({
               </Select>
             </div>
           )}
+
+          <ClienteFinalPicker
+            clientId={modoAdmin ? clienteSel || null : clientId}
+            value={clienteFinalId}
+            onChange={setClienteFinalId}
+          />
 
           <div className="space-y-1.5">
             <Label className="text-zinc-300">Valor da venda</Label>

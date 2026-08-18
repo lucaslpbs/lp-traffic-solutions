@@ -281,3 +281,81 @@ USING (
     )
   )
 );
+
+-- ------------------------------------------------------------
+-- 5. CLIENTES FINAIS (os compradores de cada cliente)
+--    Bloco novo: pode rodar sozinho, e idempotente.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS ranking_clientes_finais (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id TEXT NOT NULL,           -- dono do cadastro (cliente da Traffic)
+  nome TEXT NOT NULL,
+  telefone TEXT,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ranking_clientes_finais_client_idx
+  ON ranking_clientes_finais (client_id);
+
+-- evita cadastrar o mesmo telefone duas vezes para o mesmo dono
+CREATE UNIQUE INDEX IF NOT EXISTS ranking_clientes_finais_tel_idx
+  ON ranking_clientes_finais (client_id, telefone)
+  WHERE telefone IS NOT NULL AND telefone <> '';
+
+-- vinculo da venda com o comprador
+ALTER TABLE ranking_vendas
+  ADD COLUMN IF NOT EXISTS cliente_final_id UUID
+  REFERENCES ranking_clientes_finais(id) ON DELETE SET NULL;
+
+ALTER TABLE ranking_clientes_finais ENABLE ROW LEVEL SECURITY;
+
+-- Admin: acesso total
+DROP POLICY IF EXISTS "Admin full access clientes finais" ON ranking_clientes_finais;
+CREATE POLICY "Admin full access clientes finais" ON ranking_clientes_finais
+  FOR ALL USING (user_is_admin(auth.uid()))
+  WITH CHECK (user_is_admin(auth.uid()));
+
+-- Cliente: ve somente os proprios compradores
+DROP POLICY IF EXISTS "Cliente ve proprios compradores" ON ranking_clientes_finais;
+CREATE POLICY "Cliente ve proprios compradores" ON ranking_clientes_finais
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM users_clients
+      WHERE users_clients.user_id = auth.uid()
+      AND users_clients.client_id::text = ranking_clientes_finais.client_id::text
+    )
+  );
+
+-- Cliente: cadastra comprador no proprio client_id
+DROP POLICY IF EXISTS "Cliente cadastra comprador" ON ranking_clientes_finais;
+CREATE POLICY "Cliente cadastra comprador" ON ranking_clientes_finais
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM users_clients
+      WHERE users_clients.user_id = auth.uid()
+      AND users_clients.client_id::text = ranking_clientes_finais.client_id::text
+    )
+  );
+
+-- Cliente: edita os proprios compradores
+DROP POLICY IF EXISTS "Cliente edita proprios compradores" ON ranking_clientes_finais;
+CREATE POLICY "Cliente edita proprios compradores" ON ranking_clientes_finais
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM users_clients
+      WHERE users_clients.user_id = auth.uid()
+      AND users_clients.client_id::text = ranking_clientes_finais.client_id::text
+    )
+  );
+
+-- Cliente: apaga os proprios compradores
+DROP POLICY IF EXISTS "Cliente apaga proprios compradores" ON ranking_clientes_finais;
+CREATE POLICY "Cliente apaga proprios compradores" ON ranking_clientes_finais
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM users_clients
+      WHERE users_clients.user_id = auth.uid()
+      AND users_clients.client_id::text = ranking_clientes_finais.client_id::text
+    )
+  );

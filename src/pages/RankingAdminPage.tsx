@@ -100,6 +100,24 @@ export default function RankingAdminPage() {
     return m;
   }, [clientes]);
 
+  // ── Compradores (clientes finais) de todos os clientes ──
+  const { data: compradores = [] } = useQuery({
+    queryKey: ['ranking-admin-compradores'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('ranking_clientes_finais')
+        .select('id, nome');
+      if (error) throw error;
+      return (data ?? []) as { id: string; nome: string }[];
+    },
+  });
+
+  const nomeComprador = useMemo(() => {
+    const m = new Map<string, string>();
+    compradores.forEach((c) => m.set(c.id, c.nome));
+    return m;
+  }, [compradores]);
+
   // ── Ranking consolidado ──
   const { data: ranking = [], isLoading: loadingRanking } = useQuery({
     queryKey: [
@@ -164,6 +182,7 @@ export default function RankingAdminPage() {
     qc.invalidateQueries({ queryKey: ['ranking-geral-admin'] });
     qc.invalidateQueries({ queryKey: ['ranking-geral'] });
     qc.invalidateQueries({ queryKey: ['ranking-admin-vendas'] });
+    qc.invalidateQueries({ queryKey: ['clientes-finais-resumo'] });
   };
 
   return (
@@ -349,6 +368,11 @@ export default function RankingAdminPage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-zinc-200 truncate">
                       {nomePorId.get(v.client_id) ?? v.client_id}
+                      {v.cliente_final_id && nomeComprador.get(v.cliente_final_id) && (
+                        <span className="ml-2 text-sm font-normal text-[#60a5fa]">
+                          → {nomeComprador.get(v.cliente_final_id)}
+                        </span>
+                      )}
                     </p>
                     <p className="text-xs text-zinc-500 truncate">
                       {formatDataBR(v.data)}
