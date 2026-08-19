@@ -63,6 +63,8 @@ import LPCBlogPost from "./pages/lpc-capital/blog-post.tsx";
 import LPCProposta from "./pages/lpc-capital/proposta.tsx";
 import RelatorioNCSaudeKommo from "./pages/RelatorioNCSaudeKommo";
 import RoadmapEstrutureSuaEmpresa from "./pages/roadmap-estruture";
+import DiagnosticoEstrutureSuaEmpresa from "./pages/diagnostico-estruture";
+import PropostaUseBiquinisQSol from "./pages/proposta-usebiquinisqsol/index.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -106,6 +108,8 @@ const HIDDEN_PATHS = [
   '/proposta-flavinha',
   '/relatorio-ncsaude-kommo',
   '/roadmap-estruture-sua-empresa',
+  '/diagnostico-estruture-sua-empresa',
+  '/proposta-usebiquinisqsol',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -181,6 +185,8 @@ const AppRoutes = () => {
         <Route path="/lpccapital/proposta" element={<LPCProposta />} />
         <Route path="/relatorio-ncsaude-kommo" element={<RelatorioNCSaudeKommo />} />
         <Route path="/roadmap-estruture-sua-empresa" element={<RoadmapEstrutureSuaEmpresa />} />
+        <Route path="/diagnostico-estruture-sua-empresa" element={<DiagnosticoEstrutureSuaEmpresa />} />
+        <Route path="/proposta-usebiquinisqsol" element={<PropostaUseBiquinisQSol />} />
         <Route path="/login" element={<Login />} />
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
