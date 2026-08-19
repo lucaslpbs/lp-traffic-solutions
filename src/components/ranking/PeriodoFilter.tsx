@@ -1,4 +1,12 @@
-import { format, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from 'date-fns';
+import { useState } from 'react';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  startOfYear,
+  endOfYear,
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +23,8 @@ import { cn } from '@/lib/utils';
 
 export type PeriodoPreset =
   | 'todos'
+  | 'hoje'
+  | 'dia'
   | 'mes_atual'
   | 'mes_passado'
   | 'ultimos_3'
@@ -32,17 +42,22 @@ export const PERIODO_PADRAO: Periodo = { preset: 'todos', inicio: null, fim: nul
 
 export const LABEL_PRESET: Record<PeriodoPreset, string> = {
   todos: 'Todo o período',
+  hoje: 'Hoje',
+  dia: 'Dia específico',
   mes_atual: 'Este mês',
   mes_passado: 'Mês passado',
   ultimos_3: 'Últimos 3 meses',
   ultimos_6: 'Últimos 6 meses',
   ano_atual: 'Este ano',
-  personalizado: 'Personalizado',
+  personalizado: 'Entre duas datas',
 };
 
 export function intervaloDoPreset(preset: PeriodoPreset): { inicio: Date | null; fim: Date | null } {
   const hoje = new Date();
   switch (preset) {
+    case 'hoje':
+    case 'dia':
+      return { inicio: hoje, fim: hoje };
     case 'mes_atual':
       return { inicio: startOfMonth(hoje), fim: endOfMonth(hoje) };
     case 'mes_passado': {
@@ -66,6 +81,86 @@ export const paramsPeriodo = (p: Periodo) => ({
   p_fim: p.fim ? format(p.fim, 'yyyy-MM-dd') : null,
 });
 
+
+const ANO_INICIAL = 2023;
+
+/** Calendario em tema escuro, com selects de mes/ano para ir direto a datas antigas. */
+const CalendarioEscuro = ({
+  date,
+  onSelect,
+}: {
+  date: Date | null;
+  onSelect: (d: Date | undefined) => void;
+}) => (
+  <Calendar
+    mode="single"
+    selected={date ?? undefined}
+    onSelect={onSelect}
+    defaultMonth={date ?? undefined}
+    initialFocus
+    locale={ptBR}
+    captionLayout="dropdown-buttons"
+    fromYear={ANO_INICIAL}
+    toYear={new Date().getFullYear() + 1}
+    className="pointer-events-auto bg-[#111] text-white"
+    classNames={{
+      caption_dropdowns: 'flex gap-1.5',
+      dropdown:
+        'bg-[#111] text-white text-sm rounded-md border border-white/10 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#3b82f6]',
+      dropdown_month: 'capitalize',
+      day_today: 'bg-white/10 text-white',
+      day_selected:
+        'bg-[#3b82f6] text-white hover:bg-[#3b82f6] hover:text-white focus:bg-[#3b82f6] focus:text-white',
+      head_cell: 'text-zinc-500 rounded-md w-9 font-normal text-[0.8rem]',
+      day_outside: 'day-outside text-zinc-600 opacity-50',
+    }}
+  />
+);
+
+const DatePicker = ({
+  label,
+  date,
+  onSelect,
+  largura = 'w-[150px]',
+}: {
+  label: string;
+  date: Date | null;
+  onSelect: (d: Date | undefined) => void;
+  largura?: string;
+}) => {
+  const [aberto, setAberto] = useState(false);
+
+  return (
+  <div className="flex flex-col gap-1">
+    <span className="text-xs text-zinc-500 font-medium">{label}</span>
+    <Popover open={aberto} onOpenChange={setAberto}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            largura,
+            'justify-start text-left font-normal bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white',
+            !date && 'text-zinc-500'
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar'}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 bg-[#111] border-white/10" align="start">
+        <CalendarioEscuro
+          date={date}
+          onSelect={(d) => {
+            onSelect(d);
+            if (d) setAberto(false);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  </div>
+  );
+};
+
 interface PeriodoFilterProps {
   value: Periodo;
   onChange: (p: Periodo) => void;
@@ -83,46 +178,13 @@ export const PeriodoFilter = ({ value, onChange, className }: PeriodoFilterProps
       });
       return;
     }
+    if (preset === 'dia') {
+      const dia = value.inicio ?? new Date();
+      onChange({ preset, inicio: dia, fim: dia });
+      return;
+    }
     onChange({ preset, ...intervaloDoPreset(preset) });
   };
-
-  const DatePicker = ({
-    label,
-    date,
-    onSelect,
-  }: {
-    label: string;
-    date: Date | null;
-    onSelect: (d: Date | undefined) => void;
-  }) => (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-zinc-500 font-medium">{label}</span>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              'w-[150px] justify-start text-left font-normal bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white',
-              !date && 'text-zinc-500'
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar'}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-[#111] border-white/10" align="start">
-          <Calendar
-            mode="single"
-            selected={date ?? undefined}
-            onSelect={onSelect}
-            initialFocus
-            locale={ptBR}
-            className="pointer-events-auto bg-[#111] text-white"
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
 
   return (
     <div className={cn('flex flex-wrap items-end gap-3', className)}>
@@ -142,6 +204,17 @@ export const PeriodoFilter = ({ value, onChange, className }: PeriodoFilterProps
         </Select>
       </div>
 
+      {/* Um dia especifico */}
+      {value.preset === 'dia' && (
+        <DatePicker
+          label="Data"
+          date={value.inicio}
+          onSelect={(d) => d && onChange({ ...value, inicio: d, fim: d })}
+          largura="w-[170px]"
+        />
+      )}
+
+      {/* Intervalo entre duas datas */}
       {value.preset === 'personalizado' && (
         <>
           <DatePicker

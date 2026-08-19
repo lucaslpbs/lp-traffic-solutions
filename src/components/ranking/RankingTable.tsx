@@ -25,7 +25,9 @@ const Avatar = ({ row }: { row: RankingRow }) =>
   );
 
 export const RankingTable = ({ rows, destaqueId, limite, titulo }: RankingTableProps) => {
-  const comPosicao = rows.map((r, i) => ({ ...r, posicao: r.posicao ?? i + 1 }));
+  // `||` e nao `??`: quando a RPC nao devolve posicao ela chega como 0,
+  // e a ordem da lista ja e a ordem do ranking.
+  const comPosicao = rows.map((r, i) => ({ ...r, posicao: r.posicao || i + 1 }));
   const visiveis = limite ? comPosicao.slice(0, limite) : comPosicao;
   const meu = comPosicao.find((r) => r.client_id === destaqueId);
   const meuForaDoCorte = meu && !visiveis.some((r) => r.client_id === meu.client_id);
