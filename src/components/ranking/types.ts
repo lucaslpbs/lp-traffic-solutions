@@ -20,9 +20,32 @@ export interface Venda {
   descricao: string | null;
   /** Comprador vinculado a venda (ranking_clientes_finais.id) */
   cliente_final_id: string | null;
+  status: StatusVenda;
+  motivo_recusa: string | null;
+  aprovada_em: string | null;
   created_by: string | null;
   created_at: string;
 }
+
+export type StatusVenda = 'pendente' | 'aprovada' | 'recusada';
+
+export const STATUS_VENDA: Record<
+  StatusVenda,
+  { label: string; cls: string }
+> = {
+  pendente: {
+    label: 'Em análise',
+    cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  },
+  aprovada: {
+    label: 'Aprovada',
+    cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  },
+  recusada: {
+    label: 'Recusada',
+    cls: 'bg-red-500/15 text-red-400 border-red-500/30',
+  },
+};
 
 export interface PerfilRanking {
   client_id: string;

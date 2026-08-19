@@ -25,7 +25,8 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { LampContainer, LampTitle } from '@/components/ui/lamp';
 import { RankingTable } from '@/components/ranking/RankingTable';
-import { VendaDialog, ExcluirVendaButton } from '@/components/ranking/VendaDialog';
+import { VendaDialog } from '@/components/ranking/VendaDialog';
+import { StatusBadge } from '@/components/ranking/VendaStatus';
 import {
   PeriodoFilter,
   PERIODO_PADRAO,
@@ -78,6 +79,7 @@ export default function RankingPage() {
   const fotoRef = useRef<HTMLInputElement>(null);
 
   const [periodo, setPeriodo] = useState<Periodo>(PERIODO_PADRAO);
+  const [periodoVendas, setPeriodoVendas] = useState<Periodo>(PERIODO_PADRAO);
   const [vendaDialog, setVendaDialog] = useState(false);
   const [vendaEditando, setVendaEditando] = useState<Venda | null>(null);
   const [printAberto, setPrintAberto] = useState<string | null>(null);
@@ -102,7 +104,7 @@ export default function RankingPage() {
   });
 
   // ── Minhas vendas ──
-  const { data: vendas = [], isLoading: loadingVendas } = useQuery({
+  const { data: vendas = [] } = useQuery({
     queryKey: [
       'minhas-vendas',
       clienteVinculadoId,
@@ -123,6 +125,34 @@ export default function RankingPage() {
     },
     enabled: !!clienteVinculadoId,
   });
+
+  // ── Lista "Minhas vendas" — tem filtro de data proprio ──
+  const { data: vendasLista = [], isLoading: loadingLista } = useQuery({
+    queryKey: [
+      'minhas-vendas-lista',
+      clienteVinculadoId,
+      periodoVendas.inicio?.toISOString() ?? null,
+      periodoVendas.fim?.toISOString() ?? null,
+    ],
+    queryFn: async () => {
+      let q = (supabase as any)
+        .from('ranking_vendas')
+        .select('*')
+        .eq('client_id', clienteVinculadoId)
+        .order('data', { ascending: false });
+      if (periodoVendas.inicio) q = q.gte('data', format(periodoVendas.inicio, 'yyyy-MM-dd'));
+      if (periodoVendas.fim) q = q.lte('data', format(periodoVendas.fim, 'yyyy-MM-dd'));
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []).map((v: any) => ({ ...v, valor: Number(v.valor) || 0 })) as Venda[];
+    },
+    enabled: !!clienteVinculadoId,
+  });
+
+  const pendentes = useMemo(
+    () => vendasLista.filter((v) => v.status === 'pendente'),
+    [vendasLista]
+  );
 
   // ── Meu perfil no ranking ──
   const { data: perfil } = useQuery({
@@ -154,14 +184,19 @@ export default function RankingPage() {
 
   // Totais calculados a partir das proprias vendas — usados como fallback
   // caso a RPC ranking_geral nao responda (ex.: SQL ainda nao atualizado).
+  const vendasAprovadas = useMemo(
+    () => vendas.filter((v) => v.status === 'aprovada'),
+    [vendas]
+  );
+
   const totaisLocais = useMemo(() => {
-    const total = vendas.reduce((s, v) => s + v.valor, 0);
-    const maior = vendas.reduce((s, v) => Math.max(s, v.valor), 0);
-    const ultima = vendas.length
-      ? vendas.map((v) => v.data).sort().slice(-1)[0]
+    const total = vendasAprovadas.reduce((s, v) => s + v.valor, 0);
+    const maior = vendasAprovadas.reduce((s, v) => Math.max(s, v.valor), 0);
+    const ultima = vendasAprovadas.length
+      ? vendasAprovadas.map((v) => v.data).sort().slice(-1)[0]
       : null;
-    return { total, maior, qtd: vendas.length, ultima };
-  }, [vendas]);
+    return { total, maior, qtd: vendasAprovadas.length, ultima };
+  }, [vendasAprovadas]);
 
   const meuResumo = {
     posicao: minhaLinha?.posicao ?? 0,
@@ -175,7 +210,7 @@ export default function RankingPage() {
 
   const porMes = useMemo(() => {
     const mapa = new Map<string, number>();
-    vendas.forEach((v) => {
+    vendasAprovadas.forEach((v) => {
       const chave = v.data.slice(0, 7);
       mapa.set(chave, (mapa.get(chave) ?? 0) + v.valor);
     });
@@ -190,6 +225,7 @@ export default function RankingPage() {
   const invalidar = () => {
     qc.invalidateQueries({ queryKey: ['ranking-geral'] });
     qc.invalidateQueries({ queryKey: ['minhas-vendas'] });
+    qc.invalidateQueries({ queryKey: ['minhas-vendas-lista'] });
     qc.invalidateQueries({ queryKey: ['clientes-finais-resumo'] });
   };
 
@@ -478,24 +514,30 @@ export default function RankingPage() {
         {/* ── Minhas vendas ── */}
         {clienteVinculadoId && (
           <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">Minhas vendas</h2>
-              <span className="text-sm text-zinc-500">
-                {vendas.length} {vendas.length === 1 ? 'registro' : 'registros'}
-              </span>
+            <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Minhas vendas</h2>
+                <p className="text-sm text-zinc-500">
+                  {vendasLista.length} {vendasLista.length === 1 ? 'registro' : 'registros'}
+                  {pendentes.length > 0 && (
+                    <span className="text-amber-400"> · {pendentes.length} em análise</span>
+                  )}
+                </p>
+              </div>
+              <PeriodoFilter value={periodoVendas} onChange={setPeriodoVendas} />
             </div>
 
-            {loadingVendas ? (
+            {loadingLista ? (
               <div className="flex justify-center py-10">
                 <Loader2 className="h-7 w-7 animate-spin text-[#3b82f6]" />
               </div>
-            ) : vendas.length === 0 ? (
+            ) : vendasLista.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-zinc-500">
                 Você ainda não registrou vendas neste período.
               </p>
             ) : (
               <div className="divide-y divide-white/5">
-                {vendas.map((v) => (
+                {vendasLista.map((v) => (
                   <div key={v.id} className="flex items-center gap-4 px-4 py-3">
                     {v.foto_url ? (
                       <button type="button" onClick={() => setPrintAberto(v.foto_url)}>
@@ -524,20 +566,27 @@ export default function RankingPage() {
                         {formatDataBR(v.data)}
                         {v.descricao ? ` • ${v.descricao}` : ''}
                       </p>
+                      {v.status === 'recusada' && v.motivo_recusa && (
+                        <p className="text-xs text-red-400 mt-0.5">Motivo: {v.motivo_recusa}</p>
+                      )}
                     </div>
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setVendaEditando(v);
-                        setVendaDialog(true);
-                      }}
-                      className="text-zinc-500 hover:text-white hover:bg-white/10"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <ExcluirVendaButton vendaId={v.id} onDeleted={invalidar} />
+                    <StatusBadge status={v.status} />
+
+                    {/* cliente so edita enquanto a venda esta em analise; excluir e so do admin */}
+                    {v.status === 'pendente' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setVendaEditando(v);
+                          setVendaDialog(true);
+                        }}
+                        className="text-zinc-500 hover:text-white hover:bg-white/10"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>

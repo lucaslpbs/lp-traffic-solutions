@@ -146,12 +146,23 @@ export const VendaDialog = ({
           .eq('id', venda.id);
         if (error) throw error;
         toast.success('Venda atualizada');
+      } else if (modoAdmin) {
+        // venda lancada pelo admin ja entra aprovada
+        const { error } = await (supabase as any).from('ranking_vendas').insert({
+          ...payload,
+          created_by: user?.id ?? null,
+          status: 'aprovada',
+          aprovada_por: user?.id ?? null,
+          aprovada_em: new Date().toISOString(),
+        });
+        if (error) throw error;
+        toast.success('Venda lançada e aprovada');
       } else {
         const { error } = await (supabase as any)
           .from('ranking_vendas')
-          .insert({ ...payload, created_by: user?.id ?? null });
+          .insert({ ...payload, created_by: user?.id ?? null, status: 'pendente' });
         if (error) throw error;
-        toast.success('Venda registrada! Seu ranking foi atualizado 🚀');
+        toast.success('Venda enviada para análise! Ela entra no ranking assim que for aprovada.');
       }
 
       onSaved();
@@ -172,7 +183,9 @@ export const VendaDialog = ({
           <DialogDescription className="text-zinc-400">
             {venda
               ? 'Atualize os dados da venda. O ranking é recalculado automaticamente.'
-              : 'Cadastre sua venda e suba no ranking. O total é somado na hora.'}
+              : modoAdmin
+                ? 'Venda lançada pelo admin já entra aprovada e pontua no ranking.'
+                : 'Cadastre sua venda: ela vai para análise e entra no ranking assim que for aprovada.'}
           </DialogDescription>
         </DialogHeader>
 

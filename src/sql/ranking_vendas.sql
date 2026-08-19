@@ -190,6 +190,7 @@ AS $func$
       ON rp.client_id = gc.id::text
     LEFT JOIN ranking_vendas rv
       ON rv.client_id = gc.id::text
+     AND rv.status = 'aprovada'          -- so venda aprovada pelo admin pontua
      AND (p_inicio IS NULL OR rv.data >= p_inicio)
      AND (p_fim    IS NULL OR rv.data <= p_fim)
     WHERE gc.status = 'ativo'
@@ -359,3 +360,74 @@ CREATE POLICY "Cliente apaga proprios compradores" ON ranking_clientes_finais
       AND users_clients.client_id::text = ranking_clientes_finais.client_id::text
     )
   );
+
+-- ------------------------------------------------------------
+-- 6. APROVACAO DE VENDAS
+--    Cliente lanca -> venda fica "pendente" (em analise).
+--    Admin aprova  -> so entao a venda pontua no ranking.
+--    Cliente NAO pode excluir venda, e so edita enquanto pendente.
+--
+--    ATENCAO: se rodar so este bloco, rode tambem a funcao
+--    ranking_geral da secao 3 (ela agora soma apenas as aprovadas).
+-- ------------------------------------------------------------
+
+-- coluna criada como nullable para nao "despontuar" o que ja existia:
+-- vendas antigas viram aprovadas, novas nascem pendentes.
+ALTER TABLE ranking_vendas ADD COLUMN IF NOT EXISTS status TEXT;
+UPDATE ranking_vendas SET status = 'aprovada' WHERE status IS NULL;
+ALTER TABLE ranking_vendas ALTER COLUMN status SET DEFAULT 'pendente';
+ALTER TABLE ranking_vendas ALTER COLUMN status SET NOT NULL;
+
+ALTER TABLE ranking_vendas ADD COLUMN IF NOT EXISTS aprovada_por UUID REFERENCES auth.users(id);
+ALTER TABLE ranking_vendas ADD COLUMN IF NOT EXISTS aprovada_em TIMESTAMPTZ;
+ALTER TABLE ranking_vendas ADD COLUMN IF NOT EXISTS motivo_recusa TEXT;
+
+DO $chk$
+BEGIN
+  ALTER TABLE ranking_vendas
+    ADD CONSTRAINT ranking_vendas_status_chk
+    CHECK (status IN ('pendente', 'aprovada', 'recusada'));
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END
+$chk$;
+
+CREATE INDEX IF NOT EXISTS ranking_vendas_status_idx ON ranking_vendas (status);
+
+-- Cliente: cadastra SEMPRE como pendente
+DROP POLICY IF EXISTS "Cliente cadastra venda" ON ranking_vendas;
+CREATE POLICY "Cliente cadastra venda" ON ranking_vendas
+  FOR INSERT WITH CHECK (
+    auth.uid() = created_by
+    AND status = 'pendente'
+    AND EXISTS (
+      SELECT 1 FROM users_clients
+      WHERE users_clients.user_id = auth.uid()
+      AND users_clients.client_id::text = ranking_vendas.client_id::text
+    )
+  );
+
+-- Cliente: edita apenas enquanto a venda esta em analise,
+-- e nao consegue mudar o proprio status (continua pendente).
+DROP POLICY IF EXISTS "Cliente edita proprias vendas" ON ranking_vendas;
+CREATE POLICY "Cliente edita proprias vendas" ON ranking_vendas
+  FOR UPDATE
+  USING (
+    status = 'pendente'
+    AND EXISTS (
+      SELECT 1 FROM users_clients
+      WHERE users_clients.user_id = auth.uid()
+      AND users_clients.client_id::text = ranking_vendas.client_id::text
+    )
+  )
+  WITH CHECK (
+    status = 'pendente'
+    AND EXISTS (
+      SELECT 1 FROM users_clients
+      WHERE users_clients.user_id = auth.uid()
+      AND users_clients.client_id::text = ranking_vendas.client_id::text
+    )
+  );
+
+-- Cliente NAO exclui venda (somente admin, pela policy de admin)
+DROP POLICY IF EXISTS "Cliente apaga proprias vendas" ON ranking_vendas;

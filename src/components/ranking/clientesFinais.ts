@@ -45,6 +45,7 @@ export function useResumoClientesFinais(clientId?: string | null) {
         .from('ranking_vendas')
         .select('cliente_final_id, valor, data')
         .eq('client_id', clientId)
+        .eq('status', 'aprovada')
         .not('cliente_final_id', 'is', null);
       if (error) throw error;
 

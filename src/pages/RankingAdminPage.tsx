@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import {
   ArrowLeft,
   Building2,
+  Clock,
   Camera,
   ImageIcon,
   Loader2,
@@ -37,6 +38,7 @@ import {
 } from '@/components/ui/select';
 import { LampContainer, LampTitle } from '@/components/ui/lamp';
 import { VendaDialog, ExcluirVendaButton } from '@/components/ranking/VendaDialog';
+import { StatusBadge, AprovacaoButtons } from '@/components/ranking/VendaStatus';
 import {
   PeriodoFilter,
   PERIODO_PADRAO,
@@ -73,7 +75,9 @@ export default function RankingAdminPage() {
   const qc = useQueryClient();
 
   const [periodo, setPeriodo] = useState<Periodo>(PERIODO_PADRAO);
+  const [periodoVendas, setPeriodoVendas] = useState<Periodo>(PERIODO_PADRAO);
   const [clienteFiltro, setClienteFiltro] = useState<string>('todos');
+  const [statusFiltro, setStatusFiltro] = useState<string>('todos');
   const [busca, setBusca] = useState('');
   const [vendaDialog, setVendaDialog] = useState(false);
   const [vendaEditando, setVendaEditando] = useState<Venda | null>(null);
@@ -138,13 +142,14 @@ export default function RankingAdminPage() {
     },
   });
 
-  // ── Todas as vendas ──
+  // ── Todas as vendas — filtro de data e status proprios da lista ──
   const { data: vendas = [], isLoading: loadingVendas } = useQuery({
     queryKey: [
       'ranking-admin-vendas',
       clienteFiltro,
-      periodo.inicio?.toISOString() ?? null,
-      periodo.fim?.toISOString() ?? null,
+      statusFiltro,
+      periodoVendas.inicio?.toISOString() ?? null,
+      periodoVendas.fim?.toISOString() ?? null,
     ],
     queryFn: async () => {
       let q = (supabase as any)
@@ -153,11 +158,25 @@ export default function RankingAdminPage() {
         .order('data', { ascending: false })
         .limit(500);
       if (clienteFiltro !== 'todos') q = q.eq('client_id', clienteFiltro);
-      if (periodo.inicio) q = q.gte('data', format(periodo.inicio, 'yyyy-MM-dd'));
-      if (periodo.fim) q = q.lte('data', format(periodo.fim, 'yyyy-MM-dd'));
+      if (statusFiltro !== 'todos') q = q.eq('status', statusFiltro);
+      if (periodoVendas.inicio) q = q.gte('data', format(periodoVendas.inicio, 'yyyy-MM-dd'));
+      if (periodoVendas.fim) q = q.lte('data', format(periodoVendas.fim, 'yyyy-MM-dd'));
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []).map((v: any) => ({ ...v, valor: Number(v.valor) || 0 })) as Venda[];
+    },
+  });
+
+  // ── Contagem de vendas em analise (independente dos filtros) ──
+  const { data: totalPendentes = 0 } = useQuery({
+    queryKey: ['ranking-admin-pendentes'],
+    queryFn: async () => {
+      const { count, error } = await (supabase as any)
+        .from('ranking_vendas')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pendente');
+      if (error) throw error;
+      return count ?? 0;
     },
   });
 
@@ -183,6 +202,7 @@ export default function RankingAdminPage() {
     qc.invalidateQueries({ queryKey: ['ranking-geral'] });
     qc.invalidateQueries({ queryKey: ['ranking-admin-vendas'] });
     qc.invalidateQueries({ queryKey: ['clientes-finais-resumo'] });
+    qc.invalidateQueries({ queryKey: ['ranking-admin-pendentes'] });
   };
 
   return (
@@ -247,7 +267,7 @@ export default function RankingAdminPage() {
           <KPI icon={TrendingUp} label="Total vendido" valor={formatBRL(totais.total)} />
           <KPI icon={Receipt} label="Vendas lançadas" valor={String(totais.qtd)} />
           <KPI icon={Users} label="Clientes com vendas" valor={String(totais.ativos)} />
-          <KPI icon={TrendingUp} label="Ticket médio" valor={formatBRL(totais.ticket)} />
+          <KPI icon={Clock} label="Em análise" valor={String(totalPendentes)} />
         </div>
 
         {/* ── Ranking consolidado com edicao de perfil ── */}
@@ -326,16 +346,53 @@ export default function RankingAdminPage() {
 
         {/* ── Vendas lancadas ── */}
         <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-white">Vendas lançadas</h2>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-              <Input
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar por cliente ou descrição"
-                className="pl-9 w-[280px] bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
-              />
+          <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Vendas lançadas</h2>
+              <p className="text-sm text-zinc-500">
+                {vendasFiltradas.length}{' '}
+                {vendasFiltradas.length === 1 ? 'registro' : 'registros'}
+                {totalPendentes > 0 && (
+                  <span className="text-amber-400"> · {totalPendentes} aguardando análise</span>
+                )}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-3">
+              <PeriodoFilter value={periodoVendas} onChange={setPeriodoVendas} />
+
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-zinc-500 font-medium">Status</span>
+                <Select value={statusFiltro} onValueChange={setStatusFiltro}>
+                  <SelectTrigger className="w-[160px] bg-white/5 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#111] border-white/10 text-white">
+                    <SelectItem value="todos" className="focus:bg-white/10 focus:text-white">
+                      Todos
+                    </SelectItem>
+                    <SelectItem value="pendente" className="focus:bg-white/10 focus:text-white">
+                      Em análise
+                    </SelectItem>
+                    <SelectItem value="aprovada" className="focus:bg-white/10 focus:text-white">
+                      Aprovadas
+                    </SelectItem>
+                    <SelectItem value="recusada" className="focus:bg-white/10 focus:text-white">
+                      Recusadas
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                <Input
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar por cliente ou descrição"
+                  className="pl-9 w-[240px] bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+                />
+              </div>
             </div>
           </div>
 
@@ -381,6 +438,9 @@ export default function RankingAdminPage() {
                   </div>
 
                   <span className="font-bold text-white tabular-nums">{formatBRL(v.valor)}</span>
+
+                  <StatusBadge status={v.status} />
+                  <AprovacaoButtons venda={v} onChanged={invalidar} />
 
                   <Button
                     variant="ghost"
