@@ -131,6 +131,17 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  /* rolagem suave ao navegar por âncoras (#secao) */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
   }

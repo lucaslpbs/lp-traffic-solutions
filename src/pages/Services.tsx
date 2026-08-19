@@ -13,6 +13,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ServicosTabs } from "@/components/sections/ServicosTabs";
 
 function useScrollReveal(ref: React.RefObject<HTMLElement>) {
   useEffect(() => {
@@ -206,6 +207,9 @@ export default function Services() {
           </svg>
         </div>
       </section>
+
+      {/* NAV ENTRE AS SUB-PÁGINAS DE SERVIÇOS */}
+      <ServicosTabs />
 
       {/* SERVICES GRID */}
       <section ref={servicesRef as React.RefObject<HTMLElement>} className="py-24 bg-background">

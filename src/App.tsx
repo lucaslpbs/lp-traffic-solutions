@@ -11,6 +11,7 @@ import { ProtectedAdminRoute } from "@/components/dashboard/ProtectedAdminRoute"
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import Home from "./pages/Home";
 import Services from "./pages/Services";
+import ServicosNaPratica from "./pages/ServicosNaPratica";
 import About from "./pages/About";
 import Cases from "./pages/Cases";
 import Contact from "./pages/Contact";
@@ -46,6 +47,8 @@ import NucleoOftalmologiaDashboardKommo from "./pages/NucleoOftalmologiaDashboar
 import CadastroInstancia from "./pages/CadastroInstancia";
 import SistemaPage from "./pages/SistemaPage";
 import ChamadosPage from "./pages/ChamadosPage";
+import RankingPage from "./pages/RankingPage";
+import RankingAdminPage from "./pages/RankingAdminPage";
 import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 import ClienteDetailPage from "./pages/ClienteDetailPage";
@@ -137,6 +140,7 @@ const AppRoutes = () => {
         {/* Páginas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/servicos" element={<Services />} />
+        <Route path="/servicos/na-pratica" element={<ServicosNaPratica />} />
         <Route path="/sobre" element={<About />} />
         <Route path="/cases" element={<Cases />} />
         <Route path="/contato" element={<Contact />} />
@@ -202,6 +206,8 @@ const AppRoutes = () => {
           <Route path="sistema" element={<SistemaPage />} />
           <Route path="sistema/cliente/:clientId" element={<ProtectedAdminRoute><ClienteDetailPage /></ProtectedAdminRoute>} />
           <Route path="chamados" element={<ChamadosPage />} />
+          <Route path="ranking" element={<RankingPage />} />
+          <Route path="ranking/admin" element={<ProtectedAdminRoute><RankingAdminPage /></ProtectedAdminRoute>} />
           <Route path=":clientId" element={<ProtectedAdminRoute><ClientReport /></ProtectedAdminRoute>} />
         </Route>
 
