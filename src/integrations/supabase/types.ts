@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      atendentes_status: {
+        Row: {
+          id: number
+          nome: string
+          ativo: boolean
+          bot_id_kommo: string | null
+          atualizado_em: string
+        }
+        Insert: {
+          id?: number
+          nome: string
+          ativo?: boolean
+          bot_id_kommo?: string | null
+          atualizado_em?: string
+        }
+        Update: {
+          id?: number
+          nome?: string
+          ativo?: boolean
+          bot_id_kommo?: string | null
+          atualizado_em?: string
+        }
+        Relationships: []
+      }
+      atendentes_log: {
+        Row: {
+          id: number
+          nome: string
+          status_novo: boolean
+          criado_em: string
+        }
+        Insert: {
+          id?: number
+          nome: string
+          status_novo: boolean
+          criado_em?: string
+        }
+        Update: {
+          id?: number
+          nome?: string
+          status_novo?: boolean
+          criado_em?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           created_at: string

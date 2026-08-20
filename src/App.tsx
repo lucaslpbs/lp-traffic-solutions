@@ -65,6 +65,7 @@ import RelatorioNCSaudeKommo from "./pages/RelatorioNCSaudeKommo";
 import RoadmapEstrutureSuaEmpresa from "./pages/roadmap-estruture";
 import DiagnosticoEstrutureSuaEmpresa from "./pages/diagnostico-estruture";
 import PropostaUseBiquinisQSol from "./pages/proposta-usebiquinisqsol/index.jsx";
+import PainelOftalmologia from "./pages/PainelOftalmologia";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +111,7 @@ const HIDDEN_PATHS = [
   '/roadmap-estruture-sua-empresa',
   '/diagnostico-estruture-sua-empresa',
   '/proposta-usebiquinisqsol',
+  '/painel-oftalmologia',
 ];
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -187,6 +189,7 @@ const AppRoutes = () => {
         <Route path="/roadmap-estruture-sua-empresa" element={<RoadmapEstrutureSuaEmpresa />} />
         <Route path="/diagnostico-estruture-sua-empresa" element={<DiagnosticoEstrutureSuaEmpresa />} />
         <Route path="/proposta-usebiquinisqsol" element={<PropostaUseBiquinisQSol />} />
+        <Route path="/painel-oftalmologia" element={<PainelOftalmologia />} />
         <Route path="/login" element={<Login />} />
         <Route path="/relatorio-lv3-multimarcas" element={<RelatorioLV3Multimarcas />} />
         <Route path="/dashboard-kommo-sandelly" element={<DashboardKommoSandelly />} />
