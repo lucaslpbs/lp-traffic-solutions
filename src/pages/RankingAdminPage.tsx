@@ -66,7 +66,7 @@ const KPI = ({ icon: Icon, label, valor }: { icon: any; label: string; valor: st
       <Icon className="h-4 w-4" />
       <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
     </div>
-    <p className="text-2xl font-bold text-white tabular-nums">{valor}</p>
+    <p className="text-xl xl:text-2xl font-bold text-white tabular-nums leading-tight break-words">{valor}</p>
   </div>
 );
 

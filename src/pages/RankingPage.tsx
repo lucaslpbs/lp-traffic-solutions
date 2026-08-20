@@ -69,7 +69,7 @@ const StatCard = ({
       <Icon className="h-4 w-4" />
       <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
     </div>
-    <p className="text-2xl font-bold text-white tabular-nums">{valor}</p>
+    <p className="text-xl xl:text-2xl font-bold text-white tabular-nums leading-tight break-words">{valor}</p>
   </div>
 );
 
@@ -438,7 +438,7 @@ export default function RankingPage() {
             </div>
 
             <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <StatCard icon={Trophy} label="Posição" valor={posicaoTexto} destaque />
                 <StatCard
                   icon={TrendingUp}
