@@ -11,6 +11,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
 
   if (loading) {
+    // Cores literais de proposito: este guard tambem envolve as paginas de
+    // cliente fora do shell /dashboard, que nao recebem a classe do tema — com
+    // token, a tela de carregamento delas sairia clara.
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">

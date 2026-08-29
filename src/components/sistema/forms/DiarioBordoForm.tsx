@@ -65,29 +65,29 @@ export const DiarioBordoForm = () => {
       {buckets.map((b) => {
         const aberto = open[b.key];
         return (
-          <div key={b.key} className="rounded-lg border border-[#2a2a2a] bg-[#1c1c1e] overflow-hidden">
+          <div key={b.key} className="rounded-lg border border-surface-3 bg-surface-2 overflow-hidden">
             <button
               type="button"
               onClick={() => toggle(b.key)}
-              className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-[#2a2a2a]/30"
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-surface-3/30"
             >
-              <ChevronRight className={`h-4 w-4 text-zinc-400 transition-transform ${aberto ? "rotate-90" : ""}`} />
-              <span className="text-sm font-medium text-white">{b.key}</span>
-              <span className="ml-auto text-xs text-zinc-500">{b.entradas.length}</span>
+              <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${aberto ? "rotate-90" : ""}`} />
+              <span className="text-sm font-medium text-foreground">{b.key}</span>
+              <span className="ml-auto text-xs text-muted-foreground">{b.entradas.length}</span>
             </button>
             {aberto && (
               <div className="px-3 pb-3 space-y-1">
                 {b.entradas.map((e) => (
                   <div
                     key={e.id}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-[#0f0f0f] border border-[#2a2a2a] hover:border-[#3b82f6]/40 cursor-pointer group"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-card border border-surface-3 hover:border-primary/40 cursor-pointer group"
                     onClick={() => setEditing({ bucketKey: b.key, entrada: e })}
                   >
-                    <span className="text-sm text-white flex-1">{e.data}</span>
+                    <span className="text-sm text-foreground flex-1">{e.data}</span>
                     <button
                       type="button"
                       onClick={(ev) => { ev.stopPropagation(); deleteEntrada(b.key, e.id); }}
-                      className="text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100"
+                      className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -96,7 +96,7 @@ export const DiarioBordoForm = () => {
                 <button
                   type="button"
                   onClick={() => startNew(b.key)}
-                  className="flex items-center gap-1.5 text-xs text-[#3b82f6] hover:text-[#60a5fa] mt-2"
+                  className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-light mt-2"
                 >
                   <Plus className="h-3.5 w-3.5" /> Nova entrada
                 </button>
@@ -107,8 +107,8 @@ export const DiarioBordoForm = () => {
       })}
 
       <Dialog open={!!askDate} onOpenChange={(o) => !o && setAskDate(null)}>
-        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-sm">
-          <DialogHeader><DialogTitle className="text-white">Nova entrada</DialogTitle></DialogHeader>
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-sm">
+          <DialogHeader><DialogTitle className="text-foreground">Nova entrada</DialogTitle></DialogHeader>
           <Input
             placeholder="Ex: 10/06/2025 ou 10 a 12/06/2025"
             value={novaData}
@@ -118,17 +118,17 @@ export const DiarioBordoForm = () => {
           />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setAskDate(null)}>Cancelar</Button>
-            <Button type="button" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90" onClick={confirmNew}>Criar</Button>
+            <Button type="button" className="bg-primary hover:bg-primary/90" onClick={confirmNew}>Criar</Button>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-2xl">
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">{editing?.entrada.data}</DialogTitle>
+            <DialogTitle className="text-foreground">{editing?.entrada.data}</DialogTitle>
           </DialogHeader>
-          <div className="flex items-center gap-1 border-b border-[#2a2a2a] pb-2">
+          <div className="flex items-center gap-1 border-b border-surface-3 pb-2">
             {[
               { icon: Bold, cmd: "bold" },
               { icon: Italic, cmd: "italic" },
@@ -139,7 +139,7 @@ export const DiarioBordoForm = () => {
                 key={cmd}
                 type="button"
                 onMouseDown={(e) => { e.preventDefault(); applyFormat(cmd === "formatBlock" ? "h2" : cmd); }}
-                className="h-7 w-7 rounded hover:bg-[#2a2a2a] flex items-center justify-center text-zinc-300"
+                className="h-7 w-7 rounded hover:bg-surface-3 flex items-center justify-center text-foreground/85"
               >
                 <Icon className="h-3.5 w-3.5" />
               </button>
@@ -148,13 +148,13 @@ export const DiarioBordoForm = () => {
           <div
             contentEditable
             suppressContentEditableWarning
-            className="min-h-[300px] max-h-[50vh] overflow-y-auto bg-[#1c1c1e] border border-[#2a2a2a] rounded-md p-3 text-white text-sm focus:outline-none focus:border-[#3b82f6]/60"
+            className="min-h-[300px] max-h-[50vh] overflow-y-auto bg-surface-2 border border-surface-3 rounded-md p-3 text-foreground text-sm focus:outline-none focus:border-primary/60"
             dangerouslySetInnerHTML={{ __html: editing?.entrada.conteudo ?? "" }}
             onBlur={(e) => editing && updateEntrada(editing.bucketKey, editing.entrada.id, e.currentTarget.innerHTML)}
           />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setEditing(null)}>Fechar</Button>
-            <Button type="button" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90" onClick={() => setEditing(null)}>Salvar</Button>
+            <Button type="button" className="bg-primary hover:bg-primary/90" onClick={() => setEditing(null)}>Salvar</Button>
           </div>
         </DialogContent>
       </Dialog>

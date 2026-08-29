@@ -8,20 +8,37 @@ import {
   Building2,
   TrendingUp,
   MessageSquare,
-  Loader2,
   DollarSign,
   Eye,
   MousePointer,
   Users,
   Instagram,
   Video,
+  BarChart3,
+  Megaphone,
+  LineChart,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { SiteDashboard } from '@/components/dashboard/SiteDashboard';
+import { PageHeader } from '@/components/dashboard/PageHeader';
+import { Section } from '@/components/dashboard/Section';
+import { Stagger, StaggerItem, Reveal } from '@/components/dashboard/Motion';
+import {
+  KPIGridSkeleton,
+  ChartGridSkeleton,
+  CardGridSkeleton,
+  PageHeaderSkeleton,
+} from '@/components/dashboard/Skeletons';
+import {
+  DashTabs,
+  DashTabsList,
+  DashTabsTrigger,
+  DashTabsPanel,
+} from '@/components/dashboard/DashboardTabs';
+import { chartColors } from '@/lib/chartColors';
 import { parseDateForSort, formatDateBR } from '@/lib/dateUtils';
 
 interface N8NClient {
@@ -66,13 +83,31 @@ interface ReportData {
 
 type TabType = 'mensagem' | 'site';
 
+/** Grade de KPIs com entrada escalonada. */
+const KPIGrid = ({ items }: { items: any[] }) => (
+  <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" stagger={0.04}>
+    {items.map((kpi) => (
+      <StaggerItem key={kpi.title}>
+        <KPICard {...kpi} />
+      </StaggerItem>
+    ))}
+  </Stagger>
+);
+
+const EmptyState = ({ titulo, descricao }: { titulo: string; descricao: string }) => (
+  <div className="rounded-xl border border-border bg-card p-12 text-center">
+    <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+    <h3 className="text-lg font-medium text-foreground">{titulo}</h3>
+    <p className="text-muted-foreground mt-2">{descricao}</p>
+  </div>
+);
+
 function ClienteDashboardView() {
   const { clienteVinculadoId } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabType>('mensagem');
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-  const [logoBroken, setLogoBroken] = useState(false);
 
   const { data: clienteInfo, isLoading: loadingClient } = useQuery({
     queryKey: ['cliente-info', clienteVinculadoId],
@@ -120,19 +155,21 @@ function ClienteDashboardView() {
 
   if (loadingClient || (loading && reports.length === 0)) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+      <div className="p-5 sm:p-8 lg:p-10 space-y-8" role="status" aria-label="Carregando dashboard">
+        <PageHeaderSkeleton />
+        <KPIGridSkeleton count={4} />
+        <ChartGridSkeleton count={2} />
       </div>
     );
   }
 
   if (missingAccount) {
     return (
-      <div className="flex items-center justify-center h-full p-6">
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-12 text-center border border-white/10 max-w-md">
-          <Building2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white">Conta de anúncio não configurada</h3>
-          <p className="text-gray-400 mt-2">
+      <div className="flex items-center justify-center min-h-[60vh] p-6">
+        <div className="rounded-xl border border-border bg-card p-12 text-center max-w-md">
+          <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground">Conta de anúncio não configurada</h3>
+          <p className="text-muted-foreground mt-2">
             Este cliente ainda não possui uma conta de anúncio vinculada. Contate o administrador.
           </p>
         </div>
@@ -208,103 +245,143 @@ function ClienteDashboardView() {
     reproducoes_video_3s: d.reproducoes_video_3s,
   }));
 
-  const showLogo = clientLogo && !logoBroken;
+  // Os 12 KPIs agrupados por assunto — antes eram tres fileiras seguidas, sem
+  // nada dizendo por que uma metrica estava numa fileira e nao na outra.
+  const kpisResultado = [
+    { title: 'Valor Total Gasto', value: totalSpent.toFixed(2), icon: DollarSign, prefix: 'R$ ', tone: 'brand' },
+    { title: 'Total de Conversas', value: totalMessages, icon: MessageSquare, tone: 'success' },
+    { title: 'Custo por Conversa', value: costPerMessage.toFixed(2), icon: MessageSquare, prefix: 'R$ ', tone: 'warning' },
+    { title: 'Total de Compras', value: totalPurchases, icon: TrendingUp, tone: 'success' },
+  ];
+
+  const kpisAlcance = [
+    { title: 'Impressões', value: totalImpressions.toLocaleString('pt-BR'), icon: Eye, tone: 'info' },
+    { title: 'Alcance', value: totalReach.toLocaleString('pt-BR'), icon: Users, tone: 'info' },
+    { title: 'CPM Médio', value: avgCPM.toFixed(2), icon: Eye, prefix: 'R$ ', tone: 'neutral' },
+    { title: 'CTR Médio', value: avgCTR.toFixed(2), icon: MousePointer, suffix: '%', tone: 'neutral' },
+  ];
+
+  const kpisEngajamento = [
+    { title: 'Cliques Totais', value: totalClicks.toLocaleString('pt-BR'), icon: MousePointer, tone: 'accent' },
+    { title: 'Cliques no Link', value: totalLinkClicks.toLocaleString('pt-BR'), icon: MousePointer, tone: 'accent' },
+    { title: 'Visitas Instagram', value: totalVisits.toLocaleString('pt-BR'), icon: Instagram, tone: 'accent' },
+    { title: 'Visualizações 3s', value: totalVideoViews.toLocaleString('pt-BR'), icon: Video, tone: 'accent' },
+  ];
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          {showLogo ? (
-            <img
-              src={clientLogo!}
-              alt={clientName}
-              className="h-12 w-12 rounded-xl object-cover border border-white/10"
-              onError={() => setLogoBroken(true)}
+    <div className="p-5 sm:p-8 lg:p-10">
+      <Reveal>
+        <PageHeader
+          className="mb-6"
+          title={clientName || 'Meu Dashboard'}
+          subtitle="Acompanhe seus resultados"
+          imageUrl={clientLogo}
+          icon={Building2}
+          actions={
+            <DateFilter
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              onFilter={handleFilter}
+            />
+          }
+        />
+      </Reveal>
+
+      <DashTabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)}>
+        <DashTabsList>
+          <DashTabsTrigger value="mensagem">
+            <MessageSquare className="h-4 w-4" />
+            Mensagem
+          </DashTabsTrigger>
+          <DashTabsTrigger value="site">
+            <Megaphone className="h-4 w-4" />
+            Site
+          </DashTabsTrigger>
+        </DashTabsList>
+
+        <DashTabsPanel value="mensagem">
+          {reports.length === 0 ? (
+            <EmptyState
+              titulo="Nenhum dado encontrado"
+              descricao="Não há dados disponíveis para o período selecionado."
             />
           ) : (
-            <div className="h-12 w-12 rounded-xl bg-[#3b82f6]/20 flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-[#3b82f6]" />
+            <div className="space-y-12">
+              <Section
+                title="Investimento & Resultado"
+                description="O que foi investido e o que voltou no período."
+                icon={DollarSign}
+              >
+                <KPIGrid items={kpisResultado} />
+              </Section>
+
+              <Section
+                title="Alcance & Entrega"
+                description="Quantas pessoas viram os anúncios e a que custo."
+                icon={Eye}
+                collapsible
+              >
+                <KPIGrid items={kpisAlcance} />
+              </Section>
+
+              <Section
+                title="Engajamento"
+                description="Cliques, visitas ao perfil e visualizações de vídeo."
+                icon={MousePointer}
+                collapsible
+              >
+                <KPIGrid items={kpisEngajamento} />
+              </Section>
+
+              <Section
+                title="Desempenho diário"
+                description="Evolução do investimento e das conversas ao longo do período."
+                icon={LineChart}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8">
+                  <Reveal subtle>
+                    <DashboardChart title="Valor Gasto por Dia" data={chartData} dataKey="valor_usado_brl" color={chartColors.brand} type="area" prefix="R$ " />
+                  </Reveal>
+                  <Reveal subtle delay={0.08}>
+                    <DashboardChart title="Conversas Iniciadas" data={chartData} dataKey="conversas_mensagem_iniciadas" color={chartColors.success} type="composed" secondaryLine={{ dataKey: 'custo_por_conversa', color: chartColors.warning, prefix: 'R$ ', label: 'Custo/Conversa' }} />
+                  </Reveal>
+                </div>
+              </Section>
+
+              <Section
+                title="Detalhamento"
+                description="Impressões, cliques, visitas e vídeo, dia a dia."
+                icon={BarChart3}
+                collapsible
+                defaultOpen={false}
+                contentClassName="space-y-6 xl:space-y-8 pt-2"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8">
+                  <DashboardChart title="Impressões por Dia" data={chartData} dataKey="impressoes" color={chartColors.warning} type="line" />
+                  <DashboardChart title="Cliques por Dia" data={chartData} dataKey="cliques_todos" color={chartColors.accent} type="bar" />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8">
+                  <DashboardChart title="Visitas ao Instagram" data={chartData} dataKey="visitas_perfil_instagram" color={chartColors.pink} type="area" />
+                  <DashboardChart title="Visualizações de Vídeo (3s)" data={chartData} dataKey="reproducoes_video_3s" color={chartColors.cyan} type="bar" />
+                </div>
+              </Section>
             </div>
           )}
-          <div>
-            <h1 className="text-2xl font-bold text-white">{clientName || 'Meu Dashboard'}</h1>
-            <p className="text-gray-400 text-sm">Acompanhe seus resultados</p>
-          </div>
-        </div>
+        </DashTabsPanel>
 
-        <DateFilter
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onFilter={handleFilter}
-        />
-      </div>
-
-      <div className="flex gap-1 mb-8 bg-white/5 rounded-xl p-1 w-fit border border-white/10">
-        {(['mensagem', 'site'] as TabType[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-              activeTab === tab
-                ? 'bg-[#3b82f6] text-white shadow-lg shadow-blue-500/25'
-                : 'text-gray-400 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            {tab === 'mensagem' ? 'Mensagem' : 'Site'}
-          </button>
-        ))}
-      </div>
-
-      {reports.length === 0 ? (
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-12 text-center border border-white/10">
-          <TrendingUp className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white">Nenhum dado encontrado</h3>
-          <p className="text-gray-400 mt-2">
-            Nao ha dados disponiveis para o periodo selecionado.
-          </p>
-        </div>
-      ) : (
-        <div>
-          {activeTab === 'mensagem' ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <KPICard title="Valor Total Gasto" value={totalSpent.toFixed(2)} icon={DollarSign} prefix="R$ " />
-                <KPICard title="Total de Conversas" value={totalMessages} icon={MessageSquare} />
-                <KPICard title="Custo por Conversa" value={costPerMessage.toFixed(2)} icon={MessageSquare} prefix="R$ " />
-                <KPICard title="Total de Compras" value={totalPurchases} icon={TrendingUp} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <KPICard title="Impressoes" value={totalImpressions.toLocaleString('pt-BR')} icon={Eye} />
-                <KPICard title="Alcance" value={totalReach.toLocaleString('pt-BR')} icon={Users} />
-                <KPICard title="CPM Medio" value={avgCPM.toFixed(2)} icon={Eye} prefix="R$ " />
-                <KPICard title="CTR Medio" value={avgCTR.toFixed(2)} icon={MousePointer} suffix="%" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <KPICard title="Cliques Totais" value={totalClicks.toLocaleString('pt-BR')} icon={MousePointer} />
-                <KPICard title="Cliques no Link" value={totalLinkClicks.toLocaleString('pt-BR')} icon={MousePointer} />
-                <KPICard title="Visitas Instagram" value={totalVisits.toLocaleString('pt-BR')} icon={Instagram} />
-                <KPICard title="Visualizacoes 3s" value={totalVideoViews.toLocaleString('pt-BR')} icon={Video} />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <DashboardChart title="Valor Gasto por Dia" data={chartData} dataKey="valor_usado_brl" color="#3b82f6" type="area" prefix="R$ " />
-                <DashboardChart title="Conversas Iniciadas" data={chartData} dataKey="conversas_mensagem_iniciadas" color="#22c55e" type="composed" secondaryLine={{ dataKey: 'custo_por_conversa', color: '#f59e0b', prefix: 'R$ ', label: 'Custo/Conversa' }} />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <DashboardChart title="Impressoes por Dia" data={chartData} dataKey="impressoes" color="#f59e0b" type="line" />
-                <DashboardChart title="Cliques por Dia" data={chartData} dataKey="cliques_todos" color="#8b5cf6" type="bar" />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <DashboardChart title="Visitas ao Instagram" data={chartData} dataKey="visitas_perfil_instagram" color="#ec4899" type="area" />
-                <DashboardChart title="Visualizacoes de Video (3s)" data={chartData} dataKey="reproducoes_video_3s" color="#06b6d4" type="bar" />
-              </div>
-            </>
+        <DashTabsPanel value="site">
+          {reports.length === 0 ? (
+            <EmptyState
+              titulo="Nenhum dado encontrado"
+              descricao="Não há dados disponíveis para o período selecionado."
+            />
           ) : (
             <SiteDashboard dailyData={dailyData} showLabelsForPDF={false} />
           )}
-        </div>
-      )}
+        </DashTabsPanel>
+      </DashTabs>
     </div>
   );
 }
@@ -324,116 +401,88 @@ function AdminDashboardView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+      <div className="p-5 sm:p-8 lg:p-10 space-y-8" role="status" aria-label="Carregando clientes">
+        <PageHeaderSkeleton />
+        <CardGridSkeleton count={3} />
+        <CardGridSkeleton count={6} />
       </div>
     );
   }
 
   const clients = data?.clientes || [];
-  const totalClientes = data?.total_clientes || 0;
-  const campanhasAtivas = data?.campanhas_ativas || 0;
-  const relatoriosDisponiveis = data?.relatorios_disponiveis || 0;
+
+  const resumo = [
+    { title: 'Total de Clientes', value: data?.total_clientes || 0, icon: Building2, tone: 'brand' },
+    { title: 'Campanhas Ativas', value: data?.campanhas_ativas || 0, icon: TrendingUp, tone: 'success' },
+    { title: 'Relatórios Disponíveis', value: data?.relatorios_disponiveis || 0, icon: MessageSquare, tone: 'info' },
+  ];
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">
-          Bem-vindo ao Dashboard
-        </h1>
-        <p className="text-gray-400 mt-2">
-          Selecione um cliente para visualizar seus relatórios de desempenho
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-[#3b82f6]/20">
-              <Building2 className="h-6 w-6 text-[#3b82f6]" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">Total de Clientes</p>
-              <p className="text-2xl font-bold text-white">{totalClientes}</p>
-            </div>
-          </div>
+    <div className="p-5 sm:p-8 lg:p-10 space-y-8">
+      <Reveal>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Bem-vindo ao Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Selecione um cliente para visualizar seus relatórios de desempenho
+          </p>
         </div>
+      </Reveal>
 
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-green-500/20">
-              <TrendingUp className="h-6 w-6 text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">Campanhas Ativas</p>
-              <p className="text-2xl font-bold text-white">{campanhasAtivas}</p>
-            </div>
-          </div>
-        </div>
+      <Stagger className="grid grid-cols-1 md:grid-cols-3 gap-6" stagger={0.06}>
+        {resumo.map((r) => (
+          <StaggerItem key={r.title}>
+            <KPICard {...r} />
+          </StaggerItem>
+        ))}
+      </Stagger>
 
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-[#3b82f6]/20">
-              <MessageSquare className="h-6 w-6 text-[#3b82f6]" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">Relatórios Disponíveis</p>
-              <p className="text-2xl font-bold text-white">{relatoriosDisponiveis}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-xl font-semibold text-white mb-4">Seus Clientes</h2>
-
+      <Section title="Seus Clientes" icon={Building2}>
         {clients.length === 0 ? (
-          <div className="bg-white/5 backdrop-blur-xl rounded-xl p-8 text-center border border-white/10">
-            <Building2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white">Nenhum cliente encontrado</h3>
-            <p className="text-gray-400 mt-2">
+          <div className="rounded-xl border border-border bg-card p-8 text-center">
+            <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground">Nenhum cliente encontrado</h3>
+            <p className="text-muted-foreground mt-2">
               Você ainda não tem clientes vinculados à sua conta.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" stagger={0.04}>
             {clients.map((client) => (
-              <Link
-                key={client.id_conta}
-                to={`/dashboard/${client.id_conta}?nome=${encodeURIComponent(client.nome)}`}
-                className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10 hover:border-[#3b82f6]/50 hover:shadow-lg hover:shadow-blue-500/10 group"
-              >
-                <div className="flex items-center gap-4">
-                  {client.picture_url ? (
-                    <img
-                      src={client.picture_url}
-                      alt={client.nome}
-                      className="h-12 w-12 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="h-12 w-12 rounded-lg bg-[#3b82f6]/20 flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-[#3b82f6]" />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-white group-hover:text-[#3b82f6] transition-colors">
-                      {client.nome}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-400">
-                        Ver relatório →
-                      </p>
-                      <span className="text-xs text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full">
-                        {client.campanhas_ativas} campanhas
-                      </span>
+              <StaggerItem key={client.id_conta}>
+                <Link
+                  to={`/dashboard/${client.id_conta}?nome=${encodeURIComponent(client.nome)}`}
+                  className="focus-ring group block h-full rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:bg-surface-2/60 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center gap-4">
+                    {client.picture_url ? (
+                      <img
+                        src={client.picture_url}
+                        alt=""
+                        className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="h-6 w-6 text-primary" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                        {client.nome}
+                      </h3>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-muted-foreground">Ver relatório →</p>
+                        <span className="text-xs text-success bg-success/15 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          {client.campanhas_ativas} campanhas
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         )}
-      </div>
+      </Section>
     </div>
   );
 }
@@ -442,21 +491,21 @@ function RemovedAccessView() {
   const { signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-8 text-center">
-        <div className="mx-auto mb-6 p-4 rounded-full bg-red-500/15 w-fit">
-          <Building2 className="h-10 w-10 text-red-400" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="max-w-md w-full rounded-xl border border-border bg-card p-8 text-center">
+        <div className="mx-auto mb-6 p-4 rounded-full bg-destructive/15 w-fit">
+          <Building2 className="h-10 w-10 text-destructive" />
         </div>
-        <h2 className="text-xl font-semibold text-white mb-3">
+        <h2 className="text-xl font-semibold text-foreground mb-3">
           Seu acesso não está mais ativo
         </h2>
-        <p className="text-gray-400 text-sm leading-relaxed mb-6">
+        <p className="text-muted-foreground text-sm leading-relaxed mb-6">
           Para mais dúvidas, fale com Lucas Paulino ou procure o Instagram da
           Traffic Solutions.
         </p>
         <button
           onClick={() => signOut()}
-          className="text-sm text-gray-500 hover:text-white transition-colors underline underline-offset-4"
+          className="focus-ring rounded text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
         >
           Sair da conta
         </button>

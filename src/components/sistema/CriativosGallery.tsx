@@ -61,16 +61,16 @@ export const CriativosGallery = ({ clientId }: Props) => {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!ads || ads.length === 0) {
     return (
-      <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-12 text-center">
-        <ImageIcon className="h-10 w-10 text-zinc-600 mx-auto mb-3" />
-        <p className="text-zinc-400">Nenhum criativo ativo no momento.</p>
+      <div className="bg-card/40 border border-border rounded-xl p-12 text-center">
+        <ImageIcon className="h-10 w-10 text-muted-foreground/80 mx-auto mb-3" />
+        <p className="text-muted-foreground">Nenhum criativo ativo no momento.</p>
       </div>
     );
   }
@@ -86,22 +86,22 @@ export const CriativosGallery = ({ clientId }: Props) => {
               key={ad.id}
               type="button"
               onClick={() => setSelectedAd(ad)}
-              className="group relative aspect-square rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900/60 hover:border-[#3b82f6]/50 transition-all"
+              className="group relative aspect-square rounded-xl overflow-hidden border border-border bg-card/60 hover:border-primary/50 transition-all"
             >
               {thumb ? (
                 <img src={thumb} alt={ad.name} className="h-full w-full object-cover" />
               ) : (
                 <div className="h-full w-full flex items-center justify-center">
-                  <ImageIcon className="h-8 w-8 text-zinc-700" />
+                  <ImageIcon className="h-8 w-8 text-muted-foreground/80" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+              <div className="absolute inset-0 bg-background/0 group-hover:bg-background/50 transition-colors flex items-center justify-center">
                 {hasVideo && (
-                  <Play className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity fill-white" />
+                  <Play className="h-8 w-8 text-foreground opacity-0 group-hover:opacity-100 transition-opacity fill-white" />
                 )}
               </div>
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
-                <p className="text-xs text-white truncate text-left">{ad.name}</p>
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/80 to-transparent p-2 pt-6">
+                <p className="text-xs text-foreground truncate text-left">{ad.name}</p>
               </div>
             </button>
           );

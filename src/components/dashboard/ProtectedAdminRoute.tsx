@@ -22,10 +22,10 @@ export const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 
   if (loading || loadingRole) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#3b82f6] mx-auto" />
-          <p className="mt-4 text-[#a1a1aa]">Carregando...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="mt-4 text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );

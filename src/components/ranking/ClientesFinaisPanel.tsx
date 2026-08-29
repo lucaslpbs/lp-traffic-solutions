@@ -82,40 +82,40 @@ export const ClientesFinaisPanel = ({ clientId }: { clientId: string }) => {
   };
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
+    <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-foreground/5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-[#60a5fa]" />
-          <h2 className="text-lg font-semibold text-white">Meus clientes</h2>
+          <Users className="h-5 w-5 text-primary-light" />
+          <h2 className="text-lg font-semibold text-foreground">Meus clientes</h2>
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm">
-          <span className="text-zinc-400">
-            <span className="font-semibold text-white">{clientes.length}</span> cadastrados
+          <span className="text-muted-foreground">
+            <span className="font-semibold text-foreground">{clientes.length}</span> cadastrados
           </span>
-          <span className="text-zinc-400">
-            <span className="font-semibold text-white">{novos}</span> sem compra
+          <span className="text-muted-foreground">
+            <span className="font-semibold text-foreground">{novos}</span> sem compra
           </span>
-          <span className="text-zinc-400">
-            <span className="font-semibold text-[#60a5fa]">{formatBRL(totalCarteira)}</span> na
+          <span className="text-muted-foreground">
+            <span className="font-semibold text-primary-light">{formatBRL(totalCarteira)}</span> na
             carteira
           </span>
         </div>
       </div>
 
-      <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-center gap-3">
+      <div className="px-4 py-3 border-b border-foreground/5 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Digite o nome do cliente"
-            className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+            className="pl-9 bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
           />
         </div>
         <Button
           variant="outline"
           onClick={() => setAbrirNovo((v) => !v)}
-          className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+          className="bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Novo cliente
@@ -123,30 +123,30 @@ export const ClientesFinaisPanel = ({ clientId }: { clientId: string }) => {
       </div>
 
       {abrirNovo && (
-        <div className="px-4 py-4 border-b border-white/5 bg-white/[0.03] grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div className="px-4 py-4 border-b border-foreground/5 bg-foreground/[0.03] grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-xs">Nome da empresa / cliente</Label>
+            <Label className="text-muted-foreground text-xs">Nome da empresa / cliente</Label>
             <Input
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Ex.: SamySam Moda Fashion"
-              className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+              className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-xs">Telefone</Label>
+            <Label className="text-muted-foreground text-xs">Telefone</Label>
             <Input
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
               placeholder="(85) 9 9999-9999"
               inputMode="tel"
-              className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+              className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
             />
           </div>
           <Button
             onClick={cadastrar}
             disabled={salvando}
-            className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white"
+            className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-foreground"
           >
             {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Cadastrar
@@ -156,10 +156,10 @@ export const ClientesFinaisPanel = ({ clientId }: { clientId: string }) => {
 
       {isLoading ? (
         <div className="flex justify-center py-10">
-          <Loader2 className="h-7 w-7 animate-spin text-[#3b82f6]" />
+          <Loader2 className="h-7 w-7 animate-spin text-primary" />
         </div>
       ) : lista.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-zinc-500">
+        <p className="px-4 py-8 text-center text-sm text-muted-foreground">
           {clientes.length === 0
             ? 'Nenhum cliente cadastrado ainda. Cadastre no botão "Novo cliente" ou direto ao registrar uma venda.'
             : 'Nenhum cliente encontrado para essa busca.'}
@@ -169,30 +169,30 @@ export const ClientesFinaisPanel = ({ clientId }: { clientId: string }) => {
           {lista.map((c) => (
             <div
               key={c.id}
-              className="rounded-xl border border-white/10 bg-white/[0.02] p-4 hover:border-[#3b82f6]/50 transition-colors"
+              className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-4 hover:border-primary/50 transition-colors"
             >
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Nome e telefone do cliente
               </p>
-              <p className="font-bold text-white truncate mt-0.5">{c.nome}</p>
-              <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
+              <p className="font-bold text-foreground truncate mt-0.5">{c.nome}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                 <Phone className="h-3 w-3" />
                 {c.telefone || 'Sem telefone'}
               </p>
 
-              <div className="mt-3 pt-3 border-t border-white/5 flex items-end justify-between">
+              <div className="mt-3 pt-3 border-t border-foreground/5 flex items-end justify-between">
                 <div>
-                  <p className="text-lg font-bold text-[#60a5fa] tabular-nums">
+                  <p className="text-lg font-bold text-primary-light tabular-nums">
                     {formatBRL(c.resumo.total)}
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-muted-foreground">
                     {c.resumo.qtd === 0
                       ? 'nenhuma compra ainda'
                       : `${c.resumo.qtd} ${c.resumo.qtd === 1 ? 'compra' : 'compras'} · última em ${formatDataBR(c.resumo.ultima)}`}
                   </p>
                 </div>
                 {c.resumo.qtd === 0 && (
-                  <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+                  <span className="flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-medium text-success">
                     <Sparkles className="h-3 w-3" />
                     novo
                   </span>

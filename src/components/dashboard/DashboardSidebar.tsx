@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import {
@@ -9,7 +10,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   Crosshair,
   Users,
   FolderKanban,
@@ -17,7 +17,10 @@ import {
   Trophy,
   ShieldCheck,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Shimmer } from '@/components/dashboard/Skeletons';
+import { NivelBadge } from '@/components/dashboard/NivelBadge';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SidebarCliente {
@@ -27,8 +30,82 @@ interface SidebarCliente {
   logo_url: string | null;
 }
 
-export const DashboardSidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarLinkProps {
+  to: string;
+  label: string;
+  active: boolean;
+  collapsed?: boolean;
+  icon?: LucideIcon;
+  /** Alternativa ao icone — usado pelo logo do cliente. */
+  leading?: ReactNode;
+  onNavigate?: () => void;
+  /**
+   * Namespace do indicador ativo. A sidebar fixa e o drawer coexistem no DOM
+   * enquanto o drawer esta aberto; sem isso, os dois disputariam o mesmo
+   * layoutId e o indicador saltaria entre eles.
+   */
+  instanceId: string;
+}
+
+/**
+ * Item de navegacao da sidebar. Antes cada link repetia o mesmo bloco de
+ * className com o gradiente hardcoded; o indicador ativo agora e uma camada
+ * unica que desliza entre os itens (layoutId do framer).
+ */
+const SidebarLink = ({
+  to,
+  label,
+  active,
+  collapsed = false,
+  icon: Icon,
+  leading,
+  onNavigate,
+  instanceId,
+}: SidebarLinkProps) => (
+  <Link
+    to={to}
+    onClick={onNavigate}
+    aria-current={active ? 'page' : undefined}
+    title={collapsed ? label : undefined}
+    className={cn(
+      'focus-ring relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200',
+      active ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
+    )}
+  >
+    {active && (
+      <motion.span
+        layoutId={`sidebar-active-${instanceId}`}
+        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        className="absolute inset-0 rounded-lg bg-gradient-to-r from-level-dark to-level shadow-lg shadow-level/30"
+      />
+    )}
+    <span className="relative flex items-center gap-3 min-w-0">
+      {leading ?? (Icon && <Icon className="h-5 w-5 flex-shrink-0" />)}
+      {!collapsed && <span className="font-medium truncate">{label}</span>}
+    </span>
+  </Link>
+);
+
+interface SidebarContentProps {
+  collapsed?: boolean;
+  /** Chamado ao clicar num link — usado pelo drawer mobile para fechar. */
+  onNavigate?: () => void;
+  /** Botao de recolher, renderizado so na versao fixa de desktop. */
+  collapseToggle?: ReactNode;
+  /** Namespace do indicador ativo. Ver SidebarLink.instanceId. */
+  instanceId?: string;
+}
+
+/**
+ * Conteudo da sidebar, compartilhado entre a versao fixa (desktop) e o drawer
+ * (mobile). Nao define largura nem posicionamento — quem monta decide isso.
+ */
+export const DashboardSidebarContent = ({
+  collapsed = false,
+  onNavigate,
+  collapseToggle,
+  instanceId = 'desktop',
+}: SidebarContentProps) => {
   const { signOut, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,10 +114,10 @@ export const DashboardSidebar = () => {
     queryKey: ['sidebar-clients'],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from("gestao_clientes")
-        .select("id, nome_cliente, numero_conta_anuncio, logo_url")
-        .eq("status", "ativo")
-        .order("nome_cliente");
+        .from('gestao_clientes')
+        .select('id, nome_cliente, numero_conta_anuncio, logo_url')
+        .eq('status', 'ativo')
+        .order('nome_cliente');
       if (error) throw error;
       return (data ?? []) as SidebarCliente[];
     },
@@ -51,204 +128,197 @@ export const DashboardSidebar = () => {
     navigate('/login');
   };
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  const path = location.pathname;
+  const isActive = (prefix: string) => path.startsWith(prefix);
 
   return (
-    <aside 
-      className={cn(
-        "h-screen bg-[#0a0a0a] border-r border-white/10 flex flex-col transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between">
-        {!collapsed && (
-          <img 
-            src="/TFLOGO.png" 
-            alt="Traffic Solutions" 
-            className="h-8"
-          />
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-400 hover:text-white hover:bg-white/10"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
+      <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
+        {!collapsed && <img src="/TFLOGO.png" alt="Traffic Solutions" className="h-8" />}
+        {collapseToggle}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-2 overflow-y-auto">
-        <Link
-          to="/dashboard"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-            location.pathname === '/dashboard'
-              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-              : "text-gray-400 hover:bg-white/5 hover:text-white"
+      <nav aria-label="Navegacao principal" className="flex-1 p-2 overflow-y-auto">
+        <div className="space-y-1">
+          <SidebarLink
+            to="/dashboard"
+            label="Dashboard"
+            icon={LayoutDashboard}
+            active={path === '/dashboard'}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+            instanceId={instanceId}
+          />
+
+          {isAdmin && (
+            <>
+              <SidebarLink
+                to="/dashboard/guerra"
+                label="Quarto de Guerra"
+                icon={Crosshair}
+                active={path === '/dashboard/guerra'}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+                instanceId={instanceId}
+              />
+              <SidebarLink
+                to="/dashboard/gestao-clientes"
+                label="Gestão de Clientes"
+                icon={Users}
+                active={path === '/dashboard/gestao-clientes'}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+                instanceId={instanceId}
+              />
+            </>
           )}
-        >
-          <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">Dashboard</span>}
-        </Link>
 
-        {isAdmin && (
-          <>
-            <Link
-              to="/dashboard/guerra"
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-                location.pathname === '/dashboard/guerra'
-                  ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <Crosshair className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span className="font-medium">Quarto de Guerra</span>}
-            </Link>
+          <SidebarLink
+            to="/dashboard/sistema"
+            label="Sistema"
+            icon={FolderKanban}
+            active={isActive('/dashboard/sistema')}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+            instanceId={instanceId}
+          />
+          <SidebarLink
+            to="/dashboard/chamados"
+            label="Chamados"
+            icon={Headphones}
+            active={isActive('/dashboard/chamados')}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+            instanceId={instanceId}
+          />
+          <SidebarLink
+            to="/dashboard/ranking"
+            label="Ranking"
+            icon={Trophy}
+            active={path === '/dashboard/ranking'}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+            instanceId={instanceId}
+          />
 
-            <Link
-              to="/dashboard/gestao-clientes"
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-                location.pathname === '/dashboard/gestao-clientes'
-                  ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <Users className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span className="font-medium">Gestão de Clientes</span>}
-            </Link>
-          </>
-        )}
-
-        <Link
-          to="/dashboard/sistema"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-            location.pathname.startsWith('/dashboard/sistema')
-              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-              : "text-gray-400 hover:bg-white/5 hover:text-white"
+          {isAdmin && (
+            <SidebarLink
+              to="/dashboard/ranking/admin"
+              label="Admin Ranking"
+              icon={ShieldCheck}
+              active={isActive('/dashboard/ranking/admin')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
           )}
-        >
-          <FolderKanban className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">Sistema</span>}
-        </Link>
+        </div>
 
-        <Link
-          to="/dashboard/chamados"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-            location.pathname.startsWith('/dashboard/chamados')
-              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-              : "text-gray-400 hover:bg-white/5 hover:text-white"
-          )}
-        >
-          <Headphones className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">Chamados</span>}
-        </Link>
-
-        <Link
-          to="/dashboard/ranking"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-            location.pathname === '/dashboard/ranking'
-              ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-              : "text-gray-400 hover:bg-white/5 hover:text-white"
-          )}
-        >
-          <Trophy className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">Ranking</span>}
-        </Link>
-
-        {isAdmin && (
-          <Link
-            to="/dashboard/ranking/admin"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 mb-1",
-              location.pathname.startsWith('/dashboard/ranking/admin')
-                ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-                : "text-gray-400 hover:bg-white/5 hover:text-white"
-            )}
-          >
-            <ShieldCheck className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium">Admin Ranking</span>}
-          </Link>
-        )}
-
-        {/* Clients Section — admin only */}
+        {/* Clientes — somente admin */}
         {isAdmin && (
           <>
             {!collapsed && (
               <div className="mt-6 mb-2 px-3">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Clientes
                 </span>
               </div>
             )}
 
             {loading ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+              <div className="space-y-1 px-1 py-2" role="status" aria-label="Carregando clientes">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-2 py-2">
+                    <Shimmer className="h-5 w-5 rounded flex-shrink-0" />
+                    {!collapsed && <Shimmer className="h-3.5 flex-1" />}
+                  </div>
+                ))}
               </div>
+            ) : clients.length === 0 ? (
+              <p className={cn('text-muted-foreground text-sm px-3 py-2', collapsed && 'hidden')}>
+                Nenhum cliente vinculado
+              </p>
             ) : (
               <div className="space-y-1">
                 {clients.map((client) => (
-                  <Link
+                  <SidebarLink
                     key={client.id}
                     to={`/dashboard/${client.numero_conta_anuncio}?nome=${encodeURIComponent(client.nome_cliente)}`}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                      isActive(`/dashboard/${client.numero_conta_anuncio}`)
-                        ? "bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white shadow-lg shadow-blue-500/25"
-                        : "text-gray-400 hover:bg-white/5 hover:text-white"
-                    )}
-                  >
-                    {client.logo_url ? (
-                      <img
-                        src={client.logo_url}
-                        alt={client.nome_cliente}
-                        className="h-5 w-5 rounded object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <Building2 className="h-5 w-5 flex-shrink-0" />
-                    )}
-                    {!collapsed && (
-                      <span className="font-medium truncate">{client.nome_cliente}</span>
-                    )}
-                  </Link>
+                    label={client.nome_cliente}
+                    active={isActive(`/dashboard/${client.numero_conta_anuncio}`)}
+                    collapsed={collapsed}
+                    onNavigate={onNavigate}
+                    instanceId={instanceId}
+                    leading={
+                      client.logo_url ? (
+                        <img
+                          src={client.logo_url}
+                          alt=""
+                          className="h-5 w-5 rounded object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <Building2 className="h-5 w-5 flex-shrink-0" />
+                      )
+                    }
+                  />
                 ))}
               </div>
-            )}
-
-            {clients.length === 0 && !loading && (
-              <p className={cn(
-                "text-gray-500 text-sm px-3 py-2",
-                collapsed && "hidden"
-              )}>
-                Nenhum cliente vinculado
-              </p>
             )}
           </>
         )}
       </nav>
 
       {/* Footer */}
-      <div className="p-2 border-t border-white/10">
+      <NivelBadge collapsed={collapsed} />
+      <div className="p-2 border-t border-sidebar-border">
         <Button
           variant="ghost"
           onClick={handleSignOut}
           className={cn(
-            "w-full justify-start text-gray-400 hover:bg-red-500/10 hover:text-red-400",
-            collapsed && "justify-center"
+            'w-full justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive',
+            collapsed && 'justify-center'
           )}
         >
           <LogOut className="h-5 w-5" />
           {!collapsed && <span className="ml-3">Sair</span>}
         </Button>
       </div>
+    </div>
+  );
+};
+
+/**
+ * Sidebar fixa do desktop. Escondida abaixo de `lg` — ali quem navega e o
+ * drawer montado pelo DashboardLayout, porque a versao recolhida ainda comia
+ * 64px de largura numa tela de 375px.
+ */
+export const DashboardSidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <aside
+      className={cn(
+        'hidden lg:flex h-screen sticky top-0 bg-sidebar border-r border-sidebar-border flex-col transition-all duration-300 flex-shrink-0',
+        collapsed ? 'w-16' : 'w-64'
+      )}
+    >
+      <DashboardSidebarContent
+        collapsed={collapsed}
+        collapseToggle={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+            aria-expanded={!collapsed}
+            className="text-muted-foreground hover:text-foreground hover:bg-foreground/10"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        }
+      />
     </aside>
   );
 };

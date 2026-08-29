@@ -177,10 +177,10 @@ export const VendaDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0f0f0f] border-white/10 text-white sm:max-w-[520px] max-h-[92vh] overflow-y-auto">
+      <DialogContent className="bg-card border-foreground/10 text-foreground sm:max-w-[520px] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{venda ? 'Editar venda' : 'Registrar venda'}</DialogTitle>
-          <DialogDescription className="text-zinc-400">
+          <DialogDescription className="text-muted-foreground">
             {venda
               ? 'Atualize os dados da venda. O ranking é recalculado automaticamente.'
               : modoAdmin
@@ -192,7 +192,7 @@ export const VendaDialog = ({
         <div className="space-y-4 py-2">
           {modoAdmin && (
             <div className="space-y-1.5">
-              <Label className="text-zinc-300">Cliente</Label>
+              <Label className="text-foreground/85">Cliente</Label>
               <Select
                 value={clienteSel}
                 onValueChange={(v) => {
@@ -200,12 +200,12 @@ export const VendaDialog = ({
                   setClienteFinalId(null);
                 }}
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger className="bg-foreground/5 border-foreground/10 text-foreground">
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111] border-white/10 text-white max-h-64">
+                <SelectContent className="bg-surface-1 border-foreground/10 text-foreground max-h-64">
                   {clientes!.map((c) => (
-                    <SelectItem key={c.id} value={c.id} className="focus:bg-white/10 focus:text-white">
+                    <SelectItem key={c.id} value={c.id} className="focus:bg-foreground/10 focus:text-foreground">
                       {c.nome_cliente}
                     </SelectItem>
                   ))}
@@ -221,46 +221,46 @@ export const VendaDialog = ({
           />
 
           <div className="space-y-1.5">
-            <Label className="text-zinc-300">Valor da venda</Label>
+            <Label className="text-foreground/85">Valor da venda</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">R$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
               <Input
                 value={valor}
                 onChange={(e) => setValor(e.target.value.replace(/[^\d.,]/g, ''))}
                 placeholder="0,00"
                 inputMode="decimal"
-                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+                className="pl-10 bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-zinc-300">Data</Label>
+            <Label className="text-foreground/85">Data</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full justify-start text-left font-normal bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+                  className="w-full justify-start text-left font-normal bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {format(data, 'dd/MM/yyyy', { locale: ptBR })}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-[#111] border-white/10" align="start">
+              <PopoverContent className="w-auto p-0 bg-surface-1 border-foreground/10" align="start">
                 <Calendar
                   mode="single"
                   selected={data}
                   onSelect={(d) => d && setData(d)}
                   initialFocus
                   locale={ptBR}
-                  className="pointer-events-auto bg-[#111] text-white"
+                  className="pointer-events-auto bg-surface-1 text-foreground"
                 />
               </PopoverContent>
             </Popover>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-zinc-300">Print da venda</Label>
+            <Label className="text-foreground/85">Print da venda</Label>
             <input
               ref={fileRef}
               type="file"
@@ -269,12 +269,12 @@ export const VendaDialog = ({
               className="hidden"
             />
             {preview ? (
-              <div className="relative rounded-lg overflow-hidden border border-white/10">
-                <img src={preview} alt="Print da venda" className="w-full max-h-56 object-contain bg-black" />
+              <div className="relative rounded-lg overflow-hidden border border-foreground/10">
+                <img src={preview} alt="Print da venda" className="w-full max-h-56 object-contain bg-background" />
                 <button
                   type="button"
                   onClick={limparFoto}
-                  className="absolute top-2 right-2 rounded-full bg-black/70 p-1.5 text-zinc-300 hover:text-red-400"
+                  className="absolute top-2 right-2 rounded-full bg-background/70 p-1.5 text-foreground/85 hover:text-destructive"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -284,8 +284,8 @@ export const VendaDialog = ({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 className={cn(
-                  'w-full rounded-lg border border-dashed border-white/15 bg-white/5 py-8',
-                  'flex flex-col items-center gap-2 text-zinc-400 hover:border-[#3b82f6] hover:text-white transition-colors'
+                  'w-full rounded-lg border border-dashed border-foreground/15 bg-foreground/5 py-8',
+                  'flex flex-col items-center gap-2 text-muted-foreground hover:border-primary hover:text-foreground transition-colors'
                 )}
               >
                 <ImagePlus className="h-6 w-6" />
@@ -295,12 +295,12 @@ export const VendaDialog = ({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-zinc-300">Descrição</Label>
+            <Label className="text-foreground/85">Descrição</Label>
             <Textarea
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               placeholder="O que foi vendido, canal de origem, observações..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 min-h-[90px]"
+              className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80 min-h-[90px]"
             />
           </div>
         </div>
@@ -310,14 +310,14 @@ export const VendaDialog = ({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={salvando}
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+            className="bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
           >
             Cancelar
           </Button>
           <Button
             onClick={salvar}
             disabled={salvando}
-            className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white shadow-lg shadow-blue-500/25"
+            className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-foreground shadow-lg shadow-primary/25"
           >
             {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {venda ? 'Salvar alterações' : 'Registrar venda'}
@@ -357,7 +357,7 @@ export const ExcluirVendaButton = ({
       size="icon"
       onClick={excluir}
       disabled={apagando}
-      className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
     >
       {apagando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
     </Button>

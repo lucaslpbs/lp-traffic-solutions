@@ -65,12 +65,12 @@ interface ClienteOption {
 }
 
 const KPI = ({ icon: Icon, label, valor }: { icon: any; label: string; valor: string }) => (
-  <div className="rounded-xl border border-white/10 bg-[#0f0f0f] p-4">
-    <div className="flex items-center gap-2 text-zinc-400 mb-2">
+  <div className="rounded-xl border border-foreground/10 bg-card p-4">
+    <div className="flex items-center gap-2 text-muted-foreground mb-2">
       <Icon className="h-4 w-4" />
       <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
     </div>
-    <p className="text-xl xl:text-2xl font-bold text-white tabular-nums leading-tight break-words">{valor}</p>
+    <p className="text-xl xl:text-2xl font-bold text-foreground tabular-nums leading-tight break-words">{valor}</p>
   </div>
 );
 
@@ -210,21 +210,21 @@ export default function RankingAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <LampContainer>
         <LampTitle>Administrar Ranking</LampTitle>
-        <p className="max-w-xl text-center text-sm md:text-base text-zinc-400 -mt-2">
+        <p className="max-w-xl text-center text-sm md:text-base text-muted-foreground -mt-2">
           Lance, edite e audite as vendas de todos os clientes em um só lugar.
         </p>
       </LampContainer>
 
-      <div className="-mt-56 relative z-10 p-6 lg:p-8 max-w-7xl mx-auto space-y-6 pb-16">
+      <div className="-mt-56 relative z-10 p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-6 pb-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-wrap items-end gap-3">
             <Button
               asChild
               variant="outline"
-              className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+              className="bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
             >
               <Link to="/dashboard/ranking">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -235,17 +235,17 @@ export default function RankingAdminPage() {
             <PeriodoFilter value={periodo} onChange={setPeriodo} />
 
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-zinc-500 font-medium">Cliente</span>
+              <span className="text-xs text-muted-foreground font-medium">Cliente</span>
               <Select value={clienteFiltro} onValueChange={setClienteFiltro}>
-                <SelectTrigger className="w-[220px] bg-white/5 border-white/10 text-white">
+                <SelectTrigger className="w-[220px] bg-foreground/5 border-foreground/10 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111] border-white/10 text-white max-h-64">
-                  <SelectItem value="todos" className="focus:bg-white/10 focus:text-white">
+                <SelectContent className="bg-surface-1 border-foreground/10 text-foreground max-h-64">
+                  <SelectItem value="todos" className="focus:bg-foreground/10 focus:text-foreground">
                     Todos os clientes
                   </SelectItem>
                   {clientes.map((c) => (
-                    <SelectItem key={c.id} value={c.id} className="focus:bg-white/10 focus:text-white">
+                    <SelectItem key={c.id} value={c.id} className="focus:bg-foreground/10 focus:text-foreground">
                       {c.nome_cliente}
                     </SelectItem>
                   ))}
@@ -259,7 +259,7 @@ export default function RankingAdminPage() {
               setVendaEditando(null);
               setVendaDialog(true);
             }}
-            className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white shadow-lg shadow-blue-500/25"
+            className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-foreground shadow-lg shadow-primary/25"
           >
             <Plus className="h-4 w-4 mr-2" />
             Lançar venda
@@ -281,12 +281,12 @@ export default function RankingAdminPage() {
         <ComissaoAdminPanel clientes={clientes} nomePorId={nomePorId} />
 
         {/* ── Ranking consolidado com edicao de perfil ── */}
-        <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5">
-            <h2 className="text-lg font-semibold text-white">Ranking consolidado</h2>
+        <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-foreground/5">
+            <h2 className="text-lg font-semibold text-foreground">Ranking consolidado</h2>
           </div>
 
-          <div className="grid grid-cols-[70px_1fr_100px_140px_56px] gap-3 px-4 py-2.5 bg-white/[0.03] text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <div className="grid grid-cols-[70px_1fr_100px_140px_56px] gap-3 px-4 py-2.5 bg-foreground/[0.03] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <span>Posição</span>
             <span>Cliente</span>
             <span>Vendas</span>
@@ -296,13 +296,13 @@ export default function RankingAdminPage() {
 
           {loadingRanking ? (
             <div className="flex justify-center py-10">
-              <Loader2 className="h-7 w-7 animate-spin text-[#3b82f6]" />
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
             </div>
           ) : (
             ranking.map((r, i) => (
               <div
                 key={r.client_id}
-                className="grid grid-cols-[70px_1fr_100px_140px_56px] items-center gap-3 px-4 py-3 border-t border-white/5 hover:bg-white/[0.03]"
+                className="grid grid-cols-[70px_1fr_100px_140px_56px] items-center gap-3 px-4 py-3 border-t border-foreground/5 hover:bg-foreground/[0.03]"
               >
                 <div className="flex items-center gap-2">
                   {medalhaPara((r.posicao || i + 1)) ? (
@@ -310,7 +310,7 @@ export default function RankingAdminPage() {
                   ) : (
                     <span className="h-5 w-5" />
                   )}
-                  <span className="text-sm font-semibold text-zinc-400">{(r.posicao || i + 1)}º</span>
+                  <span className="text-sm font-semibold text-muted-foreground">{(r.posicao || i + 1)}º</span>
                 </div>
 
                 <div className="flex items-center gap-3 min-w-0">
@@ -318,25 +318,25 @@ export default function RankingAdminPage() {
                     <img
                       src={r.foto_url}
                       alt={r.nome_cliente}
-                      className="h-9 w-9 rounded-lg object-cover border border-white/10"
+                      className="h-9 w-9 rounded-lg object-cover border border-foreground/10"
                     />
                   ) : (
-                    <div className="h-9 w-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                      <Building2 className="h-4 w-4 text-zinc-500" />
+                    <div className="h-9 w-9 rounded-lg bg-foreground/5 border border-foreground/10 flex items-center justify-center">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="font-medium text-zinc-200 truncate">
+                    <p className="font-medium text-foreground truncate">
                       {r.apelido || r.nome_cliente}
                     </p>
-                    <p className="text-xs text-zinc-500 truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       Última venda: {formatDataBR(r.ultima_venda)}
                     </p>
                   </div>
                 </div>
 
-                <span className="text-sm text-zinc-400">{r.qtd_vendas}</span>
-                <span className="text-right font-bold text-white tabular-nums">
+                <span className="text-sm text-muted-foreground">{r.qtd_vendas}</span>
+                <span className="text-right font-bold text-foreground tabular-nums">
                   {formatBRL(r.total_vendido)}
                 </span>
 
@@ -345,7 +345,7 @@ export default function RankingAdminPage() {
                   size="icon"
                   title="Editar perfil no ranking"
                   onClick={() => setPerfilEditando(r)}
-                  className="text-zinc-500 hover:text-white hover:bg-white/10"
+                  className="text-muted-foreground hover:text-foreground hover:bg-foreground/10"
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -355,15 +355,15 @@ export default function RankingAdminPage() {
         </div>
 
         {/* ── Vendas lancadas ── */}
-        <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-end justify-between gap-3">
+        <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-foreground/5 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-white">Vendas lançadas</h2>
-              <p className="text-sm text-zinc-500">
+              <h2 className="text-lg font-semibold text-foreground">Vendas lançadas</h2>
+              <p className="text-sm text-muted-foreground">
                 {vendasFiltradas.length}{' '}
                 {vendasFiltradas.length === 1 ? 'registro' : 'registros'}
                 {totalPendentes > 0 && (
-                  <span className="text-amber-400"> · {totalPendentes} aguardando análise</span>
+                  <span className="text-warning"> · {totalPendentes} aguardando análise</span>
                 )}
               </p>
             </div>
@@ -372,22 +372,22 @@ export default function RankingAdminPage() {
               <PeriodoFilter value={periodoVendas} onChange={setPeriodoVendas} />
 
               <div className="flex flex-col gap-1">
-                <span className="text-xs text-zinc-500 font-medium">Status</span>
+                <span className="text-xs text-muted-foreground font-medium">Status</span>
                 <Select value={statusFiltro} onValueChange={setStatusFiltro}>
-                  <SelectTrigger className="w-[160px] bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="w-[160px] bg-foreground/5 border-foreground/10 text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#111] border-white/10 text-white">
-                    <SelectItem value="todos" className="focus:bg-white/10 focus:text-white">
+                  <SelectContent className="bg-surface-1 border-foreground/10 text-foreground">
+                    <SelectItem value="todos" className="focus:bg-foreground/10 focus:text-foreground">
                       Todos
                     </SelectItem>
-                    <SelectItem value="pendente" className="focus:bg-white/10 focus:text-white">
+                    <SelectItem value="pendente" className="focus:bg-foreground/10 focus:text-foreground">
                       Em análise
                     </SelectItem>
-                    <SelectItem value="aprovada" className="focus:bg-white/10 focus:text-white">
+                    <SelectItem value="aprovada" className="focus:bg-foreground/10 focus:text-foreground">
                       Aprovadas
                     </SelectItem>
-                    <SelectItem value="recusada" className="focus:bg-white/10 focus:text-white">
+                    <SelectItem value="recusada" className="focus:bg-foreground/10 focus:text-foreground">
                       Recusadas
                     </SelectItem>
                   </SelectContent>
@@ -395,12 +395,12 @@ export default function RankingAdminPage() {
               </div>
 
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                   placeholder="Buscar por cliente ou descrição"
-                  className="pl-9 w-[240px] bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+                  className="pl-9 w-[240px] bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
                 />
               </div>
             </div>
@@ -408,14 +408,14 @@ export default function RankingAdminPage() {
 
           {loadingVendas ? (
             <div className="flex justify-center py-10">
-              <Loader2 className="h-7 w-7 animate-spin text-[#3b82f6]" />
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
             </div>
           ) : vendasFiltradas.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-zinc-500">
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
               Nenhuma venda encontrada com os filtros atuais.
             </p>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-foreground/5">
               {vendasFiltradas.map((v) => (
                 <div key={v.id} className="flex items-center gap-4 px-4 py-3">
                   {v.foto_url ? (
@@ -423,31 +423,31 @@ export default function RankingAdminPage() {
                       <img
                         src={v.foto_url}
                         alt="Print da venda"
-                        className="h-12 w-12 rounded-lg object-cover border border-white/10 hover:border-[#3b82f6] transition-colors"
+                        className="h-12 w-12 rounded-lg object-cover border border-foreground/10 hover:border-primary transition-colors"
                       />
                     </button>
                   ) : (
-                    <div className="h-12 w-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                      <ImageIcon className="h-4 w-4 text-zinc-600" />
+                    <div className="h-12 w-12 rounded-lg bg-foreground/5 border border-foreground/10 flex items-center justify-center">
+                      <ImageIcon className="h-4 w-4 text-muted-foreground/80" />
                     </div>
                   )}
 
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-zinc-200 truncate">
+                    <p className="font-medium text-foreground truncate">
                       {nomePorId.get(v.client_id) ?? v.client_id}
                       {v.cliente_final_id && nomeComprador.get(v.cliente_final_id) && (
-                        <span className="ml-2 text-sm font-normal text-[#60a5fa]">
+                        <span className="ml-2 text-sm font-normal text-primary-light">
                           → {nomeComprador.get(v.cliente_final_id)}
                         </span>
                       )}
                     </p>
-                    <p className="text-xs text-zinc-500 truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {formatDataBR(v.data)}
                       {v.descricao ? ` • ${v.descricao}` : ''}
                     </p>
                   </div>
 
-                  <span className="font-bold text-white tabular-nums">{formatBRL(v.valor)}</span>
+                  <span className="font-bold text-foreground tabular-nums">{formatBRL(v.valor)}</span>
 
                   <StatusBadge status={v.status} />
                   <AprovacaoButtons venda={v} onChanged={invalidar} />
@@ -459,7 +459,7 @@ export default function RankingAdminPage() {
                       setVendaEditando(v);
                       setVendaDialog(true);
                     }}
-                    className="text-zinc-500 hover:text-white hover:bg-white/10"
+                    className="text-muted-foreground hover:text-foreground hover:bg-foreground/10"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -490,7 +490,7 @@ export default function RankingAdminPage() {
       />
 
       <Dialog open={!!printAberto} onOpenChange={() => setPrintAberto(null)}>
-        <DialogContent className="bg-[#0f0f0f] border-white/10 max-w-3xl p-2">
+        <DialogContent className="bg-card border-foreground/10 max-w-3xl p-2">
           {printAberto && (
             <img src={printAberto} alt="Print da venda" className="w-full rounded-lg object-contain" />
           )}
@@ -570,24 +570,24 @@ function PerfilDialog({
 
   return (
     <Dialog open={!!row} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-[#0f0f0f] border-white/10 text-white sm:max-w-[440px]">
+      <DialogContent className="bg-card border-foreground/10 text-foreground sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle>Perfil no ranking</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <p className="text-sm text-zinc-400">{row?.nome_cliente}</p>
+          <p className="text-sm text-muted-foreground">{row?.nome_cliente}</p>
 
           <div className="flex items-center gap-4">
             {preview ? (
               <img
                 src={preview}
                 alt="Foto de perfil"
-                className="h-20 w-20 rounded-xl object-cover border border-white/10"
+                className="h-20 w-20 rounded-xl object-cover border border-foreground/10"
               />
             ) : (
-              <div className="h-20 w-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                <Building2 className="h-7 w-7 text-zinc-600" />
+              <div className="h-20 w-20 rounded-xl bg-foreground/5 border border-foreground/10 flex items-center justify-center">
+                <Building2 className="h-7 w-7 text-muted-foreground/80" />
               </div>
             )}
             <input
@@ -600,7 +600,7 @@ function PerfilDialog({
             <Button
               variant="outline"
               onClick={() => fileRef.current?.click()}
-              className={cn('bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white')}
+              className={cn('bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground')}
             >
               <Camera className="h-4 w-4 mr-2" />
               Trocar foto
@@ -608,12 +608,12 @@ function PerfilDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-zinc-300">Apelido no ranking</Label>
+            <Label className="text-foreground/85">Apelido no ranking</Label>
             <Input
               value={apelido}
               onChange={(e) => setApelido(e.target.value)}
               placeholder={row?.nome_cliente}
-              className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+              className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
             />
           </div>
         </div>
@@ -623,14 +623,14 @@ function PerfilDialog({
             variant="outline"
             onClick={onClose}
             disabled={salvando}
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+            className="bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
           >
             Cancelar
           </Button>
           <Button
             onClick={salvar}
             disabled={salvando}
-            className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white"
+            className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-foreground"
           >
             {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Salvar

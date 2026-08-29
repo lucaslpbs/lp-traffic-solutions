@@ -40,9 +40,9 @@ const adminNomes: Record<string, string> = {
 const adminList = Object.entries(adminNomes).map(([id, nome]) => ({ id, nome }));
 
 const statusConfig: Record<string, string> = {
-  ativo: "bg-emerald-600/20 text-emerald-400 border-emerald-700/50",
-  rascunho: "bg-amber-600/20 text-amber-400 border-amber-700/50",
-  arquivado: "bg-zinc-700/30 text-zinc-400 border-zinc-700",
+  ativo: "bg-success/20 text-success border-success/50",
+  rascunho: "bg-warning/20 text-warning border-warning/50",
+  arquivado: "bg-zinc-700/30 text-muted-foreground border-border",
 };
 
 const emptyForm = {
@@ -161,17 +161,17 @@ export const FluxosPage = () => {
     }
   };
 
-  const inputCls = "bg-[#1c1c1e] border-[#2a2a2a] text-white";
+  const inputCls = "bg-surface-2 border-surface-3 text-foreground";
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-muted-foreground">
           Processos e SOPs da agência.
         </p>
         <Button
           onClick={openNew}
-          className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 gap-1"
+          className="bg-primary hover:bg-primary/90 gap-1"
         >
           <Plus className="h-4 w-4" /> Novo fluxo
         </Button>
@@ -179,27 +179,27 @@ export const FluxosPage = () => {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : fluxos.length === 0 ? (
-        <div className="text-center py-16 text-zinc-500 text-sm">
+        <div className="text-center py-16 text-muted-foreground text-sm">
           Nenhum fluxo cadastrado.
         </div>
       ) : (
-        <div className="rounded-lg border border-zinc-800 divide-y divide-zinc-800">
+        <div className="rounded-lg border border-border divide-y divide-zinc-800">
           {fluxos.map((f) => (
             <div
               key={f.id}
               onClick={() => openEdit(f)}
-              className="p-4 hover:bg-zinc-900/40 transition flex items-start justify-between gap-4 cursor-pointer"
+              className="p-4 hover:bg-card/40 transition flex items-start justify-between gap-4 cursor-pointer"
             >
               <div className="space-y-1">
-                <h4 className="font-semibold text-zinc-100">{f.nome}</h4>
+                <h4 className="font-semibold text-foreground">{f.nome}</h4>
                 {f.descricao && (
-                  <p className="text-sm text-zinc-400">{f.descricao}</p>
+                  <p className="text-sm text-muted-foreground">{f.descricao}</p>
                 )}
                 {f.responsavel_id && (
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-muted-foreground">
                     Responsável: {adminNomes[f.responsavel_id] || f.responsavel_id}
                   </p>
                 )}
@@ -220,15 +220,15 @@ export const FluxosPage = () => {
           if (!o) setDialogOpen(false);
         }}
       >
-        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-md">
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-foreground">
               {editingId ? "Editar fluxo" : "Novo fluxo"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">Nome *</Label>
+              <Label className="text-xs text-muted-foreground">Nome *</Label>
               <Input
                 value={form.nome}
                 onChange={(e) =>
@@ -239,7 +239,7 @@ export const FluxosPage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">Descrição</Label>
+              <Label className="text-xs text-muted-foreground">Descrição</Label>
               <MarkdownEditor
                 value={form.descricao}
                 onChange={(v) => setForm({ ...form, descricao: v })}
@@ -249,7 +249,7 @@ export const FluxosPage = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Responsável</Label>
+                <Label className="text-xs text-muted-foreground">Responsável</Label>
                 <Select
                   value={form.responsavel_id || "__none__"}
                   onValueChange={(v) =>
@@ -259,7 +259,7 @@ export const FluxosPage = () => {
                   <SelectTrigger className={inputCls}>
                     <SelectValue placeholder="Nenhum" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white">
+                  <SelectContent className="bg-surface-2 border-surface-3 text-foreground">
                     <SelectItem value="__none__">Nenhum</SelectItem>
                     {adminList.map((a) => (
                       <SelectItem key={a.id} value={a.id}>
@@ -270,7 +270,7 @@ export const FluxosPage = () => {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Status</Label>
+                <Label className="text-xs text-muted-foreground">Status</Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) =>
@@ -280,7 +280,7 @@ export const FluxosPage = () => {
                   <SelectTrigger className={inputCls}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white">
+                  <SelectContent className="bg-surface-2 border-surface-3 text-foreground">
                     <SelectItem value="ativo">Ativo</SelectItem>
                     <SelectItem value="rascunho">Rascunho</SelectItem>
                     <SelectItem value="arquivado">Arquivado</SelectItem>
@@ -305,7 +305,7 @@ export const FluxosPage = () => {
             <Button
               onClick={save}
               disabled={saving}
-              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
+              className="bg-primary hover:bg-primary/90"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               {editingId ? "Salvar" : "Criar"}

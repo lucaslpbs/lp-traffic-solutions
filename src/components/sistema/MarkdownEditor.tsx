@@ -110,7 +110,7 @@ export function MarkdownEditor({
 
   if (readOnly) {
     return (
-      <div className="prose prose-invert prose-sm max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-strong:text-zinc-200 prose-em:text-zinc-300 prose-a:text-[#3b82f6] prose-code:text-[#3b82f6] prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-blockquote:border-[#3b82f6] prose-blockquote:text-zinc-400 prose-li:text-zinc-300 prose-hr:border-zinc-700 prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-800">
+      <div className="prose prose-invert prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground/85 prose-strong:text-foreground prose-em:text-foreground/85 prose-a:text-primary prose-code:text-primary prose-code:bg-surface-3 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-blockquote:border-primary prose-blockquote:text-muted-foreground prose-li:text-foreground/85 prose-hr:border-border prose-pre:bg-card prose-pre:border prose-pre:border-border">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {value || "—"}
         </ReactMarkdown>
@@ -119,8 +119,8 @@ export function MarkdownEditor({
   }
 
   return (
-    <div className="rounded-md border border-[#2a2a2a] bg-[#1c1c1e] overflow-hidden focus-within:ring-1 focus-within:ring-[#3b82f6]/50 focus-within:border-[#3b82f6]/50 transition-colors">
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-[#2a2a2a] bg-[#161618]">
+    <div className="rounded-md border border-surface-3 bg-surface-2 overflow-hidden focus-within:ring-1 focus-within:ring-primary/50 focus-within:border-primary/50 transition-colors">
+      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-surface-3 bg-surface-2">
         {toolbarButtons.map((btn) => {
           if (!btn.icon) {
             return (
@@ -137,7 +137,7 @@ export function MarkdownEditor({
               type="button"
               onClick={() => applyAction(btn.id)}
               title={btn.title}
-              className="p-1.5 rounded hover:bg-zinc-700/60 text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="p-1.5 rounded hover:bg-zinc-700/60 text-muted-foreground hover:text-foreground transition-colors"
             >
               <Icon className="h-3.5 w-3.5" />
             </button>
@@ -149,7 +149,7 @@ export function MarkdownEditor({
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-transparent text-white text-sm px-3 py-2.5 resize-y outline-none placeholder:text-zinc-600"
+        className="w-full bg-transparent text-foreground text-sm px-3 py-2.5 resize-y outline-none placeholder:text-muted-foreground/80"
         style={{ minHeight }}
       />
     </div>

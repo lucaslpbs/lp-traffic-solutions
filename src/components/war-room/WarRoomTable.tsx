@@ -23,9 +23,9 @@ interface Props {
 
 const INDENT = 24;
 const LEVEL_BG: Record<string, string> = {
-  client: 'bg-[#1f2330]',
-  campaign: 'bg-[#161922]',
-  adset: 'bg-[#12141b]',
+  client: 'bg-surface-3',
+  campaign: 'bg-surface-2',
+  adset: 'bg-surface-1',
   ad: 'bg-transparent',
 };
 
@@ -38,17 +38,17 @@ const NAME_STICKY_BG: Record<string, string> = {
 };
 
 const CELL_BG: Record<AlertStatus, string> = {
-  critical: 'bg-red-500/15 text-red-400',
-  warning: 'bg-yellow-500/15 text-yellow-400',
-  healthy: 'bg-green-500/15 text-green-400',
-  none: 'text-gray-600',
+  critical: 'bg-destructive/15 text-destructive',
+  warning: 'bg-warning/15 text-warning',
+  healthy: 'bg-success/15 text-success',
+  none: 'text-muted-foreground/80',
 };
 
 const OBJECTIVE_STYLE: Record<string, string> = {
-  OUTCOME_ENGAGEMENT: 'bg-blue-500/20 text-blue-400',
-  OUTCOME_TRAFFIC: 'bg-green-500/20 text-green-400',
-  OUTCOME_SALES: 'bg-orange-500/20 text-orange-400',
-  OUTCOME_AWARENESS: 'bg-purple-500/20 text-purple-400',
+  OUTCOME_ENGAGEMENT: 'bg-primary/20 text-primary',
+  OUTCOME_TRAFFIC: 'bg-success/20 text-success',
+  OUTCOME_SALES: 'bg-chart-orange/20 text-chart-orange',
+  OUTCOME_AWARENESS: 'bg-accent/20 text-accent',
 };
 
 const OBJECTIVE_LABEL: Record<string, string> = {
@@ -59,10 +59,10 @@ const OBJECTIVE_LABEL: Record<string, string> = {
 };
 
 const TIPO_STYLE: Record<string, string> = {
-  engajamento: 'bg-blue-500/20 text-blue-400',
-  trafego: 'bg-green-500/20 text-green-400',
-  vendas: 'bg-orange-500/20 text-orange-400',
-  reconhecimento: 'bg-purple-500/20 text-purple-400',
+  engajamento: 'bg-primary/20 text-primary',
+  trafego: 'bg-success/20 text-success',
+  vendas: 'bg-chart-orange/20 text-chart-orange',
+  reconhecimento: 'bg-accent/20 text-accent',
 };
 
 const TIPO_LABEL: Record<string, string> = {
@@ -75,20 +75,20 @@ const TIPO_LABEL: Record<string, string> = {
 function StatusIcon({ status }: { status: AlertStatus }) {
   if (status === 'critical') return (
     <span className="relative flex h-3 w-3">
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+      <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive" />
     </span>
   );
-  if (status === 'warning') return <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />;
-  if (status === 'healthy') return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />;
+  if (status === 'warning') return <AlertTriangle className="h-3.5 w-3.5 text-warning" />;
+  if (status === 'healthy') return <CheckCircle2 className="h-3.5 w-3.5 text-success" />;
   return <span className="h-3 w-3 rounded-full bg-gray-700 inline-block" />;
 }
 
 function AlertBadges({ counts }: { counts: { critical: number; warning: number; healthy: number } }) {
   return (
     <div className="flex items-center gap-1.5 text-xs">
-      {counts.critical > 0 && <span className="text-red-400">🔴{counts.critical}</span>}
-      {counts.warning > 0 && <span className="text-yellow-400">🟡{counts.warning}</span>}
+      {counts.critical > 0 && <span className="text-destructive">🔴{counts.critical}</span>}
+      {counts.warning > 0 && <span className="text-warning">🟡{counts.warning}</span>}
     </div>
   );
 }
@@ -104,7 +104,7 @@ function VariationBadge({ current, previous, config }: {
   const isUp = pct > 0;
   const isGood = config.direction === 'lower' ? !isUp : isUp;
   return (
-    <span className={cn('text-[10px] font-mono ml-1 flex-shrink-0', isGood ? 'text-green-400' : 'text-red-400')}>
+    <span className={cn('text-[10px] font-mono ml-1 flex-shrink-0', isGood ? 'text-success' : 'text-destructive')}>
       {isUp ? '▲' : '▼'}{Math.abs(pct).toFixed(1)}%
     </span>
   );
@@ -128,16 +128,16 @@ function AdThumbnail({ node, onOpenVideo }: { node: AdNode; onOpenVideo: (node: 
           className="h-8 w-8 rounded object-cover"
         />
         {hasVideo && (
-          <span className="absolute inset-0 flex items-center justify-center rounded bg-black/0 group-hover/thumb:bg-black/40 transition-colors">
-            <Play className="h-3.5 w-3.5 text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity fill-white" />
+          <span className="absolute inset-0 flex items-center justify-center rounded bg-background/0 group-hover/thumb:bg-background/40 transition-colors">
+            <Play className="h-3.5 w-3.5 text-foreground opacity-0 group-hover/thumb:opacity-100 transition-opacity fill-white" />
           </span>
         )}
       </button>
     );
   }
   return (
-    <div className="h-8 w-8 rounded bg-white/5 flex items-center justify-center flex-shrink-0">
-      <Image className="h-4 w-4 text-gray-600" />
+    <div className="h-8 w-8 rounded bg-foreground/5 flex items-center justify-center flex-shrink-0">
+      <Image className="h-4 w-4 text-muted-foreground/80" />
     </div>
   );
 }
@@ -182,7 +182,7 @@ const Row = ({
     <>
       <tr
         className={cn(
-          'border-b border-white/5 hover:bg-white/[0.03] transition-colors cursor-pointer',
+          'border-b border-foreground/5 hover:bg-foreground/[0.03] transition-colors cursor-pointer',
           LEVEL_BG[node.type]
         )}
         onClick={() => hasChildren && setExpanded(!expanded)}
@@ -192,11 +192,11 @@ const Row = ({
           <div className="flex items-center gap-2">
             {depth > 0 && (
               <div className="flex items-center" style={{ width: 16 }}>
-                <div className="border-l border-b border-white/10 h-3 w-3 rounded-bl-sm" />
+                <div className="border-l border-b border-foreground/10 h-3 w-3 rounded-bl-sm" />
               </div>
             )}
             {hasChildren ? (
-              <ChevronRight className={cn('h-4 w-4 text-gray-500 transition-transform duration-200 flex-shrink-0', expanded && 'rotate-90')} />
+              <ChevronRight className={cn('h-4 w-4 text-muted-foreground transition-transform duration-200 flex-shrink-0', expanded && 'rotate-90')} />
             ) : (
               <span className="w-4 flex-shrink-0" />
             )}
@@ -206,15 +206,15 @@ const Row = ({
             {node.type === 'ad' && node.status && (
               <span className={cn(
                 'h-2 w-2 rounded-full inline-block flex-shrink-0',
-                node.status === 'ACTIVE' ? 'bg-green-500' : 'bg-gray-600'
+                node.status === 'ACTIVE' ? 'bg-success' : 'bg-gray-600'
               )} />
             )}
 
             <span className={cn(
               'font-medium break-words max-w-[280px]',
-              node.type === 'campaign' ? 'text-gray-300 text-xs' :
-              node.type === 'adset' ? 'text-gray-400 text-xs' :
-              'text-gray-300 text-xs'
+              node.type === 'campaign' ? 'text-foreground/85 text-xs' :
+              node.type === 'adset' ? 'text-muted-foreground text-xs' :
+              'text-foreground/85 text-xs'
             )}>
               {node.name}
             </span>
@@ -223,8 +223,8 @@ const Row = ({
               <span className={cn(
                 'text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0',
                 node.tipo
-                  ? (TIPO_STYLE[node.tipo] ?? 'bg-gray-500/20 text-gray-400')
-                  : (OBJECTIVE_STYLE[node.objective!] ?? 'bg-gray-500/20 text-gray-400')
+                  ? (TIPO_STYLE[node.tipo] ?? 'bg-gray-500/20 text-muted-foreground')
+                  : (OBJECTIVE_STYLE[node.objective!] ?? 'bg-gray-500/20 text-muted-foreground')
               )}>
                 {node.tipo
                   ? (TIPO_LABEL[node.tipo] ?? node.tipo)
@@ -250,7 +250,7 @@ const Row = ({
           if (!metricCfg.active) {
             return (
               <td key={mid} className="py-2.5 px-3">
-                <span className="text-xs font-mono px-2 py-1 rounded text-gray-500">
+                <span className="text-xs font-mono px-2 py-1 rounded text-muted-foreground">
                   {formatMetricValue(val, metricCfg)}
                 </span>
               </td>
@@ -272,7 +272,7 @@ const Row = ({
                     )}
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="bg-[#1a1d24] border-white/10 text-gray-200 text-xs">
+                <TooltipContent side="top" className="bg-surface-2 border-foreground/10 text-foreground text-xs">
                   {node.type !== 'ad' ? `Média: ${tooltip}` : tooltip}
                 </TooltipContent>
               </Tooltip>
@@ -353,18 +353,18 @@ const ClientRow = ({
   return (
     <>
       <tr
-        className="border-b border-white/10 bg-[#1f2330] hover:bg-[#242840] transition-colors cursor-pointer"
+        className="border-b border-foreground/10 bg-surface-3 hover:bg-surface-3 transition-colors cursor-pointer"
         onClick={() => setExpanded(!expanded)}
       >
         <td className="py-3 pr-3 sticky left-0 z-20" style={{ paddingLeft: 12, background: NAME_STICKY_BG.client }}>
           <div className="flex items-center gap-2">
-            <ChevronRight className={cn('h-4 w-4 text-gray-400 transition-transform duration-200 flex-shrink-0', expanded && 'rotate-90')} />
-            <span className="font-semibold text-white text-sm break-words max-w-[280px]">{node.name}</span>
+            <ChevronRight className={cn('h-4 w-4 text-muted-foreground transition-transform duration-200 flex-shrink-0', expanded && 'rotate-90')} />
+            <span className="font-semibold text-foreground text-sm break-words max-w-[280px]">{node.name}</span>
             <AlertBadges counts={counts} />
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 ml-1"
+              className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 ml-1"
               onClick={e => { e.stopPropagation(); onOpenSettings(); }}
               title="Configurar métricas"
             >
@@ -384,7 +384,7 @@ const ClientRow = ({
           if (!metricCfg.active) {
             return (
               <td key={mid} className="py-3 px-3">
-                <span className="text-xs font-mono px-2 py-1 rounded text-gray-500">
+                <span className="text-xs font-mono px-2 py-1 rounded text-muted-foreground">
                   {formatMetricValue(val, metricCfg)}
                 </span>
               </td>
@@ -400,7 +400,7 @@ const ClientRow = ({
                     {formatMetricValue(val, metricCfg)}
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="bg-[#1a1d24] border-white/10 text-gray-200 text-xs">
+                <TooltipContent side="top" className="bg-surface-2 border-foreground/10 text-foreground text-xs">
                   Média: {tooltip}
                 </TooltipContent>
               </Tooltip>
@@ -481,27 +481,27 @@ export const WarRoomTable = ({ data, clientMetricsMap, clientObjectiveMap, globa
   }, [data, clientMetricsMap, clientObjectiveMap, globalMetrics]);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-white/10">
+    <div className="overflow-x-auto rounded-lg border border-foreground/10">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/10 bg-[#0d0f14]">
+          <tr className="border-b border-foreground/10 bg-background">
             <th
-              className="text-left py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky left-0 z-30 bg-[#0d0f14] relative select-none"
+              className="text-left py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-0 z-30 bg-background relative select-none"
               style={{ width: nameColWidth, minWidth: nameColWidth }}
             >
               Nome
               <div
                 onMouseDown={onResizeStart}
-                className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-blue-500/40 active:bg-blue-500/60 transition-colors"
+                className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-colors"
               />
             </th>
-            <th className="py-3 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">Status</th>
+            <th className="py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-12">Status</th>
             {allMetricIds.map(id => {
               const isActive =
                 data.some(c => (clientMetricsMap[c.id] ?? []).find(m => m.id === id)?.active) ||
                 data.some(c => Object.values(clientObjectiveMap[c.id] ?? {}).some((ms: MetricConfig[]) => ms.find(m => m.id === id)?.active));
               return (
-                <th key={id} className={`py-3 px-3 text-xs font-semibold uppercase tracking-wider text-center min-w-[100px] ${isActive ? 'text-gray-500' : 'text-gray-700'}`}>
+                <th key={id} className={`py-3 px-3 text-xs font-semibold uppercase tracking-wider text-center min-w-[100px] ${isActive ? 'text-muted-foreground' : 'text-muted-foreground/80'}`}>
                   {metricLabelMap[id] ?? id}
                 </th>
               );

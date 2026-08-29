@@ -74,7 +74,7 @@ export const AprovacaoButtons = ({
           size="sm"
           onClick={() => alterar('aprovada')}
           disabled={!!salvando}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white h-8"
+          className="bg-success hover:bg-success text-foreground h-8"
         >
           {salvando === 'aprovada' ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -90,7 +90,7 @@ export const AprovacaoButtons = ({
           variant="outline"
           onClick={recusar}
           disabled={!!salvando}
-          className="h-8 bg-white/5 border-white/10 text-zinc-300 hover:bg-red-500/10 hover:text-red-400"
+          className="h-8 bg-foreground/5 border-foreground/10 text-foreground/85 hover:bg-destructive/10 hover:text-destructive"
         >
           {salvando === 'recusada' ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

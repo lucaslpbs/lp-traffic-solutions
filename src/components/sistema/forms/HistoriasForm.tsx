@@ -27,10 +27,10 @@ export const HistoriasForm = () => {
   return (
     <FormShell onSubmit={onSubmit}>
       <SaveButton saved={saved} />
-      <div className="overflow-hidden rounded-lg border border-[#2a2a2a]">
+      <div className="overflow-hidden rounded-lg border border-surface-3">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#1c1c1e] text-[11px] uppercase tracking-wide text-[#3b82f6]">
+            <tr className="bg-surface-2 text-[11px] uppercase tracking-wide text-primary">
               <th className="text-left px-3 py-2.5 font-semibold">Tema e História</th>
               <th className="text-left px-3 py-2.5 font-semibold w-24">Ano</th>
               <th className="text-left px-3 py-2.5 font-semibold w-56">Palavras-chave</th>
@@ -41,8 +41,8 @@ export const HistoriasForm = () => {
             {rows.map((r, i) => (
               <tr
                 key={i}
-                className={`border-t border-[#2a2a2a] ${
-                  i % 2 === 1 ? "bg-[#141416]" : "bg-[#101012]"
+                className={`border-t border-surface-3 ${
+                  i % 2 === 1 ? "bg-surface-2" : "bg-surface-1"
                 }`}
               >
                 <td className="px-2 py-2">
@@ -74,7 +74,7 @@ export const HistoriasForm = () => {
                   <button
                     type="button"
                     onClick={() => remove(i)}
-                    className="text-zinc-500 hover:text-red-400 transition-colors"
+                    className="text-muted-foreground hover:text-destructive transition-colors"
                     aria-label="Remover linha"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -84,13 +84,13 @@ export const HistoriasForm = () => {
             ))}
           </tbody>
         </table>
-        <div className="bg-[#1c1c1e] border-t border-[#2a2a2a] p-2">
+        <div className="bg-surface-2 border-t border-surface-3 p-2">
           <Button
             type="button"
             onClick={add}
             variant="ghost"
             size="sm"
-            className="text-[#3b82f6] hover:text-[#60a5fa] hover:bg-[#2a2a2a]"
+            className="text-primary hover:text-primary-light hover:bg-surface-3"
           >
             <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar história
           </Button>

@@ -112,29 +112,29 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
 
   return (
     <div className="space-y-2">
-      <Label className="text-zinc-300">Cliente da venda</Label>
+      <Label className="text-foreground/85">Cliente da venda</Label>
 
       {/* ── Selecionado ── */}
       {selecionado ? (
-        <div className="rounded-lg border border-[#3b82f6]/40 bg-[#3b82f6]/10 p-3">
+        <div className="rounded-lg border border-primary/40 bg-primary/10 p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-semibold text-white truncate">{selecionado.nome}</p>
+              <p className="font-semibold text-foreground truncate">{selecionado.nome}</p>
               {selecionado.telefone && (
-                <p className="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                   <Phone className="h-3 w-3" />
                   {selecionado.telefone}
                 </p>
               )}
               {resumoDe(selecionado.id).qtd > 0 ? (
-                <p className="text-xs text-[#60a5fa] mt-1.5">
+                <p className="text-xs text-primary-light mt-1.5">
                   Recorrente — já comprou {formatBRL(resumoDe(selecionado.id).total)} em{' '}
                   {resumoDe(selecionado.id).qtd}{' '}
                   {resumoDe(selecionado.id).qtd === 1 ? 'compra' : 'compras'} · última em{' '}
                   {formatDataBR(resumoDe(selecionado.id).ultima)}
                 </p>
               ) : (
-                <p className="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
+                <p className="text-xs text-success mt-1.5 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" />
                   Cliente novo — primeira compra
                 </p>
@@ -144,7 +144,7 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
               type="button"
               onClick={() => onChange(null)}
               title="Remover seleção"
-              className="rounded-full bg-black/40 p-1.5 text-zinc-400 hover:text-red-400 flex-shrink-0"
+              className="rounded-full bg-background/40 p-1.5 text-muted-foreground hover:text-destructive flex-shrink-0"
             >
               <X className="h-4 w-4" />
             </button>
@@ -160,7 +160,7 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
               setAbrirNovo(false);
             }}
             disabled={!clientId}
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+            className="bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
           >
             <Users className="h-4 w-4 mr-2" />
             Clientes cadastrados ({clientes.length})
@@ -173,7 +173,7 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
               setAbrirLista(false);
             }}
             disabled={!clientId}
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+            className="bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Novo cliente
@@ -182,28 +182,28 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
       )}
 
       {!clientId && (
-        <p className="text-xs text-zinc-500">Selecione o cliente da venda para liberar o cadastro.</p>
+        <p className="text-xs text-muted-foreground">Selecione o cliente da venda para liberar o cadastro.</p>
       )}
 
       {/* ── Bloco de clientes existentes ── */}
       {abrirLista && !selecionado && (
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 space-y-3">
+        <div className="rounded-lg border border-foreground/10 bg-foreground/[0.03] p-3 space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por nome ou telefone"
-              className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+              className="pl-9 bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
             />
           </div>
 
           {isLoading ? (
             <div className="flex justify-center py-4">
-              <Loader2 className="h-5 w-5 animate-spin text-[#3b82f6]" />
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           ) : filtrados.length === 0 ? (
-            <p className="text-sm text-zinc-500 py-2 text-center">
+            <p className="text-sm text-muted-foreground py-2 text-center">
               {clientes.length === 0
                 ? 'Nenhum cliente cadastrado ainda. Use "Novo cliente".'
                 : 'Nenhum cliente encontrado para essa busca.'}
@@ -221,22 +221,22 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
                       setAbrirLista(false);
                     }}
                     className={cn(
-                      'w-full rounded-lg border border-white/10 bg-[#0f0f0f] p-3 text-left',
-                      'hover:border-[#3b82f6] hover:bg-white/[0.06] transition-colors'
+                      'w-full rounded-lg border border-foreground/10 bg-card p-3 text-left',
+                      'hover:border-primary hover:bg-foreground/[0.06] transition-colors'
                     )}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-medium text-white truncate">{c.nome}</p>
-                        <p className="text-xs text-zinc-500 truncate">
+                        <p className="font-medium text-foreground truncate">{c.nome}</p>
+                        <p className="text-xs text-muted-foreground truncate">
                           {c.telefone || 'Sem telefone'}
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-semibold text-[#60a5fa] tabular-nums">
+                        <p className="text-sm font-semibold text-primary-light tabular-nums">
                           {formatBRL(r.total)}
                         </p>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           {r.qtd === 0
                             ? 'cliente novo'
                             : `${r.qtd} ${r.qtd === 1 ? 'compra' : 'compras'}`}
@@ -253,24 +253,24 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
 
       {/* ── Cadastro rapido ── */}
       {abrirNovo && !selecionado && (
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 space-y-3">
+        <div className="rounded-lg border border-foreground/10 bg-foreground/[0.03] p-3 space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-xs">Nome da empresa / cliente</Label>
+            <Label className="text-muted-foreground text-xs">Nome da empresa / cliente</Label>
             <Input
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Ex.: SamySam Moda Fashion"
-              className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+              className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-xs">Telefone</Label>
+            <Label className="text-muted-foreground text-xs">Telefone</Label>
             <Input
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
               placeholder="(85) 9 9999-9999"
               inputMode="tel"
-              className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+              className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground/80"
             />
           </div>
           <div className="flex justify-end gap-2">
@@ -278,7 +278,7 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
               type="button"
               variant="outline"
               onClick={() => setAbrirNovo(false)}
-              className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+              className="bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground"
             >
               Cancelar
             </Button>
@@ -286,7 +286,7 @@ export const ClienteFinalPicker = ({ clientId, value, onChange }: ClienteFinalPi
               type="button"
               onClick={cadastrar}
               disabled={salvando}
-              className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white"
+              className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-foreground"
             >
               {salvando && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Cadastrar e usar

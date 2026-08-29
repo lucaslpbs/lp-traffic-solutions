@@ -52,21 +52,21 @@ export const RelatoriosForm = () => {
         return (
           <div
             key={label}
-            className={`rounded-lg border border-[#2a2a2a] overflow-hidden transition-colors ${
-              aberto ? "bg-[#1e1e2e]" : "bg-[#1c1c1e]"
+            className={`rounded-lg border border-surface-3 overflow-hidden transition-colors ${
+              aberto ? "bg-surface-2" : "bg-surface-2"
             }`}
           >
             <button
               type="button"
               onClick={() => toggle(label)}
-              className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-[#2a2a2a]/30 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-surface-3/30 transition-colors"
             >
               <ChevronRight
-                className={`h-4 w-4 text-zinc-400 transition-transform ${aberto ? "rotate-90" : ""}`}
+                className={`h-4 w-4 text-muted-foreground transition-transform ${aberto ? "rotate-90" : ""}`}
               />
-              <span className="text-sm font-medium text-white">{label}</span>
+              <span className="text-sm font-medium text-foreground">{label}</span>
               {arquivos.length > 0 && (
-                <span className="ml-auto text-xs text-zinc-500">{arquivos.length} arquivo(s)</span>
+                <span className="ml-auto text-xs text-muted-foreground">{arquivos.length} arquivo(s)</span>
               )}
             </button>
             {aberto && (
@@ -74,17 +74,17 @@ export const RelatoriosForm = () => {
                 {arquivos.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-[#0f0f0f] border border-[#2a2a2a]"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-md bg-card border border-surface-3"
                   >
-                    <FileText className="h-4 w-4 text-[#3b82f6]" />
-                    <span className="text-sm text-white flex-1 truncate">{a.nome}</span>
-                    <span className="text-xs text-zinc-500">{a.tamanho}</span>
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-foreground flex-1 truncate">{a.nome}</span>
+                    <span className="text-xs text-muted-foreground">{a.tamanho}</span>
                     <a
                       href={a.url}
                       download={a.nome}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-400 hover:text-[#3b82f6]"
+                      className="text-muted-foreground hover:text-primary"
                     >
                       <Download className="h-4 w-4" />
                     </a>
@@ -101,7 +101,7 @@ export const RelatoriosForm = () => {
                 <button
                   type="button"
                   onClick={() => inputRefs.current[label]?.click()}
-                  className="flex items-center gap-1.5 text-xs text-[#3b82f6] hover:text-[#60a5fa] mt-2"
+                  className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-light mt-2"
                 >
                   <Plus className="h-3.5 w-3.5" /> Adicionar relatório
                 </button>

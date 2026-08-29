@@ -35,12 +35,12 @@ export const LinhasEditoriaisForm = () => {
       <SaveButton saved={saved} />
       <div className="space-y-2">
         {temas.map((t, i) => (
-          <div key={t.id} className="rounded-lg border border-[#2a2a2a] bg-[#1c1c1e] overflow-hidden">
+          <div key={t.id} className="rounded-lg border border-surface-3 bg-surface-2 overflow-hidden">
             <div className="flex items-center gap-2 p-2">
               <button
                 type="button"
                 onClick={() => upd(i, { open: !t.open })}
-                className="text-zinc-400 hover:text-white p-1"
+                className="text-muted-foreground hover:text-foreground p-1"
               >
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${t.open ? "" : "-rotate-90"}`}
@@ -54,7 +54,7 @@ export const LinhasEditoriaisForm = () => {
               <button
                 type="button"
                 onClick={() => remove(i)}
-                className="text-zinc-500 hover:text-red-400 p-1.5"
+                className="text-muted-foreground hover:text-destructive p-1.5"
                 aria-label="Remover tema"
               >
                 <Trash2 className="h-4 w-4" />
@@ -84,7 +84,7 @@ export const LinhasEditoriaisForm = () => {
         onClick={add}
         variant="ghost"
         size="sm"
-        className="text-[#3b82f6] hover:text-[#60a5fa] hover:bg-[#1c1c1e]"
+        className="text-primary hover:text-primary-light hover:bg-surface-2"
       >
         <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar tema
       </Button>

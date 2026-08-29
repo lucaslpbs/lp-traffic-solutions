@@ -73,9 +73,9 @@ const colunas: { id: DemandaStatus; label: string }[] = [
 const abas = ["Minhas demandas", "Esta semana", "Atrasadas", "Lista geral"];
 
 const prioridadeColor: Record<string, string> = {
-  alta: "bg-red-600/20 text-red-400 border-red-700/50",
-  media: "bg-amber-600/20 text-amber-400 border-amber-700/50",
-  baixa: "bg-zinc-700/30 text-zinc-400 border-zinc-700",
+  alta: "bg-destructive/20 text-destructive border-destructive/50",
+  media: "bg-warning/20 text-warning border-warning/50",
+  baixa: "bg-zinc-700/30 text-muted-foreground border-border",
 };
 
 const formatDate = (iso: string | null) => {
@@ -372,7 +372,7 @@ export const KanbanBoard = () => {
     resetOtimFlow();
   };
 
-  const inputCls = "bg-[#1c1c1e] border-[#2a2a2a] text-white";
+  const inputCls = "bg-surface-2 border-surface-3 text-foreground";
 
   return (
     <div className="space-y-5">
@@ -383,8 +383,8 @@ export const KanbanBoard = () => {
             onClick={() => setAba(a)}
             className={`px-3 py-1.5 rounded-md text-sm border transition ${
               aba === a
-                ? "bg-[#3b82f6] border-[#3b82f6] text-white"
-                : "bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                ? "bg-primary border-primary text-foreground"
+                : "bg-card border-border text-foreground/85 hover:bg-surface-3"
             }`}
           >
             {a}
@@ -399,13 +399,13 @@ export const KanbanBoard = () => {
             <button
               className={`px-3 py-1.5 rounded-md text-sm border transition inline-flex items-center gap-1.5 ${
                 selectedResponsaveis.length > 0
-                  ? "bg-[#3b82f6]/20 border-[#3b82f6]/50 text-[#3b82f6]"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                  ? "bg-primary/20 border-primary/50 text-primary"
+                  : "bg-card border-border text-foreground/85 hover:bg-surface-3"
               }`}
             >
               Responsável
               {selectedResponsaveis.length > 0 && (
-                <Badge className="bg-[#3b82f6] text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
+                <Badge className="bg-primary text-foreground text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
                   {selectedResponsaveis.length}
                 </Badge>
               )}
@@ -414,13 +414,13 @@ export const KanbanBoard = () => {
           </PopoverTrigger>
           <PopoverContent
             align="start"
-            className="w-52 p-2 bg-[#1c1c1e] border-[#2a2a2a]"
+            className="w-52 p-2 bg-surface-2 border-surface-3"
           >
             <div className="space-y-1">
               {adminList.map((a) => (
                 <label
                   key={a.id}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zinc-800 cursor-pointer text-sm text-zinc-200"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface-3 cursor-pointer text-sm text-foreground"
                 >
                   <Checkbox
                     checked={selectedResponsaveis.includes(a.id)}
@@ -431,7 +431,7 @@ export const KanbanBoard = () => {
                           : prev.filter((id) => id !== a.id)
                       )
                     }
-                    className="border-zinc-600 data-[state=checked]:bg-[#3b82f6] data-[state=checked]:border-[#3b82f6]"
+                    className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
                   {a.nome}
                 </label>
@@ -440,7 +440,7 @@ export const KanbanBoard = () => {
             {selectedResponsaveis.length > 0 && (
               <button
                 onClick={() => setSelectedResponsaveis([])}
-                className="mt-2 w-full text-xs text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1 py-1 border-t border-zinc-800"
+                className="mt-2 w-full text-xs text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 py-1 border-t border-border"
               >
                 <X className="h-3 w-3" /> Limpar
               </button>
@@ -454,13 +454,13 @@ export const KanbanBoard = () => {
             <button
               className={`px-3 py-1.5 rounded-md text-sm border transition inline-flex items-center gap-1.5 ${
                 selectedClientes.length > 0
-                  ? "bg-[#3b82f6]/20 border-[#3b82f6]/50 text-[#3b82f6]"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                  ? "bg-primary/20 border-primary/50 text-primary"
+                  : "bg-card border-border text-foreground/85 hover:bg-surface-3"
               }`}
             >
               Cliente
               {selectedClientes.length > 0 && (
-                <Badge className="bg-[#3b82f6] text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
+                <Badge className="bg-primary text-foreground text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center">
                   {selectedClientes.length}
                 </Badge>
               )}
@@ -469,13 +469,13 @@ export const KanbanBoard = () => {
           </PopoverTrigger>
           <PopoverContent
             align="start"
-            className="w-56 p-2 bg-[#1c1c1e] border-[#2a2a2a]"
+            className="w-56 p-2 bg-surface-2 border-surface-3"
           >
             <div className="space-y-1 max-h-60 overflow-y-auto">
               {clientes.map((c) => (
                 <label
                   key={c.id}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zinc-800 cursor-pointer text-sm text-zinc-200"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface-3 cursor-pointer text-sm text-foreground"
                 >
                   <Checkbox
                     checked={selectedClientes.includes(c.id)}
@@ -486,7 +486,7 @@ export const KanbanBoard = () => {
                           : prev.filter((id) => id !== c.id)
                       )
                     }
-                    className="border-zinc-600 data-[state=checked]:bg-[#3b82f6] data-[state=checked]:border-[#3b82f6]"
+                    className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
                   {c.nome}
                 </label>
@@ -495,7 +495,7 @@ export const KanbanBoard = () => {
             {selectedClientes.length > 0 && (
               <button
                 onClick={() => setSelectedClientes([])}
-                className="mt-2 w-full text-xs text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1 py-1 border-t border-zinc-800"
+                className="mt-2 w-full text-xs text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 py-1 border-t border-border"
               >
                 <X className="h-3 w-3" /> Limpar
               </button>
@@ -506,7 +506,7 @@ export const KanbanBoard = () => {
         <div className="flex-1" />
         <Button
           onClick={openNew}
-          className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 gap-1"
+          className="bg-primary hover:bg-primary/90 gap-1"
         >
           <Plus className="h-4 w-4" /> Nova demanda
         </Button>
@@ -514,7 +514,7 @@ export const KanbanBoard = () => {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -523,13 +523,13 @@ export const KanbanBoard = () => {
             return (
               <div
                 key={col.id}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 min-h-[300px]"
+                className="rounded-lg border border-border bg-card/40 p-3 min-h-[300px]"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-wide">
+                  <h4 className="text-xs font-semibold text-foreground/85 uppercase tracking-wide">
                     {col.label}
                   </h4>
-                  <span className="text-xs text-zinc-500">{cards.length}</span>
+                  <span className="text-xs text-muted-foreground">{cards.length}</span>
                 </div>
                 <div className="space-y-2">
                   {cards.map((d) => {
@@ -539,13 +539,13 @@ export const KanbanBoard = () => {
                       <div
                         key={d.id}
                         onClick={() => openEdit(d)}
-                        className="rounded-md border border-zinc-800 bg-zinc-950 p-3 space-y-2 hover:border-[#3b82f6]/60 cursor-pointer"
+                        className="rounded-md border border-border bg-background p-3 space-y-2 hover:border-primary/60 cursor-pointer"
                       >
-                        <p className="text-sm text-zinc-100 font-medium">
+                        <p className="text-sm text-foreground font-medium">
                           {d.titulo}
                         </p>
                         {clienteNome && (
-                          <p className="text-xs text-zinc-500">{clienteNome}</p>
+                          <p className="text-xs text-muted-foreground">{clienteNome}</p>
                         )}
                         <div className="flex items-center justify-between">
                           <Badge
@@ -557,13 +557,13 @@ export const KanbanBoard = () => {
                             {d.prioridade}
                           </Badge>
                           {d.prazo && (
-                            <span className="text-[10px] text-zinc-500">
+                            <span className="text-[10px] text-muted-foreground">
                               {formatDate(d.prazo)}
                             </span>
                           )}
                         </div>
                         {d.responsavel_id && (
-                          <p className="text-[10px] text-zinc-500">
+                          <p className="text-[10px] text-muted-foreground">
                             Resp: {adminNomes[d.responsavel_id] || d.responsavel_id}
                           </p>
                         )}
@@ -577,7 +577,7 @@ export const KanbanBoard = () => {
                                   colunas[colIdx - 1].id
                                 )
                               }
-                              className="text-[10px] text-zinc-500 hover:text-[#3b82f6] transition"
+                              className="text-[10px] text-muted-foreground hover:text-primary transition"
                               title={`Mover para ${colunas[colIdx - 1].label}`}
                             >
                               ← {colunas[colIdx - 1].label.split(" ")[0]}
@@ -593,7 +593,7 @@ export const KanbanBoard = () => {
                                   colunas[colIdx + 1].id
                                 )
                               }
-                              className="text-[10px] text-zinc-500 hover:text-[#3b82f6] transition"
+                              className="text-[10px] text-muted-foreground hover:text-primary transition"
                               title={`Mover para ${colunas[colIdx + 1].label}`}
                             >
                               {colunas[colIdx + 1].label.split(" ")[0]} →
@@ -616,15 +616,15 @@ export const KanbanBoard = () => {
           if (!o) setDialogOpen(false);
         }}
       >
-        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-lg">
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-foreground">
               {editingId ? "Editar demanda" : "Nova demanda"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">Título *</Label>
+              <Label className="text-xs text-muted-foreground">Título *</Label>
               <Input
                 value={form.titulo}
                 onChange={(e) =>
@@ -635,7 +635,7 @@ export const KanbanBoard = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">Descrição</Label>
+              <Label className="text-xs text-muted-foreground">Descrição</Label>
               <MarkdownEditor
                 value={form.descricao}
                 onChange={(v) => setForm({ ...form, descricao: v })}
@@ -645,7 +645,7 @@ export const KanbanBoard = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Cliente</Label>
+                <Label className="text-xs text-muted-foreground">Cliente</Label>
                 <Select
                   value={form.client_id || "__none__"}
                   onValueChange={(v) =>
@@ -655,7 +655,7 @@ export const KanbanBoard = () => {
                   <SelectTrigger className={inputCls}>
                     <SelectValue placeholder="Nenhum" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white max-h-60">
+                  <SelectContent className="bg-surface-2 border-surface-3 text-foreground max-h-60">
                     <SelectItem value="__none__">Nenhum (interno)</SelectItem>
                     {clientes.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
@@ -666,7 +666,7 @@ export const KanbanBoard = () => {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Responsável</Label>
+                <Label className="text-xs text-muted-foreground">Responsável</Label>
                 <Select
                   value={form.responsavel_id || "__none__"}
                   onValueChange={(v) =>
@@ -676,7 +676,7 @@ export const KanbanBoard = () => {
                   <SelectTrigger className={inputCls}>
                     <SelectValue placeholder="Nenhum" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white">
+                  <SelectContent className="bg-surface-2 border-surface-3 text-foreground">
                     <SelectItem value="__none__">Nenhum</SelectItem>
                     {adminList.map((a) => (
                       <SelectItem key={a.id} value={a.id}>
@@ -689,7 +689,7 @@ export const KanbanBoard = () => {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Status</Label>
+                <Label className="text-xs text-muted-foreground">Status</Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) =>
@@ -699,7 +699,7 @@ export const KanbanBoard = () => {
                   <SelectTrigger className={inputCls}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white">
+                  <SelectContent className="bg-surface-2 border-surface-3 text-foreground">
                     {colunas.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.label}
@@ -709,7 +709,7 @@ export const KanbanBoard = () => {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Prioridade</Label>
+                <Label className="text-xs text-muted-foreground">Prioridade</Label>
                 <Select
                   value={form.prioridade}
                   onValueChange={(v) =>
@@ -719,7 +719,7 @@ export const KanbanBoard = () => {
                   <SelectTrigger className={inputCls}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white">
+                  <SelectContent className="bg-surface-2 border-surface-3 text-foreground">
                     <SelectItem value="alta">Alta</SelectItem>
                     <SelectItem value="media">Média</SelectItem>
                     <SelectItem value="baixa">Baixa</SelectItem>
@@ -727,7 +727,7 @@ export const KanbanBoard = () => {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Prazo</Label>
+                <Label className="text-xs text-muted-foreground">Prazo</Label>
                 <Input
                   type="date"
                   value={form.prazo}
@@ -755,7 +755,7 @@ export const KanbanBoard = () => {
             <Button
               onClick={save}
               disabled={saving}
-              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
+              className="bg-primary hover:bg-primary/90"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               {editingId ? "Salvar" : "Criar"}
@@ -769,24 +769,24 @@ export const KanbanBoard = () => {
         open={otimStep === "confirm"}
         onOpenChange={(o) => { if (!o) resetOtimFlow(); }}
       >
-        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-sm">
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Demanda concluída</DialogTitle>
+            <DialogTitle className="text-foreground">Demanda concluída</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-zinc-300">
+          <p className="text-sm text-foreground/85">
             Ir para otimização do cliente?
           </p>
           <div className="flex justify-end gap-2 pt-2">
             <Button
               variant="outline"
               onClick={resetOtimFlow}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="border-border text-foreground/85 hover:bg-surface-3"
             >
               Não
             </Button>
             <Button
               onClick={handleOtimConfirm}
-              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
+              className="bg-primary hover:bg-primary/90"
             >
               Sim
             </Button>
@@ -799,12 +799,12 @@ export const KanbanBoard = () => {
         open={otimStep === "select-client"}
         onOpenChange={(o) => { if (!o) resetOtimFlow(); }}
       >
-        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-sm">
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Selecionar cliente</DialogTitle>
+            <DialogTitle className="text-foreground">Selecionar cliente</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-muted-foreground">
               Selecione o cliente para registrar a otimização:
             </p>
             <Select
@@ -816,7 +816,7 @@ export const KanbanBoard = () => {
               <SelectTrigger className={inputCls}>
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
-              <SelectContent className="bg-[#1c1c1e] border-[#2a2a2a] text-white max-h-60">
+              <SelectContent className="bg-surface-2 border-surface-3 text-foreground max-h-60">
                 <SelectItem value="__none__">Selecione...</SelectItem>
                 {clientes.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
@@ -830,13 +830,13 @@ export const KanbanBoard = () => {
             <Button
               variant="outline"
               onClick={resetOtimFlow}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="border-border text-foreground/85 hover:bg-surface-3"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleOtimClientSelect}
-              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
+              className="bg-primary hover:bg-primary/90"
             >
               Continuar
             </Button>
@@ -849,9 +849,9 @@ export const KanbanBoard = () => {
         open={otimStep === "report"}
         onOpenChange={(o) => { if (!o) handleOtimReportClose(); }}
       >
-        <DialogContent className="bg-[#111111] border-[#2a2a2a] text-white max-w-xl">
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-foreground">
               Relatório de otimização · {formatDate(new Date().toISOString().slice(0, 10))}
             </DialogTitle>
           </DialogHeader>
@@ -865,7 +865,7 @@ export const KanbanBoard = () => {
             <Button
               onClick={handleOtimSave}
               disabled={otimSaving}
-              className="bg-[#3b82f6] hover:bg-[#3b82f6]/90"
+              className="bg-primary hover:bg-primary/90"
             >
               {otimSaving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               Salvar

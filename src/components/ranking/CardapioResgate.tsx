@@ -14,8 +14,8 @@ const ResgateStatusBadge = ({ status }: { status: 'solicitado' | 'entregue' }) =
     className={cn(
       'rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap',
       status === 'entregue'
-        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-        : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+        ? 'bg-success/15 text-success border-success/30'
+        : 'bg-warning/15 text-warning border-warning/30'
     )}
   >
     {status === 'entregue' ? 'Entregue' : 'Solicitado'}
@@ -60,14 +60,14 @@ export const CardapioResgate = ({ clientId }: { clientId: string }) => {
   };
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
+    <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-foreground/5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Gift className="h-5 w-5 text-[#60a5fa]" />
-          <h2 className="text-lg font-semibold text-white">Cardápio de resgate</h2>
+          <Gift className="h-5 w-5 text-primary-light" />
+          <h2 className="text-lg font-semibold text-foreground">Cardápio de resgate</h2>
         </div>
-        <span className="text-sm text-zinc-400">
-          Saldo disponível: <span className="font-bold text-[#60a5fa] tabular-nums">{saldo} pts</span>
+        <span className="text-sm text-muted-foreground">
+          Saldo disponível: <span className="font-bold text-primary-light tabular-nums">{saldo} pts</span>
         </span>
       </div>
 
@@ -79,18 +79,18 @@ export const CardapioResgate = ({ clientId }: { clientId: string }) => {
               key={p.id}
               className={cn(
                 'rounded-xl border p-4 flex flex-col justify-between gap-3',
-                podeResgatar ? 'border-white/10 bg-white/[0.02]' : 'border-white/5 bg-white/[0.01] opacity-60'
+                podeResgatar ? 'border-foreground/10 bg-foreground/[0.02]' : 'border-foreground/5 bg-foreground/[0.01] opacity-60'
               )}
             >
               <div>
-                <p className="font-semibold text-white">{p.nome}</p>
-                <p className="text-sm text-[#60a5fa] font-bold tabular-nums mt-1">{p.pontos_custo} pts</p>
+                <p className="font-semibold text-foreground">{p.nome}</p>
+                <p className="text-sm text-primary-light font-bold tabular-nums mt-1">{p.pontos_custo} pts</p>
               </div>
               <Button
                 size="sm"
                 onClick={() => resgatar(p.id, p.nome, p.pontos_custo)}
                 disabled={!podeResgatar || !!resgatando}
-                className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white disabled:opacity-40"
+                className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-foreground disabled:opacity-40"
               >
                 {resgatando === p.id && <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />}
                 {podeResgatar ? 'Resgatar' : 'Pontos insuficientes'}
@@ -101,24 +101,24 @@ export const CardapioResgate = ({ clientId }: { clientId: string }) => {
       </div>
 
       {(resgates.length > 0 || isLoading) && (
-        <div className="border-t border-white/5">
+        <div className="border-t border-foreground/5">
           <div className="px-4 py-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Meus resgates</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Meus resgates</h3>
           </div>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-[#3b82f6]" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-foreground/5">
               {resgates.map((r) => (
                 <div key={r.id} className="flex items-center gap-4 px-4 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-zinc-200 truncate">
+                    <p className="font-medium text-foreground truncate">
                       {r.premio_nome}
-                      <span className="ml-2 text-sm font-normal text-[#60a5fa]">{r.pontos_gastos} pts</span>
+                      <span className="ml-2 text-sm font-normal text-primary-light">{r.pontos_gastos} pts</span>
                     </p>
-                    <p className="text-xs text-zinc-500">{formatDataBR(r.data.slice(0, 10))}</p>
+                    <p className="text-xs text-muted-foreground">{formatDataBR(r.data.slice(0, 10))}</p>
                   </div>
                   <ResgateStatusBadge status={r.status} />
                 </div>

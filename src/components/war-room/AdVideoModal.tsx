@@ -18,7 +18,7 @@ export const AdVideoModal = ({ ad, onOpenChange }: Props) => {
   return (
     <Dialog open={!!ad} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-[400px] w-[400px] p-0 bg-black border-white/10 overflow-hidden [&>button]:text-white [&>button]:bg-black/40 [&>button]:rounded-full [&>button]:p-1 [&>button]:z-10"
+        className="max-w-[400px] w-[400px] p-0 bg-background border-foreground/10 overflow-hidden [&>button]:text-foreground [&>button]:bg-background/40 [&>button]:rounded-full [&>button]:p-1 [&>button]:z-10"
         aria-describedby={undefined}
       >
         <DialogTitle className="sr-only">{ad?.name ?? 'Anúncio'}</DialogTitle>
@@ -35,7 +35,7 @@ export const AdVideoModal = ({ ad, onOpenChange }: Props) => {
         ) : imageUrl ? (
           <img src={imageUrl} alt={ad?.name ?? ''} className="w-full h-auto max-h-[80vh] object-contain" />
         ) : (
-          <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
             Mídia não disponível para este anúncio.
           </div>
         )}
