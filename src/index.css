@@ -62,67 +62,151 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Dashboard neon theme */
-    --neon-pink: 330 100% 60%;
-    --neon-pink-glow: 330 100% 70%;
-    --neon-red: 0 100% 60%;
-    --neon-purple: 280 100% 60%;
+    /* Estados — mesmos valores no tema claro e no escuro */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+    --info: 213 94% 68%;
+    --info-foreground: 0 0% 10%;
+
+    /*
+      Paleta estendida das series de grafico. Existe em CSS porque algumas
+      series aparecem tambem como rotulo/legenda em classe utilitaria; os
+      mesmos valores em formato string ficam em src/lib/chartColors.ts, que e
+      o que o Recharts consome.
+    */
+    --chart-cyan: 189 94% 43%;
+    --chart-pink: 330 81% 60%;
+    --chart-orange: 25 95% 53%;
+
+    /* Superficies elevadas — no tema claro sobem em direcao ao branco */
+    --surface-1: 0 0% 100%;
+    --surface-2: 0 0% 97%;
+    --surface-3: 0 0% 93%;
   }
 
+  /*
+    Tema do painel interno (/dashboard). Escuro, com o AZUL institucional
+    como --primary. Aplicado uma unica vez no DashboardLayout — nao repetir
+    a classe nas paginas filhas.
+  */
   .dark,
   .dashboard-theme {
-    --background: 0 0% 4%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 7%;
+    --card: 0 0% 6%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 7%;
+    --popover: 0 0% 6%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 330 100% 60%;
+    /* Azul institucional: 60% = #3b82f6, dark = #1e40af, light = #60a5fa */
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --primary-dark: 330 100% 45%;
-    --primary-light: 330 100% 70%;
-    --primary-glow: 330 100% 75%;
+    --primary-dark: 226 71% 40%;
+    --primary-darker: 224 64% 33%;
+    --primary-hover: 221 83% 53%;
+    --primary-light: 213 94% 68%;
+    --primary-glow: 213 94% 78%;
 
-    --secondary: 0 0% 12%;
+    --secondary: 0 0% 11%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 15%;
+    --muted: 0 0% 11%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 330 100% 60%;
+    /* Cor de apoio (violeta) — contraponto ao azul, tira a monocromia */
+    --accent: 258 90% 66%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 15%;
-    --ring: 330 100% 60%;
+    --border: 0 0% 16%;
+    --input: 0 0% 11%;
+    --ring: 217 91% 60%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(330 100% 60%), hsl(330 100% 45%));
-    --gradient-hero: linear-gradient(135deg, hsl(330 100% 60%) 0%, hsl(0 0% 4%) 100%);
-    --gradient-modern: linear-gradient(135deg, hsl(330 100% 45%) 0%, hsl(330 100% 70%) 50%, hsl(330 100% 45%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 10%) 0%, hsl(0 0% 7%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 5%) 100%);
+    /* Escala de superficie: card (#0f0f0f) -> elevado (#1c1c1e) -> topo (#2a2a2a) */
+    --surface-1: 0 0% 6%;
+    --surface-2: 0 0% 11%;
+    --surface-3: 0 0% 16%;
 
-    --shadow-premium: 0 20px 60px -15px hsl(330 100% 60% / 0.3);
-    --shadow-modern: 0 10px 40px -10px hsl(330 100% 60% / 0.2);
+    --gradient-primary: linear-gradient(135deg, hsl(226 71% 40%), hsl(217 91% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(0 0% 0%) 100%);
+    --gradient-modern: linear-gradient(135deg, hsl(226 71% 40%) 0%, hsl(213 94% 68%) 50%, hsl(226 71% 40%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 9%) 0%, hsl(0 0% 6%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 7%) 0%, hsl(0 0% 4%) 100%);
+
+    --shadow-premium: 0 20px 60px -15px hsl(217 91% 60% / 0.3);
+    --shadow-modern: 0 10px 40px -10px hsl(217 91% 60% / 0.2);
     --shadow-elegant: 0 4px 20px -5px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 40px hsl(330 100% 70% / 0.4);
-    --shadow-neon: 0 0 20px hsl(330 100% 60% / 0.5), 0 0 40px hsl(330 100% 60% / 0.3);
+    --shadow-glow: 0 0 40px hsl(213 94% 68% / 0.35);
 
-    --sidebar-background: 0 0% 6%;
+    --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 330 100% 60%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent: 0 0% 11%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 330 100% 60%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  /*
+    Cor do nivel do cliente no ranking. Sem nivel, acompanha o azul da marca.
+
+    Declarado no :root e NAO em .dashboard-theme de proposito: essa classe fica
+    no <html> e tambem na div do layout. Se o --level morasse nela, a div
+    reaplicaria o azul padrao e anularia, para toda a subarvore, a cor que o
+    data-nivel tinha acabado de definir no <html>.
+  */
+  :root {
+    --level: 217 91% 60%;
+    --level-dark: 226 71% 40%;
+    --level-glow: 213 94% 68%;
+  }
+
+  /*
+    Tema por nivel. O DashboardLayout escreve data-nivel no <html>, entao a
+    interface inteira (inclusive portais) acompanha o degrau do cliente.
+    A ordem e a da regua: ambar -> laranja -> esmeralda -> azul -> rubi.
+  */
+  [data-nivel='starter'] {
+    --level: 43 96% 55%;
+    --level-dark: 32 95% 44%;
+    --level-glow: 48 96% 68%;
+  }
+
+  [data-nivel='growth'] {
+    --level: 25 95% 53%;
+    --level-dark: 17 88% 40%;
+    --level-glow: 33 96% 65%;
+  }
+
+  [data-nivel='performance'] {
+    --level: 158 84% 44%;
+    --level-dark: 162 88% 30%;
+    --level-glow: 152 76% 60%;
+  }
+
+  [data-nivel='scale'] {
+    --level: 217 91% 60%;
+    --level-dark: 226 71% 40%;
+    --level-glow: 213 94% 68%;
+  }
+
+  /*
+    Enterprise e vermelho, como pedido. O --level-glow puxa para o dourado de
+    proposito: rubi + ouro le como premiacao, enquanto rubi sozinho ficaria
+    perto demais do vermelho de erro (--destructive).
+  */
+  [data-nivel='enterprise'] {
+    --level: 350 91% 62%;
+    --level-dark: 343 78% 42%;
+    --level-glow: 43 96% 62%;
   }
 }
 
@@ -145,6 +229,32 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /*
+    Foco visivel no painel interno.
+
+    Boa parte da navegacao ali e feita com <button>/<div onClick> crus, que nao
+    passam pelos componentes do shadcn e por isso nao herdavam anel de foco —
+    quem navegava por teclado nao enxergava onde estava. O :where() zera a
+    especificidade, entao qualquer foco definido no proprio componente continua
+    vencendo esta regra.
+  */
+  .dashboard-theme
+    :where(a, button, [role='button'], [role='tab'], input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Animacoes em CSS param junto com as do framer-motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-theme *,
+    .dashboard-theme *::before,
+    .dashboard-theme *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer utilities {
@@ -162,17 +272,10 @@ All colors MUST be HSL.
   .glass-card {
     @apply bg-card/60 backdrop-blur-xl border border-border/50;
   }
-  
-  .neon-glow {
-    box-shadow: var(--shadow-neon);
-  }
-  
-  .neon-border {
-    @apply border border-primary/50;
-    box-shadow: 0 0 10px hsl(var(--primary) / 0.3);
-  }
-  
-  .neon-text {
-    text-shadow: 0 0 10px hsl(var(--primary) / 0.8), 0 0 20px hsl(var(--primary) / 0.5);
+
+  /* Foco visivel padronizado para elementos interativos "crus" (button/a/div
+     com onClick) que nao passam pelos componentes do shadcn. */
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 }

@@ -102,17 +102,17 @@ const CalendarioEscuro = ({
     captionLayout="dropdown-buttons"
     fromYear={ANO_INICIAL}
     toYear={new Date().getFullYear() + 1}
-    className="pointer-events-auto bg-[#111] text-white"
+    className="pointer-events-auto bg-surface-1 text-foreground"
     classNames={{
       caption_dropdowns: 'flex gap-1.5',
       dropdown:
-        'bg-[#111] text-white text-sm rounded-md border border-white/10 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#3b82f6]',
+        'bg-surface-1 text-foreground text-sm rounded-md border border-foreground/10 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary',
       dropdown_month: 'capitalize',
-      day_today: 'bg-white/10 text-white',
+      day_today: 'bg-foreground/10 text-foreground',
       day_selected:
-        'bg-[#3b82f6] text-white hover:bg-[#3b82f6] hover:text-white focus:bg-[#3b82f6] focus:text-white',
-      head_cell: 'text-zinc-500 rounded-md w-9 font-normal text-[0.8rem]',
-      day_outside: 'day-outside text-zinc-600 opacity-50',
+        'bg-primary text-foreground hover:bg-primary hover:text-foreground focus:bg-primary focus:text-foreground',
+      head_cell: 'text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]',
+      day_outside: 'day-outside text-muted-foreground/80 opacity-50',
     }}
   />
 );
@@ -132,22 +132,22 @@ const DatePicker = ({
 
   return (
   <div className="flex flex-col gap-1">
-    <span className="text-xs text-zinc-500 font-medium">{label}</span>
+    <span className="text-xs text-muted-foreground font-medium">{label}</span>
     <Popover open={aberto} onOpenChange={setAberto}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           className={cn(
             largura,
-            'justify-start text-left font-normal bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white',
-            !date && 'text-zinc-500'
+            'justify-start text-left font-normal bg-foreground/5 border-foreground/10 text-foreground hover:bg-foreground/10 hover:text-foreground',
+            !date && 'text-muted-foreground'
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {date ? format(date, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar'}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-[#111] border-white/10" align="start">
+      <PopoverContent className="w-auto p-0 bg-surface-1 border-foreground/10" align="start">
         <CalendarioEscuro
           date={date}
           onSelect={(d) => {
@@ -189,14 +189,14 @@ export const PeriodoFilter = ({ value, onChange, className }: PeriodoFilterProps
   return (
     <div className={cn('flex flex-wrap items-end gap-3', className)}>
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-zinc-500 font-medium">Período</span>
+        <span className="text-xs text-muted-foreground font-medium">Período</span>
         <Select value={value.preset} onValueChange={(v) => handlePreset(v as PeriodoPreset)}>
-          <SelectTrigger className="w-[190px] bg-white/5 border-white/10 text-white">
+          <SelectTrigger className="w-[190px] bg-foreground/5 border-foreground/10 text-foreground">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-[#111] border-white/10 text-white">
+          <SelectContent className="bg-surface-1 border-foreground/10 text-foreground">
             {(Object.keys(LABEL_PRESET) as PeriodoPreset[]).map((p) => (
-              <SelectItem key={p} value={p} className="focus:bg-white/10 focus:text-white">
+              <SelectItem key={p} value={p} className="focus:bg-foreground/10 focus:text-foreground">
                 {LABEL_PRESET[p]}
               </SelectItem>
             ))}

@@ -30,31 +30,31 @@ export const ResgatesAdminPanel = ({ nomePorId }: { nomePorId: Map<string, strin
   if (!isLoading && pendentes.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
-        <Gift className="h-5 w-5 text-amber-400" />
-        <h2 className="text-lg font-semibold text-white">Resgates pendentes de entrega</h2>
+    <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-foreground/5 flex items-center gap-2">
+        <Gift className="h-5 w-5 text-warning" />
+        <h2 className="text-lg font-semibold text-foreground">Resgates pendentes de entrega</h2>
       </div>
       {isLoading ? (
         <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-[#3b82f6]" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-foreground/5">
           {pendentes.map((r) => (
             <div key={r.id} className="flex items-center gap-4 px-4 py-3">
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-zinc-200 truncate">
+                <p className="font-medium text-foreground truncate">
                   {nomePorId.get(r.client_id) ?? r.client_id} — {r.premio_nome}
-                  <span className="ml-2 text-sm font-normal text-[#60a5fa]">{r.pontos_gastos} pts</span>
+                  <span className="ml-2 text-sm font-normal text-primary-light">{r.pontos_gastos} pts</span>
                 </p>
-                <p className="text-xs text-zinc-500">Solicitado em {formatDataBR(r.data.slice(0, 10))}</p>
+                <p className="text-xs text-muted-foreground">Solicitado em {formatDataBR(r.data.slice(0, 10))}</p>
               </div>
               <Button
                 size="sm"
                 onClick={() => marcarEntregue(r.id)}
                 disabled={marcando === r.id}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white h-8"
+                className="bg-success hover:bg-success text-foreground h-8"
               >
                 {marcando === r.id ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />

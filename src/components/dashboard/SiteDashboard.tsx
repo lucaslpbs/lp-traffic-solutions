@@ -48,11 +48,11 @@ const FUNNEL_STEPS = [
 
 // Metric badge aligned to funnel step (index corresponds to step that the metric sits beside)
 const METRIC_CONNECTORS = [
-  { label: 'CTR',              stepIndex: 1, colorClass: 'text-[#8b5cf6]' },
-  { label: 'Connect Rate',     stepIndex: 2, colorClass: 'text-[#06b6d4]' },
-  { label: 'Taxa de Checkout', stepIndex: 3, colorClass: 'text-[#f59e0b]' },
-  { label: 'Taxa de Compras',  stepIndex: 5, colorClass: 'text-[#22c55e]' },
-  { label: 'ROAS',             stepIndex: 5, colorClass: 'text-[#f97316]' },
+  { label: 'CTR',              stepIndex: 1, colorClass: 'text-accent' },
+  { label: 'Connect Rate',     stepIndex: 2, colorClass: 'text-chart-cyan' },
+  { label: 'Taxa de Checkout', stepIndex: 3, colorClass: 'text-warning' },
+  { label: 'Taxa de Compras',  stepIndex: 5, colorClass: 'text-success' },
+  { label: 'ROAS',             stepIndex: 5, colorClass: 'text-chart-orange' },
 ];
 
 export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashboardProps) => {
@@ -135,8 +135,8 @@ export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashb
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-6 mb-8">
 
         {/* Funnel card */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-          <h3 className="text-lg font-semibold text-white mb-6">Funil de Conversão</h3>
+        <div className="bg-foreground/5 backdrop-blur-xl rounded-xl p-6 border border-foreground/10">
+          <h3 className="text-lg font-semibold text-foreground mb-6">Funil de Conversão</h3>
 
           <div className="flex gap-4">
             {/* Left: funnel bars + labels */}
@@ -161,21 +161,21 @@ export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashb
                       {/* Label + value */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-gray-400 truncate pr-2">{step.label}</span>
+                          <span className="text-xs text-muted-foreground truncate pr-2">{step.label}</span>
                           <div className="flex items-center gap-2 shrink-0">
                             {pct !== null && (
-                              <span className="text-[10px] text-gray-500 bg-white/5 rounded px-1.5 py-0.5">
+                              <span className="text-[10px] text-muted-foreground bg-foreground/5 rounded px-1.5 py-0.5">
                                 {pct.toFixed(1)}%
                               </span>
                             )}
-                            <span className="text-sm font-bold text-white">
+                            <span className="text-sm font-bold text-foreground">
                               {val.toLocaleString('pt-BR')}
                             </span>
                           </div>
                         </div>
 
                         {/* Bar */}
-                        <div className="h-6 bg-white/5 rounded-md overflow-hidden">
+                        <div className="h-6 bg-foreground/5 rounded-md overflow-hidden">
                           <div
                             className="h-full rounded-md transition-all duration-700"
                             style={{ width: `${width}%`, backgroundColor: step.color, opacity: 0.85 }}
@@ -187,7 +187,7 @@ export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashb
                     {/* Connector line between steps */}
                     {!isLast && (
                       <div className="flex ml-3.5">
-                        <div className="w-px h-4 bg-white/15 mx-auto" style={{ marginLeft: '11px' }} />
+                        <div className="w-px h-4 bg-foreground/15 mx-auto" style={{ marginLeft: '11px' }} />
                       </div>
                     )}
                   </div>
@@ -196,16 +196,16 @@ export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashb
 
               {/* Purchase value highlight */}
               <div className="mt-3 ml-10">
-                <div className="flex items-center gap-1.5 text-gray-400 text-xs mb-2">
-                  <span className="text-gray-500">↓</span>
+                <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-2">
+                  <span className="text-muted-foreground">↓</span>
                   <span>Valor da Compra</span>
                 </div>
-                <div className="border-2 border-dashed border-[#22c55e]/60 rounded-xl p-4 bg-[#22c55e]/5">
-                  <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Receita gerada</p>
-                  <p className="text-2xl font-bold text-[#22c55e]">
+                <div className="border-2 border-dashed border-success/60 rounded-xl p-4 bg-success/5">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Receita gerada</p>
+                  <p className="text-2xl font-bold text-success">
                     R$ {totalPurchaseValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {totalPurchases > 0
                       ? `Ticket médio: R$ ${(totalPurchaseValue / totalPurchases).toFixed(2)}`
                       : 'Sem compras no período'}
@@ -217,19 +217,19 @@ export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashb
         </div>
 
         {/* Right metrics panel */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Métricas do Período</h3>
+        <div className="bg-foreground/5 backdrop-blur-xl rounded-xl p-6 border border-foreground/10 flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Métricas do Período</h3>
 
           {sideMetrics.map((m, i) => (
-            <div key={i} className="rounded-lg p-3 border border-white/8 bg-white/3 flex flex-col gap-0.5"
+            <div key={i} className="rounded-lg p-3 border border-border bg-foreground/[0.03] flex flex-col gap-0.5"
                  style={{ borderColor: `${m.color}30` }}>
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider">{m.label}</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{m.label}</span>
               <span className="text-xl font-bold" style={{ color: m.color }}>{m.value}</span>
             </div>
           ))}
 
           {/* ROAS context note */}
-          <p className="text-[10px] text-gray-600 mt-auto leading-relaxed">
+          <p className="text-[10px] text-muted-foreground/80 mt-auto leading-relaxed">
             * ROAS calculado sobre o total do período selecionado
           </p>
         </div>
@@ -277,16 +277,16 @@ export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashb
       </div>
 
       {/* ── Daily table ──────────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden">
-        <div className="p-5 border-b border-white/10">
-          <h3 className="text-lg font-semibold text-white">Dados Diários</h3>
+      <div className="bg-foreground/5 backdrop-blur-xl rounded-xl border border-foreground/10 overflow-hidden">
+        <div className="p-5 border-b border-foreground/10">
+          <h3 className="text-lg font-semibold text-foreground">Dados Diários</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-foreground/10">
                 {['Data','Valor Gasto','Impressões','Cliques Link','Pág. Destino','Checkout','Carrinho','Compras','Receita','Custo/Compra'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -294,18 +294,18 @@ export const SiteDashboard = ({ dailyData, showLabelsForPDF = false }: SiteDashb
               {dailyData.map((d, i) => {
                 const costPerPurchase = d.compras > 0 ? d.valor_usado_brl / d.compras : 0;
                 return (
-                  <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap font-medium">{formatDateBR(d.dia)}</td>
-                    <td className="px-4 py-3 text-white whitespace-nowrap">R$ {(d.valor_usado_brl || 0).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{(d.impressoes || 0).toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{(d.cliques_link || 0).toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{(d.visualizacoes_pagina_destino || 0).toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{(d.finalizacoes_compra_iniciadas || 0).toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{(d.adicionados_carrinho || 0).toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{(d.compras || 0).toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-3 text-[#22c55e] whitespace-nowrap font-medium">R$ {(d.valor_conversao_compra || 0).toFixed(2)}</td>
+                  <tr key={i} className="border-b border-foreground/5 hover:bg-foreground/5 transition-colors">
+                    <td className="px-4 py-3 text-foreground/85 whitespace-nowrap font-medium">{formatDateBR(d.dia)}</td>
+                    <td className="px-4 py-3 text-foreground whitespace-nowrap">R$ {(d.valor_usado_brl || 0).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-foreground/85 whitespace-nowrap">{(d.impressoes || 0).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-foreground/85 whitespace-nowrap">{(d.cliques_link || 0).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-foreground/85 whitespace-nowrap">{(d.visualizacoes_pagina_destino || 0).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-foreground/85 whitespace-nowrap">{(d.finalizacoes_compra_iniciadas || 0).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-foreground/85 whitespace-nowrap">{(d.adicionados_carrinho || 0).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-foreground/85 whitespace-nowrap">{(d.compras || 0).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-success whitespace-nowrap font-medium">R$ {(d.valor_conversao_compra || 0).toFixed(2)}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={costPerPurchase > 0 ? 'text-[#f59e0b] font-bold' : 'text-gray-600'}>
+                      <span className={costPerPurchase > 0 ? 'text-warning font-bold' : 'text-muted-foreground/80'}>
                         {costPerPurchase > 0 ? `R$ ${costPerPurchase.toFixed(2)}` : '—'}
                       </span>
                     </td>

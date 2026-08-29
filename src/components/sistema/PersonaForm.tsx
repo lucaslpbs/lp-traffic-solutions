@@ -6,21 +6,21 @@ import { Label } from "@/components/ui/label";
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-1.5">
-    <Label className="text-xs text-zinc-400">{label}</Label>
+    <Label className="text-xs text-muted-foreground">{label}</Label>
     {children}
   </div>
 );
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/40 p-4">
-    <h4 className="text-sm font-semibold text-zinc-200">{title}</h4>
+  <div className="space-y-3 rounded-lg border border-border bg-card/40 p-4">
+    <h4 className="text-sm font-semibold text-foreground">{title}</h4>
     <div className="grid gap-3 md:grid-cols-2">{children}</div>
   </div>
 );
 
 export const PersonaForm = () => {
   const [saved, setSaved] = useState(false);
-  const inputCls = "bg-zinc-950 border-zinc-800 text-zinc-100";
+  const inputCls = "bg-background border-border text-foreground";
 
   return (
     <form
@@ -32,8 +32,8 @@ export const PersonaForm = () => {
       className="space-y-4"
     >
       <div className="flex items-center justify-end gap-3">
-        {saved && <span className="text-xs text-emerald-400">Salvo</span>}
-        <Button type="submit" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 h-9">Salvar</Button>
+        {saved && <span className="text-xs text-success">Salvo</span>}
+        <Button type="submit" className="bg-primary hover:bg-primary/90 h-9">Salvar</Button>
       </div>
 
       <Section title="Identificação">

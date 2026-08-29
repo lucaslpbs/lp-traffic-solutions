@@ -1,81 +1,81 @@
-import { useMemo } from 'react';
-import { Award, Star } from 'lucide-react';
-import { useNivelCliente, usePlacasCliente } from './nivel';
+import { motion } from 'framer-motion';
+import { Award, Trophy, Lock } from 'lucide-react';
+import { usePlacasCliente } from './nivel';
 import { formatBRL, formatDataBR } from './types';
+import { Stagger, StaggerItem } from '@/components/dashboard/Motion';
+import { CardGridSkeleton } from '@/components/dashboard/Skeletons';
+import { cn } from '@/lib/utils';
 
-const estrelas = (n: number | null) => (n ? '★'.repeat(n) + '☆'.repeat(3 - n) : '');
+/**
+ * Placas conquistadas, como troféus.
+ *
+ * Antes eram chips de texto numa linha; o marco de faturamento que a placa
+ * representa e uma conquista rara, e a tela nao dava esse peso a ela.
+ */
+export const PlacasConquistadas = ({ clientId }: { clientId: string }) => {
+  const { data: placas = [], isLoading } = usePlacasCliente(clientId);
 
-export const NivelCard = ({ clientId }: { clientId: string }) => {
-  const { data: nivel, isLoading } = useNivelCliente(clientId);
-  const { data: placas = [] } = usePlacasCliente(clientId);
-
-  const progresso = useMemo(() => {
-    if (!nivel || !nivel.proximo_nivel || nivel.proximo_valor_minimo == null) return null;
-    const atual =
-      nivel.proximo_tipo_meta === 'acumulado' ? nivel.faturamento_acumulado : nivel.maior_faturamento_mensal;
-    const pct = Math.min(100, (atual / nivel.proximo_valor_minimo) * 100);
-    return { atual, meta: nivel.proximo_valor_minimo, pct };
-  }, [nivel]);
-
-  if (isLoading || !nivel) return null;
+  // Skeleton em vez de null: sumir com o bloco inteiro enquanto carrega fazia
+  // o resto da aba saltar para cima e voltar quando os dados chegavam.
+  if (isLoading) return <CardGridSkeleton count={3} className="sm:grid-cols-3 lg:grid-cols-3" />;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0f0f0f] p-5">
+    <div className="rounded-xl border border-border bg-card p-6">
       <div className="flex items-center gap-2 mb-4">
-        <Award className="h-5 w-5 text-[#60a5fa]" />
-        <h2 className="text-lg font-semibold text-white">Meu nível</h2>
+        <Award className="h-5 w-5 text-level" />
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground/90">
+          Placas conquistadas
+        </h3>
+        {placas.length > 0 && (
+          <span className="ml-auto rounded-full bg-level/15 px-2 py-0.5 text-xs font-bold text-level tabular-nums">
+            {placas.length}
+          </span>
+        )}
       </div>
 
-      {nivel.nivel_atual ? (
-        <p className="text-2xl font-bold text-white mb-4">
-          {nivel.nivel_atual} <span className="text-amber-400">{estrelas(nivel.estrela_atual)}</span>
-        </p>
+      {placas.length === 0 ? (
+        <div className="flex flex-col items-center py-8 text-center">
+          <div className="rounded-full bg-foreground/5 p-4 mb-3">
+            <Lock className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Nenhuma placa ainda. Elas são desbloqueadas ao bater marcos de faturamento acumulado.
+          </p>
+        </div>
       ) : (
-        <p className="text-sm text-zinc-500 mb-4">Ainda não atingiu o primeiro degrau da régua.</p>
-      )}
-
-      {progresso && nivel.proximo_nivel && (
-        <div className="space-y-1.5 mb-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-zinc-400">
-              Próximo: {nivel.proximo_nivel} {estrelas(nivel.proximo_estrela)}
-            </span>
-            <span className="font-semibold text-white tabular-nums">
-              {formatBRL(progresso.atual)} / {formatBRL(progresso.meta)}
-            </span>
-          </div>
-          <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#1e40af] to-[#3b82f6]"
-              style={{ width: `${progresso.pct}%` }}
-            />
-          </div>
-          <p className="text-xs text-zinc-500">
-            {nivel.proximo_tipo_meta === 'acumulado'
-              ? 'Faturamento acumulado desde o início do contrato'
-              : 'Recorde de faturamento em um único mês'}
-          </p>
-        </div>
-      )}
-
-      {placas.length > 0 && (
-        <div className="pt-3 border-t border-white/5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-            Placas conquistadas
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {placas.map((p) => (
-              <span
-                key={p.id}
-                title={`Atingido em ${formatDataBR(p.atingido_em)}${p.entregue ? ' · entregue' : ' · aguardando entrega'}`}
-                className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300"
+        <Stagger className="grid grid-cols-2 sm:grid-cols-3 gap-4" stagger={0.07}>
+          {placas.map((p) => (
+            <StaggerItem key={p.id}>
+              <motion.div
+                whileHover={{ y: -4, scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 20 }}
+                title={`Atingido em ${formatDataBR(p.atingido_em)}`}
+                className="group relative h-full overflow-hidden rounded-xl border border-level/30 bg-gradient-to-b from-level/15 to-transparent p-4 text-center"
               >
-                <Star className="h-3 w-3" />
-                {p.nome}
-              </span>
-            ))}
-          </div>
-        </div>
+                {/* brilho passando ao apontar */}
+                <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="absolute inset-y-0 w-1/3 bg-foreground/20 blur-md animate-sheen" />
+                </span>
+
+                <Trophy className="relative mx-auto h-7 w-7 text-level drop-shadow-[0_0_10px_hsl(var(--level)/0.6)] mb-2" />
+                <p className="relative text-sm font-bold text-foreground leading-tight">{p.nome}</p>
+                <p className="relative text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                  {formatBRL(p.valor_acumulado_minimo)}
+                </p>
+                <span
+                  className={cn(
+                    'relative mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                    p.entregue
+                      ? 'bg-success/15 text-success'
+                      : 'bg-warning/15 text-warning'
+                  )}
+                >
+                  {p.entregue ? 'Entregue' : 'A caminho'}
+                </span>
+              </motion.div>
+            </StaggerItem>
+          ))}
+        </Stagger>
       )}
     </div>
   );

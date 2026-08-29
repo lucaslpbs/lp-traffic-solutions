@@ -35,15 +35,15 @@ export const STATUS_VENDA: Record<
 > = {
   pendente: {
     label: 'Em análise',
-    cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    cls: 'bg-warning/15 text-warning border-warning/30',
   },
   aprovada: {
     label: 'Aprovada',
-    cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    cls: 'bg-success/15 text-success border-success/30',
   },
   recusada: {
     label: 'Recusada',
-    cls: 'bg-red-500/15 text-red-400 border-red-500/30',
+    cls: 'bg-destructive/15 text-destructive border-destructive/30',
   },
 };
 

@@ -44,16 +44,16 @@ export const CanaisForm = () => {
           return (
             <div
               key={id}
-              className={`rounded-lg border bg-[#1c1c1e] p-3 transition-all ${
-                s.ativo ? "border-[#3b82f6]/60" : "border-[#2a2a2a]"
+              className={`rounded-lg border bg-surface-2 p-3 transition-all ${
+                s.ativo ? "border-primary/60" : "border-surface-3"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="h-8 w-8 rounded-md bg-[#0f0f0f] border border-[#2a2a2a] flex items-center justify-center shrink-0">
-                    <Icon className="h-4 w-4 text-[#3b82f6]" />
+                  <div className="h-8 w-8 rounded-md bg-card border border-surface-3 flex items-center justify-center shrink-0">
+                    <Icon className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="text-sm text-white truncate">{nome}</span>
+                  <span className="text-sm text-foreground truncate">{nome}</span>
                 </div>
                 <Switch
                   checked={s.ativo}

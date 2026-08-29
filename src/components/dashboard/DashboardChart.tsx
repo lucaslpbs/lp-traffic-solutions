@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Eye, EyeOff } from 'lucide-react';
+import { chartAxis, chartColors } from '@/lib/chartColors';
 
 interface ChartData {
   date: string;
@@ -47,7 +48,7 @@ export const DashboardChart = ({
   title,
   data,
   dataKey,
-  color = '#3b82f6',
+  color = chartColors.brand,
   type = 'area',
   prefix = '',
   suffix = '',
@@ -67,8 +68,8 @@ export const DashboardChart = ({
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#1a1a1a] border border-white/20 rounded-lg p-3 shadow-xl">
-          <p className="text-xs text-gray-400">{label}</p>
+        <div className="bg-popover border border-border rounded-lg p-3 shadow-xl">
+          <p className="text-xs text-muted-foreground">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm font-bold" style={{ color: entry.color }}>
               {entry.name}: {entry.dataKey === secondaryLine?.dataKey 
@@ -83,12 +84,12 @@ export const DashboardChart = ({
   };
 
   return (
-    <div className={cn("bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-white/10", className)}>
+    <div className={cn("rounded-xl border border-border bg-card p-5", className)}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         <button
           onClick={() => setShowLabels(!showLabels)}
-          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+          className="focus-ring flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-foreground/10"
         >
           {showLabels ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
           {showLabels ? 'Esconder' : 'Mostrar'}
@@ -104,24 +105,24 @@ export const DashboardChart = ({
                   <stop offset="95%" stopColor={color} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartAxis.grid} />
               <XAxis 
                 dataKey="date" 
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
               />
               <YAxis 
                 yAxisId="left"
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
                 tickFormatter={(value) => value.toLocaleString('pt-BR')}
               />
               {secondaryLine && (
                 <YAxis 
                   yAxisId="right"
                   orientation="right"
-                  stroke="rgba(255,255,255,0.3)" 
-                  tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                  stroke={chartAxis.line} 
+                  tick={{ fill: chartAxis.tick, fontSize: 12 }}
                   tickFormatter={(value) => `R$ ${value.toFixed(0)}`}
                 />
               )}
@@ -168,15 +169,15 @@ export const DashboardChart = ({
                   <stop offset="95%" stopColor={color} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartAxis.grid} />
               <XAxis 
                 dataKey="date" 
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
               />
               <YAxis 
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
                 tickFormatter={(value) => value.toLocaleString('pt-BR')}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -194,15 +195,15 @@ export const DashboardChart = ({
             </AreaChart>
           ) : type === 'bar' ? (
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartAxis.grid} />
               <XAxis 
                 dataKey="date" 
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
               />
               <YAxis 
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
                 tickFormatter={(value) => value.toLocaleString('pt-BR')}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -214,15 +215,15 @@ export const DashboardChart = ({
             </BarChart>
           ) : (
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartAxis.grid} />
               <XAxis 
                 dataKey="date" 
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
               />
               <YAxis 
-                stroke="rgba(255,255,255,0.3)" 
-                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                stroke={chartAxis.line} 
+                tick={{ fill: chartAxis.tick, fontSize: 12 }}
                 tickFormatter={(value) => value.toLocaleString('pt-BR')}
               />
               <Tooltip content={<CustomTooltip />} />

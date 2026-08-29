@@ -116,25 +116,25 @@ export const PontosAdminPanel = ({
   };
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-[#60a5fa]" />
-        <h2 className="text-lg font-semibold text-white">Pontos de indicação e engajamento</h2>
+    <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-foreground/5 flex items-center gap-2">
+        <Sparkles className="h-5 w-5 text-primary-light" />
+        <h2 className="text-lg font-semibold text-foreground">Pontos de indicação e engajamento</h2>
       </div>
 
       {/* Lancamento de indicacao -- exclusivo do admin, ja entra aprovado */}
-      <div className="px-4 py-4 border-b border-white/5 bg-white/[0.03] grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+      <div className="px-4 py-4 border-b border-foreground/5 bg-foreground/[0.03] grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div className="space-y-1.5">
-          <span className="text-xs text-zinc-500 font-medium flex items-center gap-1">
+          <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
             <ShieldCheck className="h-3.5 w-3.5" /> Cliente indicador
           </span>
           <Select value={indicadorCliente} onValueChange={setIndicadorCliente}>
-            <SelectTrigger className="bg-white/5 border-white/10 text-white">
+            <SelectTrigger className="bg-foreground/5 border-foreground/10 text-foreground">
               <SelectValue placeholder="Selecione o cliente" />
             </SelectTrigger>
-            <SelectContent className="bg-[#111] border-white/10 text-white max-h-64">
+            <SelectContent className="bg-surface-1 border-foreground/10 text-foreground max-h-64">
               {clientes.map((c) => (
-                <SelectItem key={c.id} value={c.id} className="focus:bg-white/10 focus:text-white">
+                <SelectItem key={c.id} value={c.id} className="focus:bg-foreground/10 focus:text-foreground">
                   {c.nome_cliente}
                 </SelectItem>
               ))}
@@ -142,14 +142,14 @@ export const PontosAdminPanel = ({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <span className="text-xs text-zinc-500 font-medium">Ação de indicação (confirmada no CRM)</span>
+          <span className="text-xs text-muted-foreground font-medium">Ação de indicação (confirmada no CRM)</span>
           <Select value={tipoAcaoIndicacao} onValueChange={setTipoAcaoIndicacao}>
-            <SelectTrigger className="bg-white/5 border-white/10 text-white">
+            <SelectTrigger className="bg-foreground/5 border-foreground/10 text-foreground">
               <SelectValue placeholder="Selecione a ação" />
             </SelectTrigger>
-            <SelectContent className="bg-[#111] border-white/10 text-white">
+            <SelectContent className="bg-surface-1 border-foreground/10 text-foreground">
               {acoesIndicacao.map((a) => (
-                <SelectItem key={a.tipo_acao} value={a.tipo_acao} className="focus:bg-white/10 focus:text-white">
+                <SelectItem key={a.tipo_acao} value={a.tipo_acao} className="focus:bg-foreground/10 focus:text-foreground">
                   {a.descricao} ({a.pontos} pts)
                 </SelectItem>
               ))}
@@ -159,7 +159,7 @@ export const PontosAdminPanel = ({
         <Button
           onClick={lancarIndicacao}
           disabled={lancando}
-          className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white"
+          className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-foreground"
         >
           {lancando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
           Lançar já aprovado
@@ -169,22 +169,22 @@ export const PontosAdminPanel = ({
       {/* Fila de aprovacao das demais 8 acoes (autolancadas pelo cliente) */}
       {isLoading ? (
         <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-[#3b82f6]" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : pendentes.length === 0 ? (
-        <p className="px-4 py-6 text-center text-sm text-zinc-500">Nenhum lançamento aguardando aprovação.</p>
+        <p className="px-4 py-6 text-center text-sm text-muted-foreground">Nenhum lançamento aguardando aprovação.</p>
       ) : (
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-foreground/5">
           {pendentes.map((p) => {
             const acao = acoes.find((a) => a.tipo_acao === p.tipo_acao);
             return (
               <div key={p.id} className="flex items-center gap-4 px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-zinc-200 truncate">
+                  <p className="font-medium text-foreground truncate">
                     {nomePorId.get(p.client_id) ?? p.client_id} — {acao?.descricao ?? p.tipo_acao}
-                    <span className="ml-2 text-sm font-normal text-[#60a5fa]">{p.pontos} pts</span>
+                    <span className="ml-2 text-sm font-normal text-primary-light">{p.pontos} pts</span>
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-muted-foreground">
                     {formatDataBR(p.data)}
                     {p.observacao ? ` • ${p.observacao}` : ''}
                   </p>
@@ -193,7 +193,7 @@ export const PontosAdminPanel = ({
                   size="sm"
                   onClick={() => aprovar(p.id)}
                   disabled={!!processando}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white h-8"
+                  className="bg-success hover:bg-success text-foreground h-8"
                 >
                   {processando === p.id ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -207,7 +207,7 @@ export const PontosAdminPanel = ({
                   variant="outline"
                   onClick={() => recusar(p.id)}
                   disabled={!!processando}
-                  className="h-8 bg-white/5 border-white/10 text-zinc-300 hover:bg-red-500/10 hover:text-red-400"
+                  className="h-8 bg-foreground/5 border-foreground/10 text-foreground/85 hover:bg-destructive/10 hover:text-destructive"
                 >
                   <X className="h-3.5 w-3.5" />
                   <span className="ml-1 hidden sm:inline">Recusar</span>

@@ -45,25 +45,25 @@ export const ClienteGallery = () => {
       <div className="flex flex-wrap items-center gap-2">
         <Button
           onClick={() => setFiltro("ativo")}
-          className={filtro === "ativo" ? "bg-[#3b82f6] hover:bg-[#3b82f6]/90" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300"}
+          className={filtro === "ativo" ? "bg-primary hover:bg-primary/90" : "bg-card border border-border hover:bg-surface-3 text-foreground/85"}
         >
           Ativos
         </Button>
         <Button
           onClick={() => setFiltro("inativo")}
-          className={filtro === "inativo" ? "bg-[#3b82f6] hover:bg-[#3b82f6]/90" : "bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300"}
+          className={filtro === "inativo" ? "bg-primary hover:bg-primary/90" : "bg-card border border-border hover:bg-surface-3 text-foreground/85"}
         >
           Inativos
         </Button>
         <div className="flex-1" />
-        <Button className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 gap-1">
+        <Button className="bg-primary hover:bg-primary/90 gap-1">
           <Plus className="h-4 w-4" /> Nova
         </Button>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -71,22 +71,22 @@ export const ClienteGallery = () => {
             <button
               key={c.id}
               onClick={() => setSelected(c)}
-              className="group rounded-xl border border-zinc-800 bg-zinc-900/60 hover:border-[#3b82f6]/60 hover:bg-zinc-900 transition-all overflow-hidden text-left"
+              className="group rounded-xl border border-border bg-card/60 hover:border-primary/60 hover:bg-card transition-all overflow-hidden text-left"
             >
               <div className="aspect-video bg-gradient-to-br from-zinc-800 to-zinc-950 overflow-hidden">
                 {c.logo ? (
                   <img src={c.logo} alt={c.nome} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl font-bold text-[#3b82f6]/80">{c.nome.charAt(0)}</span>
+                    <span className="text-4xl font-bold text-primary/80">{c.nome.charAt(0)}</span>
                   </div>
                 )}
               </div>
               <div className="p-3 space-y-1.5">
-                <p className="text-sm font-medium text-zinc-100 truncate">{c.nome}</p>
+                <p className="text-sm font-medium text-foreground truncate">{c.nome}</p>
                 <Badge className={c.status === "ativo"
-                  ? "bg-emerald-600/20 text-emerald-400 border-emerald-700/50"
-                  : "bg-zinc-700/30 text-zinc-400 border-zinc-700"}>
+                  ? "bg-success/20 text-success border-success/50"
+                  : "bg-zinc-700/30 text-muted-foreground border-border"}>
                   {c.status === "ativo" ? "Ativo" : "Inativo"}
                 </Badge>
               </div>

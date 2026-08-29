@@ -73,22 +73,22 @@ function MetricEditor({ metrics, onChange }: { metrics: MetricConfig[]; onChange
           onDragStart={() => handleDragStart(idx)}
           onDragOver={e => handleDragOver(e, idx)}
           onDragEnd={handleDragEnd}
-          className="p-4 rounded-lg bg-[#111318] border border-white/10 space-y-3"
+          className="p-4 rounded-lg bg-surface-1 border border-foreground/10 space-y-3"
         >
           <div className="flex items-center gap-2">
-            <GripVertical className="h-4 w-4 text-gray-600 hover:text-gray-400 cursor-grab flex-shrink-0" />
+            <GripVertical className="h-4 w-4 text-muted-foreground/80 hover:text-muted-foreground cursor-grab flex-shrink-0" />
             <div className="flex items-center gap-3 flex-1 flex-wrap">
               <Input
                 value={m.label}
                 onChange={e => update(idx, { label: e.target.value })}
                 placeholder="Nome da métrica"
-                className="bg-[#0d0f14] border-white/10 text-white w-32"
+                className="bg-background border-foreground/10 text-foreground w-32"
               />
               <Select value={m.unit} onValueChange={v => update(idx, { unit: v as MetricConfig['unit'] })}>
-                <SelectTrigger className="w-24 bg-[#0d0f14] border-white/10 text-white">
+                <SelectTrigger className="w-24 bg-background border-foreground/10 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1d24] border-white/10">
+                <SelectContent className="bg-surface-2 border-foreground/10">
                   <SelectItem value="R$">R$</SelectItem>
                   <SelectItem value="%">%</SelectItem>
                   <SelectItem value="x">x</SelectItem>
@@ -96,10 +96,10 @@ function MetricEditor({ metrics, onChange }: { metrics: MetricConfig[]; onChange
                 </SelectContent>
               </Select>
               <Select value={m.direction} onValueChange={v => update(idx, { direction: v as 'lower' | 'higher' })}>
-                <SelectTrigger className="w-40 bg-[#0d0f14] border-white/10 text-white">
+                <SelectTrigger className="w-40 bg-background border-foreground/10 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1d24] border-white/10">
+                <SelectContent className="bg-surface-2 border-foreground/10">
                   <SelectItem value="lower">Menor é melhor</SelectItem>
                   <SelectItem value="higher">Maior é melhor</SelectItem>
                 </SelectContent>
@@ -107,28 +107,28 @@ function MetricEditor({ metrics, onChange }: { metrics: MetricConfig[]; onChange
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <Switch checked={m.active} onCheckedChange={v => update(idx, { active: v })} />
-              <Button variant="ghost" size="icon" onClick={() => remove(idx)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+              <Button variant="ghost" size="icon" onClick={() => remove(idx)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label className="text-xs text-gray-400">Meta</Label>
-              <Input type="number" value={m.goal} onChange={e => update(idx, { goal: parseFloat(e.target.value) || 0 })} className="bg-[#0d0f14] border-white/10 text-white" />
+              <Label className="text-xs text-muted-foreground">Meta</Label>
+              <Input type="number" value={m.goal} onChange={e => update(idx, { goal: parseFloat(e.target.value) || 0 })} className="bg-background border-foreground/10 text-foreground" />
             </div>
             <div>
-              <Label className="text-xs text-gray-400">Margem amarela (%)</Label>
-              <Input type="number" value={m.yellowMargin} onChange={e => update(idx, { yellowMargin: parseFloat(e.target.value) || 0 })} className="bg-[#0d0f14] border-white/10 text-white" />
+              <Label className="text-xs text-muted-foreground">Margem amarela (%)</Label>
+              <Input type="number" value={m.yellowMargin} onChange={e => update(idx, { yellowMargin: parseFloat(e.target.value) || 0 })} className="bg-background border-foreground/10 text-foreground" />
             </div>
             <div>
-              <Label className="text-xs text-gray-400">Margem vermelha (%)</Label>
-              <Input type="number" value={m.redMargin} onChange={e => update(idx, { redMargin: parseFloat(e.target.value) || 0 })} className="bg-[#0d0f14] border-white/10 text-white" />
+              <Label className="text-xs text-muted-foreground">Margem vermelha (%)</Label>
+              <Input type="number" value={m.redMargin} onChange={e => update(idx, { redMargin: parseFloat(e.target.value) || 0 })} className="bg-background border-foreground/10 text-foreground" />
             </div>
           </div>
         </div>
       ))}
-      <Button variant="outline" onClick={add} className="border-white/10 text-gray-300 hover:bg-white/5 w-full">
+      <Button variant="outline" onClick={add} className="border-foreground/10 text-foreground/85 hover:bg-foreground/5 w-full">
         <Plus className="h-4 w-4 mr-2" /> Adicionar Métrica
       </Button>
     </div>
@@ -160,23 +160,23 @@ function TipoMetricEditor({
         const yellowMargin = ov?.yellowMargin ?? m.yellowMargin;
         const redMargin = ov?.redMargin ?? m.redMargin;
         return (
-          <div key={m.id} className="p-3 rounded-lg bg-[#111318] border border-white/10 space-y-2">
+          <div key={m.id} className="p-3 rounded-lg bg-surface-1 border border-foreground/10 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-white font-medium">{m.label}</span>
+              <span className="text-sm text-foreground font-medium">{m.label}</span>
               <Switch checked={active} onCheckedChange={v => update(m.id, { active: v })} />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs text-gray-400">Meta</Label>
-                <Input type="number" value={goal} onChange={e => update(m.id, { goal: parseFloat(e.target.value) || 0 })} className="bg-[#0d0f14] border-white/10 text-white" />
+                <Label className="text-xs text-muted-foreground">Meta</Label>
+                <Input type="number" value={goal} onChange={e => update(m.id, { goal: parseFloat(e.target.value) || 0 })} className="bg-background border-foreground/10 text-foreground" />
               </div>
               <div>
-                <Label className="text-xs text-gray-400">Margem amarela (%)</Label>
-                <Input type="number" value={yellowMargin} onChange={e => update(m.id, { yellowMargin: parseFloat(e.target.value) || 0 })} className="bg-[#0d0f14] border-white/10 text-white" />
+                <Label className="text-xs text-muted-foreground">Margem amarela (%)</Label>
+                <Input type="number" value={yellowMargin} onChange={e => update(m.id, { yellowMargin: parseFloat(e.target.value) || 0 })} className="bg-background border-foreground/10 text-foreground" />
               </div>
               <div>
-                <Label className="text-xs text-gray-400">Margem vermelha (%)</Label>
-                <Input type="number" value={redMargin} onChange={e => update(m.id, { redMargin: parseFloat(e.target.value) || 0 })} className="bg-[#0d0f14] border-white/10 text-white" />
+                <Label className="text-xs text-muted-foreground">Margem vermelha (%)</Label>
+                <Input type="number" value={redMargin} onChange={e => update(m.id, { redMargin: parseFloat(e.target.value) || 0 })} className="bg-background border-foreground/10 text-foreground" />
               </div>
             </div>
           </div>
@@ -225,21 +225,21 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl bg-[#1a1d24] border-white/10 text-white max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl bg-surface-2 border-foreground/10 text-foreground max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white text-lg">
-            Métricas — <span className="text-blue-400">{clientName}</span>
+          <DialogTitle className="text-foreground text-lg">
+            Métricas — <span className="text-primary">{clientName}</span>
           </DialogTitle>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Aba "Geral" define as métricas e colunas. Tabs de tipo permitem ajustar meta, margens e ativar/desativar por tipo de campanha.
           </p>
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-2">
-          <TabsList className="bg-[#111318] border border-white/10 w-full h-auto flex flex-wrap">
+          <TabsList className="bg-surface-1 border border-foreground/10 w-full h-auto flex flex-wrap">
             <TabsTrigger
               value="general"
-              className="flex-1 text-xs py-2 data-[state=active]:bg-[#1a1d24] text-gray-400 data-[state=active]:text-white"
+              className="flex-1 text-xs py-2 data-[state=active]:bg-surface-2 text-muted-foreground data-[state=active]:text-foreground"
             >
               Geral
             </TabsTrigger>
@@ -247,11 +247,11 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
               <TabsTrigger
                 key={tipo}
                 value={tipo}
-                className="flex-1 text-xs py-2 data-[state=active]:bg-[#1a1d24] text-gray-400 data-[state=active]:text-white"
+                className="flex-1 text-xs py-2 data-[state=active]:bg-surface-2 text-muted-foreground data-[state=active]:text-foreground"
               >
                 {TIPO_LABELS[tipo]}
                 {hasOverride(tipo) && (
-                  <span className="ml-1 h-1.5 w-1.5 rounded-full bg-blue-400 inline-block" />
+                  <span className="ml-1 h-1.5 w-1.5 rounded-full bg-primary inline-block" />
                 )}
               </TabsTrigger>
             ))}
@@ -263,9 +263,9 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
 
           {TIPO_KEYS.map(tipo => (
             <TabsContent key={tipo} value={tipo} className="mt-4">
-              <p className="text-[11px] text-gray-500 mb-3">
+              <p className="text-[11px] text-muted-foreground mb-3">
                 Ajuste ativo/inativo, meta e margens para campanhas de{' '}
-                <span className="text-gray-300">{TIPO_LABELS[tipo]}</span>.
+                <span className="text-foreground/85">{TIPO_LABELS[tipo]}</span>.
                 {!hasOverride(tipo) && ' Usando valores do Geral.'}
               </p>
               <TipoMetricEditor
@@ -277,8 +277,8 @@ export const MetricSettingsModal = ({ open, onOpenChange, clientName, metrics, o
           ))}
         </Tabs>
 
-        <div className="flex justify-end mt-4 pt-4 border-t border-white/10">
-          <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <div className="flex justify-end mt-4 pt-4 border-t border-foreground/10">
+          <Button onClick={handleSave} className="bg-primary hover:bg-primary text-foreground">
             Salvar
           </Button>
         </div>

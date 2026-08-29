@@ -104,34 +104,34 @@ export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
         variant="outline"
         size="sm"
         onClick={() => setOpen(v => !v)}
-        className="border-white/10 text-gray-300 hover:bg-white/5 bg-transparent"
+        className="border-foreground/10 text-foreground/85 hover:bg-foreground/5 bg-transparent"
       >
         <SlidersHorizontal className="h-4 w-4 mr-1.5" />
         Métricas
-        <span className="ml-1.5 bg-blue-600 text-white rounded-full px-1.5 py-0.5 text-[10px] leading-none">
+        <span className="ml-1.5 bg-primary text-foreground rounded-full px-1.5 py-0.5 text-[10px] leading-none">
           {activeCount}
         </span>
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-[#1a1d24] border border-white/10 rounded-lg shadow-2xl z-50 flex flex-col max-h-[65vh]">
-          <div className="p-3 border-b border-white/10 flex-shrink-0 flex items-start justify-between gap-2">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-surface-2 border border-foreground/10 rounded-lg shadow-2xl z-50 flex flex-col max-h-[65vh]">
+          <div className="p-3 border-b border-foreground/10 flex-shrink-0 flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold text-gray-300">Configurar métricas globais</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Arraste para reordenar as colunas</p>
+              <p className="text-xs font-semibold text-foreground/85">Configurar métricas globais</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Arraste para reordenar as colunas</p>
             </div>
             {pendingReorder && (
               <Button
                 size="sm"
                 onClick={saveOrder}
-                className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0 gap-1"
+                className="h-7 text-xs bg-primary hover:bg-primary text-foreground flex-shrink-0 gap-1"
               >
                 <Save className="h-3 w-3" /> Salvar ordem
               </Button>
             )}
           </div>
 
-          <div className="overflow-y-auto divide-y divide-white/5">
+          <div className="overflow-y-auto divide-y divide-foreground/5">
             {localMetrics.map((m, idx) => (
               <div
                 key={m.id}
@@ -143,19 +143,19 @@ export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <GripVertical className="h-4 w-4 text-gray-600 hover:text-gray-400 flex-shrink-0 cursor-grab active:cursor-grabbing" />
+                    <GripVertical className="h-4 w-4 text-muted-foreground/80 hover:text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" />
                     <Switch
                       checked={m.active}
                       onCheckedChange={() => toggle(m.id)}
                       className="scale-75 flex-shrink-0"
                     />
-                    <span className="text-sm text-gray-300 truncate">{m.label}</span>
-                    <span className="text-[10px] text-gray-600 flex-shrink-0">{m.unit}</span>
+                    <span className="text-sm text-foreground/85 truncate">{m.label}</span>
+                    <span className="text-[10px] text-muted-foreground/80 flex-shrink-0">{m.unit}</span>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-gray-500 hover:text-gray-300 flex-shrink-0"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground/85 flex-shrink-0"
                     onClick={() => setEditingId(editingId === m.id ? null : m.id)}
                   >
                     <Settings2 className="h-3.5 w-3.5" />
@@ -166,30 +166,30 @@ export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
                   <div className="mt-3 space-y-2 pl-1">
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="text-[10px] text-gray-500 block mb-1">Meta</label>
+                        <label className="text-[10px] text-muted-foreground block mb-1">Meta</label>
                         <Input
                           type="number"
                           value={m.goal}
                           onChange={e => update(m.id, { goal: parseFloat(e.target.value) || 0 })}
-                          className="h-7 text-xs bg-[#0d0f14] border-white/10 text-white px-2"
+                          className="h-7 text-xs bg-background border-foreground/10 text-foreground px-2"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-gray-500 block mb-1">Amarelo %</label>
+                        <label className="text-[10px] text-muted-foreground block mb-1">Amarelo %</label>
                         <Input
                           type="number"
                           value={m.yellowMargin}
                           onChange={e => update(m.id, { yellowMargin: parseFloat(e.target.value) || 0 })}
-                          className="h-7 text-xs bg-[#0d0f14] border-white/10 text-white px-2"
+                          className="h-7 text-xs bg-background border-foreground/10 text-foreground px-2"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-gray-500 block mb-1">Vermelho %</label>
+                        <label className="text-[10px] text-muted-foreground block mb-1">Vermelho %</label>
                         <Input
                           type="number"
                           value={m.redMargin}
                           onChange={e => update(m.id, { redMargin: parseFloat(e.target.value) || 0 })}
-                          className="h-7 text-xs bg-[#0d0f14] border-white/10 text-white px-2"
+                          className="h-7 text-xs bg-background border-foreground/10 text-foreground px-2"
                         />
                       </div>
                     </div>
@@ -197,15 +197,15 @@ export const MetricsSelectorDropdown = ({ metrics, onChange }: Props) => {
                       value={m.direction}
                       onValueChange={v => update(m.id, { direction: v as 'lower' | 'higher' })}
                     >
-                      <SelectTrigger className="h-7 text-xs bg-[#0d0f14] border-white/10 text-white">
+                      <SelectTrigger className="h-7 text-xs bg-background border-foreground/10 text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1d24] border-white/10">
+                      <SelectContent className="bg-surface-2 border-foreground/10">
                         <SelectItem value="lower">Menor é melhor</SelectItem>
                         <SelectItem value="higher">Maior é melhor</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-[10px] text-gray-500 bg-[#0d0f14] p-2 rounded leading-relaxed">
+                    <p className="text-[10px] text-muted-foreground bg-background p-2 rounded leading-relaxed">
                       {getThresholdPreview(m)}
                     </p>
                   </div>

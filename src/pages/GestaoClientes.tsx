@@ -129,10 +129,10 @@ async function n8nGetWorkflow(workflowId: string): Promise<{ active: boolean }> 
 }
 
 const inputCls =
-  'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-0';
-const labelCls = 'block text-sm font-medium text-gray-300 mb-1.5';
+  'bg-foreground/5 border-foreground/10 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-0';
+const labelCls = 'block text-sm font-medium text-foreground/85 mb-1.5';
 const sectionTitleCls =
-  'text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-white/10';
+  'text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 pb-2 border-b border-foreground/10';
 
 function StatusBadge({ status }: { status: GestaoCliente['status'] }) {
   const map: Record<
@@ -141,15 +141,15 @@ function StatusBadge({ status }: { status: GestaoCliente['status'] }) {
   > = {
     ativo: {
       label: 'Ativo',
-      cls: 'bg-green-500/20 text-green-400 border border-green-500/30',
+      cls: 'bg-success/20 text-success border border-success/30',
     },
     pausado: {
       label: 'Pausado',
-      cls: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+      cls: 'bg-warning/20 text-warning border border-warning/30',
     },
     cancelado: {
       label: 'Cancelado',
-      cls: 'bg-red-500/20 text-red-400 border border-red-500/30',
+      cls: 'bg-destructive/20 text-destructive border border-destructive/30',
     },
   };
   const { label, cls } = map[status];
@@ -163,20 +163,20 @@ function StatusBadge({ status }: { status: GestaoCliente['status'] }) {
 function CobrancaBadge({ status }: { status: string | null | undefined }) {
   if (status === 'enviada') {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/20 text-success border border-success/30">
         Enviada
       </span>
     );
   }
   if (!status || status === 'pendente') {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning/20 text-warning border border-warning/30">
         Pendente
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-muted-foreground border border-gray-500/30">
       {status}
     </span>
   );
@@ -184,11 +184,11 @@ function CobrancaBadge({ status }: { status: string | null | undefined }) {
 
 function FluxosBadge({ criados }: { criados: boolean }) {
   return criados ? (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/30">
       ✓ Automações ativas
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning/20 text-warning border border-warning/30">
       ⏳ Aguardando
     </span>
   );
@@ -206,13 +206,13 @@ function KpiCard({
   accent?: string;
 }) {
   return (
-    <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-5 flex items-center gap-4">
-      <div className={`p-3 rounded-lg ${accent ?? 'bg-blue-500/15'}`}>
-        <Icon className="h-5 w-5 text-blue-400" />
+    <div className="bg-foreground/5 backdrop-blur-xl rounded-xl border border-foreground/10 p-5 flex items-center gap-4">
+      <div className={`p-3 rounded-lg ${accent ?? 'bg-primary/15'}`}>
+        <Icon className="h-5 w-5 text-primary" />
       </div>
       <div>
-        <p className="text-xs text-gray-500 font-medium">{label}</p>
-        <p className="text-xl font-bold text-white mt-0.5">{value}</p>
+        <p className="text-xs text-muted-foreground font-medium">{label}</p>
+        <p className="text-xl font-bold text-foreground mt-0.5">{value}</p>
       </div>
     </div>
   );
@@ -222,7 +222,7 @@ function TooltipIcon({ text }: { text: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button type="button" className="ml-1.5 text-gray-500 hover:text-gray-300 inline-flex">
+        <button type="button" className="ml-1.5 text-muted-foreground hover:text-foreground/85 inline-flex">
           <HelpCircle className="h-3.5 w-3.5" />
         </button>
       </TooltipTrigger>
@@ -830,21 +830,21 @@ export default function GestaoClientes() {
     v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6">
+    <div className="min-h-screen bg-background text-foreground p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-500/15 border border-blue-500/20">
-            <Users className="h-5 w-5 text-blue-400" />
+          <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/20">
+            <Users className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Gestão de Clientes</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Contratos, automações e cobranças</p>
+            <h1 className="text-2xl font-bold text-foreground">Gestão de Clientes</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Contratos, automações e cobranças</p>
           </div>
         </div>
         <Button
           onClick={openCreate}
-          className="bg-[#3b82f6] hover:bg-blue-600 text-white gap-2"
+          className="bg-primary hover:bg-primary text-foreground gap-2"
         >
           <Plus className="h-4 w-4" />
           Novo Cliente
@@ -858,26 +858,26 @@ export default function GestaoClientes() {
           icon={TrendingUp}
           label="Clientes Ativos"
           value={kpis.ativos}
-          accent="bg-green-500/15"
+          accent="bg-success/15"
         />
         <KpiCard
           icon={DollarSign}
           label="MRR Total"
           value={fmtMoney(kpis.mrr)}
-          accent="bg-emerald-500/15"
+          accent="bg-success/15"
         />
         <KpiCard
           icon={Calendar}
           label="Vencendo esta semana"
           value={kpis.vencendoSemana}
-          accent="bg-orange-500/15"
+          accent="bg-chart-orange/15"
         />
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou conta..."
             value={search}
@@ -889,7 +889,7 @@ export default function GestaoClientes() {
           <SelectTrigger className={`w-40 ${inputCls}`}>
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+          <SelectContent className="bg-card border-foreground/10 text-foreground">
             <SelectItem value="todos">Todos status</SelectItem>
             <SelectItem value="ativo">Ativo</SelectItem>
             <SelectItem value="pausado">Pausado</SelectItem>
@@ -900,7 +900,7 @@ export default function GestaoClientes() {
           <SelectTrigger className={`w-44 ${inputCls}`}>
             <SelectValue placeholder="Contrato" />
           </SelectTrigger>
-          <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+          <SelectContent className="bg-card border-foreground/10 text-foreground">
             <SelectItem value="todos">Todos contratos</SelectItem>
             <SelectItem value="semanal">Semanal</SelectItem>
             <SelectItem value="mensal">Mensal</SelectItem>
@@ -912,11 +912,11 @@ export default function GestaoClientes() {
       </div>
 
       {/* Table */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden">
+      <div className="bg-foreground/5 backdrop-blur-xl rounded-xl border border-foreground/10 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-foreground/10">
                 {[
                   '#',
                   'Nome',
@@ -932,7 +932,7 @@ export default function GestaoClientes() {
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                    className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                   >
                     {h}
                   </th>
@@ -942,13 +942,13 @@ export default function GestaoClientes() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-12 text-center text-muted-foreground">
                     Carregando...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-12 text-center text-muted-foreground">
                     Nenhum cliente encontrado.
                   </td>
                 </tr>
@@ -957,33 +957,33 @@ export default function GestaoClientes() {
                   <>
                     <tr
                       key={c.id}
-                      className="border-b border-white/5 hover:bg-white/3 transition-colors"
+                      className="border-b border-foreground/5 hover:bg-foreground/[0.03] transition-colors"
                     >
-                      <td className="px-4 py-3 text-gray-500 text-sm">{i + 1}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-sm">{i + 1}</td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="text-sm font-medium text-white">{c.nome_cliente}</p>
+                          <p className="text-sm font-medium text-foreground">{c.nome_cliente}</p>
                           {c.segmento && (
-                            <p className="text-xs text-gray-500">{c.segmento}</p>
+                            <p className="text-xs text-muted-foreground">{c.segmento}</p>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400 font-mono">
+                      <td className="px-4 py-3 text-sm text-muted-foreground font-mono">
                         {c.numero_conta_anuncio}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400 font-mono">
+                      <td className="px-4 py-3 text-sm text-muted-foreground font-mono">
                         {c.numero_whatsapp_cliente}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-white">
+                      <td className="px-4 py-3 text-sm font-medium text-foreground">
                         {fmtMoney(c.valor_mensalidade)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         Dia {c.dia_vencimento}
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={c.status} />
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
+                      <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
                         {c.ultimo_contato_cobranca
                           ? new Date(c.ultimo_contato_cobranca).toLocaleString('pt-BR', {
                               day: '2-digit',
@@ -1008,7 +1008,7 @@ export default function GestaoClientes() {
                                 onClick={() =>
                                   setExpandedId(expandedId === c.id ? null : c.id)
                                 }
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors"
                               >
                                 {expandedId === c.id ? (
                                   <ChevronUp className="h-4 w-4" />
@@ -1023,7 +1023,7 @@ export default function GestaoClientes() {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => setCobrarCliente(c)}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-success hover:bg-success/10 transition-colors"
                               >
                                 <MessageSquare className="h-4 w-4" />
                               </button>
@@ -1034,7 +1034,7 @@ export default function GestaoClientes() {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => openEdit(c)}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                               >
                                 <Pencil className="h-4 w-4" />
                               </button>
@@ -1045,7 +1045,7 @@ export default function GestaoClientes() {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => toggleStatus(c)}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-warning hover:bg-warning/10 transition-colors"
                               >
                                 {c.status === 'ativo' ? (
                                   <PauseCircle className="h-4 w-4" />
@@ -1062,46 +1062,46 @@ export default function GestaoClientes() {
                       </td>
                     </tr>
                     {expandedId === c.id && (
-                      <tr key={`${c.id}-detail`} className="bg-white/3 border-b border-white/5">
+                      <tr key={`${c.id}-detail`} className="bg-foreground/[0.03] border-b border-foreground/5">
                         <td colSpan={11} className="px-6 py-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
-                              <p className="text-gray-500 text-xs mb-1">ID do Grupo WhatsApp</p>
-                              <p className="text-white font-mono">{c.numero_grupo_whatsapp}</p>
+                              <p className="text-muted-foreground text-xs mb-1">ID do Grupo WhatsApp</p>
+                              <p className="text-foreground font-mono">{c.numero_grupo_whatsapp}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500 text-xs mb-1">Tipo de Contrato</p>
-                              <p className="text-white capitalize">{c.tipo_contrato}</p>
+                              <p className="text-muted-foreground text-xs mb-1">Tipo de Contrato</p>
+                              <p className="text-foreground capitalize">{c.tipo_contrato}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500 text-xs mb-1">Início do Contrato</p>
-                              <p className="text-white">{c.data_inicio}</p>
+                              <p className="text-muted-foreground text-xs mb-1">Início do Contrato</p>
+                              <p className="text-foreground">{c.data_inicio}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500 text-xs mb-1">Limite Mín. Saldo</p>
-                              <p className="text-white">{fmtMoney(c.limite_minimo_saldo)}</p>
+                              <p className="text-muted-foreground text-xs mb-1">Limite Mín. Saldo</p>
+                              <p className="text-foreground">{fmtMoney(c.limite_minimo_saldo)}</p>
                             </div>
                             {c.responsavel_interno && (
                               <div>
-                                <p className="text-gray-500 text-xs mb-1">Responsável</p>
-                                <p className="text-white">{c.responsavel_interno}</p>
+                                <p className="text-muted-foreground text-xs mb-1">Responsável</p>
+                                <p className="text-foreground">{c.responsavel_interno}</p>
                               </div>
                             )}
                             {c.data_fim && (
                               <div>
-                                <p className="text-gray-500 text-xs mb-1">Fim do Contrato</p>
-                                <p className="text-white">{c.data_fim}</p>
+                                <p className="text-muted-foreground text-xs mb-1">Fim do Contrato</p>
+                                <p className="text-foreground">{c.data_fim}</p>
                               </div>
                             )}
                             {c.observacoes && (
                               <div className="col-span-2">
-                                <p className="text-gray-500 text-xs mb-1">Observações</p>
-                                <p className="text-white">{c.observacoes}</p>
+                                <p className="text-muted-foreground text-xs mb-1">Observações</p>
+                                <p className="text-foreground">{c.observacoes}</p>
                               </div>
                             )}
                             <div>
-                              <p className="text-gray-500 text-xs mb-1">Webhook disparado</p>
-                              <p className={c.webhook_cadastro_disparado ? 'text-green-400' : 'text-yellow-400'}>
+                              <p className="text-muted-foreground text-xs mb-1">Webhook disparado</p>
+                              <p className={c.webhook_cadastro_disparado ? 'text-success' : 'text-warning'}>
                                 {c.webhook_cadastro_disparado ? 'Sim' : 'Não'}
                               </p>
                             </div>
@@ -1119,7 +1119,7 @@ export default function GestaoClientes() {
 
       {/* Create / Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="bg-[#0a0a0a] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-background border-foreground/10 text-foreground max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
               {editingId ? 'Editar Cliente' : 'Novo Cliente'}
@@ -1135,13 +1135,13 @@ export default function GestaoClientes() {
                 <div className="col-span-2">
                   <label className={labelCls}>Logo do Cliente</label>
                   <div className="flex items-center gap-4">
-                    <div className="h-20 w-20 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="h-20 w-20 rounded-lg border border-foreground/10 bg-foreground/5 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {uploadingLogo ? (
-                        <Loader2 className="h-6 w-6 text-blue-400 animate-spin" />
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
                       ) : logoPreview ? (
                         <img src={logoPreview} alt="Logo" className="h-full w-full object-cover" />
                       ) : (
-                        <Building2 className="h-8 w-8 text-gray-600" />
+                        <Building2 className="h-8 w-8 text-muted-foreground/80" />
                       )}
                     </div>
                     <div className="flex-1 space-y-2">
@@ -1156,14 +1156,14 @@ export default function GestaoClientes() {
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        className="border-white/10 text-gray-300 hover:text-white hover:bg-white/10 gap-2"
+                        className="border-foreground/10 text-foreground/85 hover:text-foreground hover:bg-foreground/10 gap-2"
                       >
                         <Upload className="h-4 w-4" />
                         {logoPreview ? 'Trocar imagem' : 'Selecionar imagem'}
                       </Button>
-                      <p className="text-xs text-gray-600">JPG, PNG, WebP ou SVG — máximo 5MB</p>
+                      <p className="text-xs text-muted-foreground/80">JPG, PNG, WebP ou SVG — máximo 5MB</p>
                       {logoFile && (
-                        <p className="text-xs text-blue-400 truncate max-w-xs">{logoFile.name}</p>
+                        <p className="text-xs text-primary truncate max-w-xs">{logoFile.name}</p>
                       )}
                     </div>
                   </div>
@@ -1171,7 +1171,7 @@ export default function GestaoClientes() {
 
                 <div className="col-span-2">
                   <label className={labelCls}>
-                    Nome do Cliente <span className="text-red-400">*</span>
+                    Nome do Cliente <span className="text-destructive">*</span>
                   </label>
                   <Input
                     value={form.nome_cliente}
@@ -1183,7 +1183,7 @@ export default function GestaoClientes() {
                 <div>
                   <label className={labelCls}>
                     Nº Conta de Anúncio Meta
-                    <span className="text-red-400">*</span>
+                    <span className="text-destructive">*</span>
                     <TooltipIcon text="ID numérico da conta no Meta Ads. Ex: 705340254145484" />
                   </label>
                   <Input
@@ -1204,7 +1204,7 @@ export default function GestaoClientes() {
                     <SelectTrigger className={inputCls}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+                    <SelectContent className="bg-card border-foreground/10 text-foreground">
                       {['Saúde', 'Moda', 'Varejo', 'Educação', 'Serviços', 'Outro'].map(
                         (s) => (
                           <SelectItem key={s} value={s}>
@@ -1235,7 +1235,7 @@ export default function GestaoClientes() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>
-                    Nº WhatsApp do Cliente <span className="text-red-400">*</span>
+                    Nº WhatsApp do Cliente <span className="text-destructive">*</span>
                     <TooltipIcon text="Número pessoal do cliente, usado para cobrança. Ex: 5585999999999" />
                   </label>
                   <Input
@@ -1249,13 +1249,13 @@ export default function GestaoClientes() {
                 </div>
                 <div>
                   <label className={labelCls}>
-                    Grupo WhatsApp <span className="text-red-400">*</span>
+                    Grupo WhatsApp <span className="text-destructive">*</span>
                     <TooltipIcon text="Selecione o grupo onde os alertas e relatórios são enviados." />
                   </label>
                   {loadingGrupos ? (
                     <div className="flex items-center gap-2 h-10 px-3">
-                      <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
-                      <span className="text-sm text-gray-500">Carregando grupos...</span>
+                      <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                      <span className="text-sm text-muted-foreground">Carregando grupos...</span>
                     </div>
                   ) : (
                     <Select
@@ -1265,7 +1265,7 @@ export default function GestaoClientes() {
                       <SelectTrigger className={inputCls}>
                         <SelectValue placeholder="Selecione um grupo" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#0f0f0f] border-white/10 text-white max-h-60">
+                      <SelectContent className="bg-card border-foreground/10 text-foreground max-h-60">
                         {gruposWhatsapp.map((g) => (
                           <SelectItem key={g.id} value={g.id}>
                             {g.nome}
@@ -1274,7 +1274,7 @@ export default function GestaoClientes() {
                       </SelectContent>
                     </Select>
                   )}
-                  <p className="text-xs text-gray-600 mt-1.5">
+                  <p className="text-xs text-muted-foreground/80 mt-1.5">
                     Este grupo é usado nos fluxos automáticos de alerta de saldo e relatório diário.
                   </p>
                 </div>
@@ -1287,7 +1287,7 @@ export default function GestaoClientes() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>
-                    Valor da Mensalidade (R$) <span className="text-red-400">*</span>
+                    Valor da Mensalidade (R$) <span className="text-destructive">*</span>
                   </label>
                   <Input
                     type="number"
@@ -1309,7 +1309,7 @@ export default function GestaoClientes() {
                 </div>
                 <div>
                   <label className={labelCls}>
-                    Tipo de Contrato <span className="text-red-400">*</span>
+                    Tipo de Contrato <span className="text-destructive">*</span>
                   </label>
                   <Select
                     value={form.tipo_contrato}
@@ -1323,7 +1323,7 @@ export default function GestaoClientes() {
                     <SelectTrigger className={inputCls}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+                    <SelectContent className="bg-card border-foreground/10 text-foreground">
                       <SelectItem value="semanal">Semanal</SelectItem>
                       <SelectItem value="mensal">Mensal</SelectItem>
                       <SelectItem value="trimestral">Trimestral</SelectItem>
@@ -1347,7 +1347,7 @@ export default function GestaoClientes() {
                   >
                     <span
                       className={`relative w-11 h-6 rounded-full transition-colors ${
-                        form.plano_personalizado ? 'bg-blue-500' : 'bg-white/20'
+                        form.plano_personalizado ? 'bg-primary' : 'bg-foreground/20'
                       }`}
                     >
                       <span
@@ -1356,7 +1356,7 @@ export default function GestaoClientes() {
                         }`}
                       />
                     </span>
-                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                    <span className="text-sm text-foreground/85 group-hover:text-foreground transition-colors">
                       Plano de parcelas personalizado
                     </span>
                   </button>
@@ -1368,7 +1368,7 @@ export default function GestaoClientes() {
                     {form.parcelas.map((p, i) => (
                       <div
                         key={i}
-                        className="border border-white/10 rounded-lg p-4"
+                        className="border border-foreground/10 rounded-lg p-4"
                       >
                         <div className="grid grid-cols-3 gap-3 items-end">
                           <div>
@@ -1414,7 +1414,7 @@ export default function GestaoClientes() {
                               <button
                                 type="button"
                                 onClick={() => removeParcela(i)}
-                                className="mb-0.5 p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                className="mb-0.5 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                               >
                                 <X className="h-4 w-4" />
                               </button>
@@ -1428,7 +1428,7 @@ export default function GestaoClientes() {
                       <button
                         type="button"
                         onClick={addParcela}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm text-gray-400 hover:text-white hover:border-white/20 hover:bg-white/5 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-foreground/10 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/20 hover:bg-foreground/5 transition-colors"
                       >
                         <Plus className="h-4 w-4" />
                         Adicionar grupo de parcelas
@@ -1447,8 +1447,8 @@ export default function GestaoClientes() {
                         0
                       );
                       return (
-                        <div className="border border-white/10 rounded-lg p-4 space-y-2">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        <div className="border border-foreground/10 rounded-lg p-4 space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                             Linha do tempo:
                           </p>
                           {grupos.map((p, i) => {
@@ -1460,13 +1460,13 @@ export default function GestaoClientes() {
                               currency: 'BRL',
                             });
                             return (
-                              <p key={i} className="text-sm text-gray-300">
+                              <p key={i} className="text-sm text-foreground/85">
                                 {p.parcelas}x de {val} — a partir de {data}
                               </p>
                             );
                           })}
-                          <div className="pt-2 border-t border-white/10">
-                            <p className="text-sm font-semibold text-white">
+                          <div className="pt-2 border-t border-foreground/10">
+                            <p className="text-sm font-semibold text-foreground">
                               Total:{' '}
                               {total.toLocaleString('pt-BR', {
                                 style: 'currency',
@@ -1482,7 +1482,7 @@ export default function GestaoClientes() {
 
                 <div>
                   <label className={labelCls}>
-                    Dia de Vencimento <span className="text-red-400">*</span>
+                    Dia de Vencimento <span className="text-destructive">*</span>
                   </label>
                   <Input
                     type="number"
@@ -1498,7 +1498,7 @@ export default function GestaoClientes() {
                 </div>
                 <div>
                   <label className={labelCls}>
-                    Data de Início <span className="text-red-400">*</span>
+                    Data de Início <span className="text-destructive">*</span>
                   </label>
                   <Input
                     type="date"
@@ -1552,7 +1552,7 @@ export default function GestaoClientes() {
 
               {!editingId ? (
                 <div className="space-y-3">
-                  <p className="text-xs text-gray-500 mb-3">
+                  <p className="text-xs text-muted-foreground mb-3">
                     Selecione quais fluxos automáticos serão criados para este cliente.
                   </p>
                   <label className="flex items-center gap-3 cursor-pointer group">
@@ -1561,9 +1561,9 @@ export default function GestaoClientes() {
                       onCheckedChange={(v) =>
                         setForm((prev) => ({ ...prev, fluxo_alerta_saldo: !!v }))
                       }
-                      className="border-white/20 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                      className="border-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
-                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                    <span className="text-sm text-foreground/85 group-hover:text-foreground transition-colors">
                       Alerta de Saldo (Meta Ads pré-pago)
                     </span>
                   </label>
@@ -1573,9 +1573,9 @@ export default function GestaoClientes() {
                       onCheckedChange={(v) =>
                         setForm((prev) => ({ ...prev, fluxo_relatorio_diario: !!v }))
                       }
-                      className="border-white/20 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                      className="border-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
-                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                    <span className="text-sm text-foreground/85 group-hover:text-foreground transition-colors">
                       Relatório Diário (Meta Ads)
                     </span>
                   </label>
@@ -1585,13 +1585,13 @@ export default function GestaoClientes() {
                       onCheckedChange={(v) =>
                         setForm((prev) => ({ ...prev, fluxo_resumos: !!v }))
                       }
-                      className="border-white/20 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mt-0.5"
+                      className="border-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
                     />
                     <div>
-                      <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                      <span className="text-sm text-foreground/85 group-hover:text-foreground transition-colors">
                         Geração de Resumos
                       </span>
-                      <p className="text-xs text-yellow-500/80 mt-1">
+                      <p className="text-xs text-warning/80 mt-1">
                         ⚠ Este fluxo só funciona de fato se o número do cliente estiver cadastrado/vinculado à instância.
                       </p>
                     </div>
@@ -1599,7 +1599,7 @@ export default function GestaoClientes() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-gray-500 mb-3">
+                  <p className="text-xs text-muted-foreground mb-3">
                     Ative ou pause cada fluxo individualmente. Fluxos não criados não podem ser controlados.
                   </p>
                   {([
@@ -1633,18 +1633,18 @@ export default function GestaoClientes() {
                     return (
                       <div
                         key={fluxo.key}
-                        className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/3"
+                        className="flex items-center justify-between p-3 rounded-lg border border-foreground/10 bg-foreground/[0.03]"
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white">{fluxo.label}</p>
-                          <p className="text-xs text-gray-500">{fluxo.desc}</p>
+                          <p className="text-sm font-medium text-foreground">{fluxo.label}</p>
+                          <p className="text-xs text-muted-foreground">{fluxo.desc}</p>
                         </div>
                         <div className="flex items-center gap-3 ml-3">
                           {!hasId ? (
-                            <span className="text-xs text-gray-600 italic">Não criado</span>
+                            <span className="text-xs text-muted-foreground/80 italic">Não criado</span>
                           ) : (
                             <>
-                              <span className={`text-xs font-medium ${ativo ? 'text-green-400' : 'text-yellow-400'}`}>
+                              <span className={`text-xs font-medium ${ativo ? 'text-success' : 'text-warning'}`}>
                                 {ativo ? 'Ativo' : 'Pausado'}
                               </span>
                               <Switch
@@ -1653,9 +1653,9 @@ export default function GestaoClientes() {
                                 onCheckedChange={(checked) =>
                                   handleToggleFluxo(fluxo.key, checked)
                                 }
-                                className="data-[state=checked]:bg-green-500"
+                                className="data-[state=checked]:bg-success"
                               />
-                              {isToggling && <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />}
+                              {isToggling && <Loader2 className="h-4 w-4 text-primary animate-spin" />}
                             </>
                           )}
                         </div>
@@ -1667,7 +1667,7 @@ export default function GestaoClientes() {
                     variant="outline"
                     onClick={handleSyncFluxos}
                     disabled={syncingFluxos}
-                    className="w-full border-white/10 text-gray-300 hover:text-white hover:bg-white/10 gap-2 mt-2"
+                    className="w-full border-foreground/10 text-foreground/85 hover:text-foreground hover:bg-foreground/10 gap-2 mt-2"
                   >
                     {syncingFluxos ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1688,7 +1688,7 @@ export default function GestaoClientes() {
                   Acesso do Cliente (Login)
                 </span>
               </p>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="text-xs text-muted-foreground mb-3">
                 {editingId && editingCliente?.login_email
                   ? 'Este cliente já possui acesso ao sistema. Você pode alterar o email ou definir uma nova senha.'
                   : 'Opcional — preencha para dar acesso de login ao cliente no sistema.'}
@@ -1708,7 +1708,7 @@ export default function GestaoClientes() {
                   <label className={labelCls}>
                     Senha de Acesso
                     {editingId && editingCliente?.login_email && (
-                      <span className="text-gray-600 font-normal ml-1">(opcional)</span>
+                      <span className="text-muted-foreground/80 font-normal ml-1">(opcional)</span>
                     )}
                   </label>
                   <div className="relative">
@@ -1726,7 +1726,7 @@ export default function GestaoClientes() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground/85 transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -1757,7 +1757,7 @@ export default function GestaoClientes() {
                       setDeleteConfirmText('');
                       setDeleteModalOpen(true);
                     }}
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 gap-2"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
                   >
                     <Trash2 className="h-4 w-4" />
                     Excluir cliente
@@ -1770,14 +1770,14 @@ export default function GestaoClientes() {
                     type="button"
                     variant="ghost"
                     onClick={() => setModalOpen(false)}
-                    className="text-gray-400 hover:text-white"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="bg-[#3b82f6] hover:bg-blue-600 text-white"
+                    className="bg-primary hover:bg-primary text-foreground"
                   >
                     {submitting
                       ? 'Salvando...'
@@ -1797,37 +1797,37 @@ export default function GestaoClientes() {
         open={!!cobrarCliente}
         onOpenChange={(o) => !o && setCobrarCliente(null)}
       >
-        <DialogContent className="bg-[#0a0a0a] border-white/10 text-white max-w-md">
+        <DialogContent className="bg-background border-foreground/10 text-foreground max-w-md">
           <DialogHeader>
             <DialogTitle>Confirmar Cobrança</DialogTitle>
           </DialogHeader>
           {cobrarCliente && (
             <div className="space-y-3 my-2">
-              <div className="bg-white/5 rounded-lg p-4 space-y-2 text-sm">
+              <div className="bg-foreground/5 rounded-lg p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Cliente</span>
-                  <span className="text-white font-medium">
+                  <span className="text-muted-foreground">Cliente</span>
+                  <span className="text-foreground font-medium">
                     {cobrarCliente.nome_cliente}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Valor</span>
-                  <span className="text-white font-medium">
+                  <span className="text-muted-foreground">Valor</span>
+                  <span className="text-foreground font-medium">
                     {fmtMoney(cobrarCliente.valor_mensalidade)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Vencimento</span>
-                  <span className="text-white">Dia {cobrarCliente.dia_vencimento}</span>
+                  <span className="text-muted-foreground">Vencimento</span>
+                  <span className="text-foreground">Dia {cobrarCliente.dia_vencimento}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">WhatsApp</span>
-                  <span className="text-white font-mono text-xs">
+                  <span className="text-muted-foreground">WhatsApp</span>
+                  <span className="text-foreground font-mono text-xs">
                     {cobrarCliente.numero_whatsapp_cliente}
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Uma mensagem de cobrança será enviada via WhatsApp para o número acima.
               </p>
             </div>
@@ -1836,14 +1836,14 @@ export default function GestaoClientes() {
             <Button
               variant="ghost"
               onClick={() => setCobrarCliente(null)}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               Cancelar
             </Button>
             <Button
               onClick={confirmarCobranca}
               disabled={cobrandoId !== null}
-              className="bg-[#3b82f6] hover:bg-blue-600 text-white"
+              className="bg-primary hover:bg-primary text-foreground"
             >
               {cobrandoId ? 'Enviando...' : 'Enviar Cobrança'}
             </Button>
@@ -1861,16 +1861,16 @@ export default function GestaoClientes() {
           }
         }}
       >
-        <DialogContent className="bg-[#0a0a0a] border-white/10 text-white max-w-md">
+        <DialogContent className="bg-background border-foreground/10 text-foreground max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-400">
+            <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
               Excluir cliente permanentemente
             </DialogTitle>
           </DialogHeader>
           {editingCliente && (
             <div className="space-y-4 my-2">
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-sm text-red-300">
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-sm text-destructive">
                 <p className="font-medium mb-2">Esta ação é irreversível.</p>
                 <p>
                   Todos os dados deste cliente (demandas, otimizações, chamados)
@@ -1879,9 +1879,9 @@ export default function GestaoClientes() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-400 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Para confirmar, digite o nome do cliente:{' '}
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-foreground">
                     {editingCliente.nome_cliente}
                   </span>
                 </p>
@@ -1903,7 +1903,7 @@ export default function GestaoClientes() {
                 setDeleteConfirmText('');
               }}
               disabled={deleting}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               Cancelar
             </Button>
@@ -1913,7 +1913,7 @@ export default function GestaoClientes() {
                 deleting ||
                 deleteConfirmText !== editingCliente?.nome_cliente
               }
-              className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-40"
+              className="bg-destructive hover:bg-destructive text-foreground disabled:opacity-40"
             >
               {deleting ? (
                 <>

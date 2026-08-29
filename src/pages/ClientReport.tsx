@@ -1,20 +1,37 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { format, subDays } from 'date-fns';
-import { 
-  DollarSign, 
-  MessageSquare, 
-  Eye, 
+import {
+  DollarSign,
+  MessageSquare,
+  Eye,
   MousePointer,
   TrendingUp,
   Users,
   Instagram,
-  Loader2,
   ArrowLeft,
-  Video
+  Video,
+  BarChart3,
+  LineChart,
+  Megaphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { KPICard } from '@/components/dashboard/KPICard';
+import { KPICard, type KPICardProps } from '@/components/dashboard/KPICard';
+import { PageHeader } from '@/components/dashboard/PageHeader';
+import { Section } from '@/components/dashboard/Section';
+import { Reveal } from '@/components/dashboard/Motion';
+import {
+  KPIGridSkeleton,
+  ChartGridSkeleton,
+  PageHeaderSkeleton,
+} from '@/components/dashboard/Skeletons';
+import {
+  DashTabs,
+  DashTabsList,
+  DashTabsTrigger,
+} from '@/components/dashboard/DashboardTabs';
+import { TabsContent } from '@/components/ui/tabs';
+import { chartColors } from '@/lib/chartColors';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { SiteDashboard } from '@/components/dashboard/SiteDashboard';
@@ -125,7 +142,7 @@ export default function ClientReport() {
         margin: 5,
         filename: `relatorio-${clientName.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'dd-MM-yyyy')}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0a0a0a' },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#000000' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
@@ -217,125 +234,160 @@ export default function ClientReport() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin text-[#3b82f6]" />
+      <div className="p-5 sm:p-8 lg:p-10 space-y-8" role="status" aria-label="Carregando relatorio">
+        <PageHeaderSkeleton />
+        <KPIGridSkeleton count={4} />
+        <ChartGridSkeleton count={2} />
       </div>
     );
   }
 
+  // Os 12 KPIs agrupados por assunto, na mesma ordem do dashboard do cliente.
+  const kpisResultado = [
+    { title: 'Valor Total Gasto', value: totalSpent.toFixed(2), icon: DollarSign, prefix: 'R$ ', tone: 'brand' as const },
+    { title: 'Total de Conversas', value: totalMessages, icon: MessageSquare, tone: 'success' as const },
+    { title: 'Custo por Conversa', value: costPerMessage.toFixed(2), icon: MessageSquare, prefix: 'R$ ', tone: 'warning' as const },
+    { title: 'Total de Compras', value: totalPurchases, icon: TrendingUp, tone: 'success' as const },
+  ];
+
+  const kpisAlcance = [
+    { title: 'Impressões', value: totalImpressions.toLocaleString('pt-BR'), icon: Eye, tone: 'info' as const },
+    { title: 'Alcance', value: totalReach.toLocaleString('pt-BR'), icon: Users, tone: 'info' as const },
+    { title: 'CPM Médio', value: avgCPM.toFixed(2), icon: Eye, prefix: 'R$ ', tone: 'neutral' as const },
+    { title: 'CTR Médio', value: avgCTR.toFixed(2), icon: MousePointer, suffix: '%', tone: 'neutral' as const },
+  ];
+
+  const kpisEngajamento = [
+    { title: 'Cliques Totais', value: totalClicks.toLocaleString('pt-BR'), icon: MousePointer, tone: 'accent' as const },
+    { title: 'Cliques no Link', value: totalLinkClicks.toLocaleString('pt-BR'), icon: MousePointer, tone: 'accent' as const },
+    { title: 'Visitas Instagram', value: totalVisits.toLocaleString('pt-BR'), icon: Instagram, tone: 'accent' as const },
+    { title: 'Visualizações 3s', value: totalVideoViews.toLocaleString('pt-BR'), icon: Video, tone: 'accent' as const },
+  ];
+
+  const kpiGrid = (items: KPICardProps[]) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {items.map((kpi) => (
+        <KPICard key={kpi.title} {...kpi} />
+      ))}
+    </div>
+  );
+
+  const vazio = (
+    <div className="rounded-xl border border-border bg-card p-8 text-center">
+      <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-foreground">Nenhum dado encontrado</h3>
+      <p className="text-muted-foreground mt-2">
+        Não há relatórios disponíveis para o período selecionado.
+      </p>
+    </div>
+  );
+
+  const cabecalhoPDF = (titulo: string) => (
+    <div className="pb-4 border-b border-border">
+      <h2 className="text-xl font-bold text-foreground mb-1">{clientName} — {titulo}</h2>
+      <p className="text-muted-foreground text-sm">
+        Período: {startDate ? format(startDate, 'dd/MM/yyyy') : ''} – {endDate ? format(endDate, 'dd/MM/yyyy') : ''}
+      </p>
+    </div>
+  );
+
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/dashboard')}
-            className="text-gray-400 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="h-14 w-14 rounded-xl bg-[#3b82f6]/20 flex items-center justify-center">
-            <Users className="h-7 w-7 text-[#3b82f6]" />
-          </div>
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white">{clientName}</h1>
-            <p className="text-gray-400 text-sm">ID: {clientId}</p>
-          </div>
-        </div>
-
-        <DateFilter
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onFilter={handleFilter}
-          onGeneratePDF={handleGeneratePDF}
+    <div className="p-5 sm:p-8 lg:p-10">
+      <Reveal>
+        <PageHeader
+          className="mb-6"
+          title={clientName}
+          subtitle={`ID: ${clientId}`}
+          icon={Users}
+          leading={
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/dashboard')}
+              aria-label="Voltar para o dashboard"
+              className="text-muted-foreground hover:text-foreground hover:bg-foreground/10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          }
+          actions={
+            <DateFilter
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              onFilter={handleFilter}
+              onGeneratePDF={handleGeneratePDF}
+            />
+          }
         />
-      </div>
+      </Reveal>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-8 bg-white/5 rounded-xl p-1 w-fit border border-white/10">
-        {(['mensagem', 'site'] as TabType[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => handleTabChange(tab)}
-            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 capitalize ${
-              activeTab === tab
-                ? 'bg-[#3b82f6] text-white shadow-lg shadow-blue-500/25'
-                : 'text-gray-400 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            {tab === 'mensagem' ? 'Mensagem' : 'Site'}
-          </button>
-        ))}
-      </div>
+      <DashTabs value={activeTab} onValueChange={(v) => handleTabChange(v as TabType)}>
+        <DashTabsList>
+          <DashTabsTrigger value="mensagem">
+            <MessageSquare className="h-4 w-4" />
+            Mensagem
+          </DashTabsTrigger>
+          <DashTabsTrigger value="site">
+            <Megaphone className="h-4 w-4" />
+            Site
+          </DashTabsTrigger>
+        </DashTabsList>
 
-      {reports.length === 0 ? (
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-8 text-center border border-white/10">
-          <TrendingUp className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white">Nenhum dado encontrado</h3>
-          <p className="text-gray-400 mt-2">
-            Não há relatórios disponíveis para o período selecionado.
-          </p>
-        </div>
-      ) : (
-        <div id="report-content" className="bg-[#0a0a0a]">
-          {/* PDF header */}
-          <div className="mb-6 pb-4 border-b border-white/10">
-            <h2 className="text-xl font-bold text-white mb-1">{clientName} — {activeTab === 'mensagem' ? 'Mensagem' : 'Site'}</h2>
-            <p className="text-gray-400 text-sm">
-              Período: {startDate ? format(startDate, 'dd/MM/yyyy') : ''} – {endDate ? format(endDate, 'dd/MM/yyyy') : ''}
-            </p>
-          </div>
+        {/*
+          Tudo dentro de #report-content e fotografado pelo html2canvas na
+          geracao do PDF. Por isso as secoes daqui nao sao colapsaveis e nao
+          tem animacao de entrada: o canvas captura o DOM no estado atual e
+          sairia com secao faltando ou no meio do fade.
+        */}
+        <TabsContent value="mensagem" className="mt-6">
+          {reports.length === 0 ? vazio : (
+            <div id="report-content" className="bg-background space-y-12">
+              {cabecalhoPDF('Mensagem')}
 
-          {/* Tab content */}
-          {activeTab === 'mensagem' ? (
-            <>
-              {/* KPI Row 1 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <KPICard title="Valor Total Gasto" value={totalSpent.toFixed(2)} icon={DollarSign} prefix="R$ " />
-                <KPICard title="Total de Conversas" value={totalMessages} icon={MessageSquare} />
-                <KPICard title="Custo por Conversa" value={costPerMessage.toFixed(2)} icon={MessageSquare} prefix="R$ " />
-                <KPICard title="Total de Compras" value={totalPurchases} icon={TrendingUp} />
-              </div>
+              <Section title="Investimento & Resultado" icon={DollarSign}>
+                {kpiGrid(kpisResultado)}
+              </Section>
 
-              {/* KPI Row 2 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <KPICard title="Impressões" value={totalImpressions.toLocaleString('pt-BR')} icon={Eye} />
-                <KPICard title="Alcance" value={totalReach.toLocaleString('pt-BR')} icon={Users} />
-                <KPICard title="CPM Médio" value={avgCPM.toFixed(2)} icon={Eye} prefix="R$ " />
-                <KPICard title="CTR Médio" value={avgCTR.toFixed(2)} icon={MousePointer} suffix="%" />
-              </div>
+              <Section title="Alcance & Entrega" icon={Eye}>
+                {kpiGrid(kpisAlcance)}
+              </Section>
 
-              {/* KPI Row 3 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <KPICard title="Cliques Totais" value={totalClicks.toLocaleString('pt-BR')} icon={MousePointer} />
-                <KPICard title="Cliques no Link" value={totalLinkClicks.toLocaleString('pt-BR')} icon={MousePointer} />
-                <KPICard title="Visitas Instagram" value={totalVisits.toLocaleString('pt-BR')} icon={Instagram} />
-                <KPICard title="Visualizações 3s" value={totalVideoViews.toLocaleString('pt-BR')} icon={Video} />
-              </div>
+              <Section title="Engajamento" icon={MousePointer}>
+                {kpiGrid(kpisEngajamento)}
+              </Section>
 
-              {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <DashboardChart title="Valor Gasto por Dia" data={chartData} dataKey="valor_usado_brl" color="#3b82f6" type="area" prefix="R$ " forceShowLabels={showLabelsForPDF} />
-                <DashboardChart title="Conversas Iniciadas" data={chartData} dataKey="conversas_mensagem_iniciadas" color="#22c55e" type="composed" secondaryLine={{ dataKey: 'custo_por_conversa', color: '#f59e0b', prefix: 'R$ ', label: 'Custo/Conversa' }} forceShowLabels={showLabelsForPDF} />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <DashboardChart title="Impressões por Dia" data={chartData} dataKey="impressoes" color="#f59e0b" type="line" forceShowLabels={showLabelsForPDF} />
-                <DashboardChart title="Cliques por Dia" data={chartData} dataKey="cliques_todos" color="#8b5cf6" type="bar" forceShowLabels={showLabelsForPDF} />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <DashboardChart title="Visitas ao Instagram" data={chartData} dataKey="visitas_perfil_instagram" color="#ec4899" type="area" forceShowLabels={showLabelsForPDF} />
-                <DashboardChart title="Visualizações de Vídeo (3s)" data={chartData} dataKey="reproducoes_video_3s" color="#06b6d4" type="bar" forceShowLabels={showLabelsForPDF} />
-              </div>
-            </>
-          ) : (
-            <SiteDashboard dailyData={dailyData} showLabelsForPDF={showLabelsForPDF} />
+              <Section title="Desempenho diário" icon={LineChart}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <DashboardChart title="Valor Gasto por Dia" data={chartData} dataKey="valor_usado_brl" color={chartColors.brand} type="area" prefix="R$ " forceShowLabels={showLabelsForPDF} />
+                  <DashboardChart title="Conversas Iniciadas" data={chartData} dataKey="conversas_mensagem_iniciadas" color={chartColors.success} type="composed" secondaryLine={{ dataKey: 'custo_por_conversa', color: chartColors.warning, prefix: 'R$ ', label: 'Custo/Conversa' }} forceShowLabels={showLabelsForPDF} />
+                </div>
+              </Section>
+
+              <Section title="Detalhamento" icon={BarChart3} contentClassName="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <DashboardChart title="Impressões por Dia" data={chartData} dataKey="impressoes" color={chartColors.warning} type="line" forceShowLabels={showLabelsForPDF} />
+                  <DashboardChart title="Cliques por Dia" data={chartData} dataKey="cliques_todos" color={chartColors.accent} type="bar" forceShowLabels={showLabelsForPDF} />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <DashboardChart title="Visitas ao Instagram" data={chartData} dataKey="visitas_perfil_instagram" color={chartColors.pink} type="area" forceShowLabels={showLabelsForPDF} />
+                  <DashboardChart title="Visualizações de Vídeo (3s)" data={chartData} dataKey="reproducoes_video_3s" color={chartColors.cyan} type="bar" forceShowLabels={showLabelsForPDF} />
+                </div>
+              </Section>
+            </div>
           )}
-        </div>
-      )}
+        </TabsContent>
+
+        <TabsContent value="site" className="mt-6">
+          {reports.length === 0 ? vazio : (
+            <div id="report-content" className="bg-background space-y-6">
+              {cabecalhoPDF('Site')}
+              <SiteDashboard dailyData={dailyData} showLabelsForPDF={showLabelsForPDF} />
+            </div>
+          )}
+        </TabsContent>
+      </DashTabs>
     </div>
   );
 }

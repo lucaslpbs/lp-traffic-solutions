@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { ClienteContent } from "@/components/sistema/ClienteContent";
+import { Shimmer } from "@/components/dashboard/Skeletons";
 
 interface ClienteData {
   nome: string;
@@ -38,20 +39,28 @@ const ClienteDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="dashboard-theme min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-[#3b82f6]" />
+      <div className="min-h-[60vh] flex flex-col" role="status" aria-label="Carregando cliente">
+        <div className="border-b border-border px-6 py-3 flex items-center gap-4">
+          <Shimmer className="h-5 w-20" />
+          <div className="w-px h-6 bg-surface-3" />
+          <Shimmer className="h-9 w-9 rounded-lg" />
+          <div className="space-y-1.5">
+            <Shimmer className="h-4 w-40" />
+            <Shimmer className="h-3 w-16" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!cliente || !clientId) {
     return (
-      <div className="dashboard-theme min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-zinc-400 mb-4">Cliente não encontrado.</p>
+          <p className="text-muted-foreground mb-4">Cliente não encontrado.</p>
           <button
             onClick={() => navigate("/dashboard/sistema")}
-            className="text-[#3b82f6] hover:underline text-sm"
+            className="focus-ring rounded text-primary hover:underline text-sm"
           >
             ← Voltar para Sistema
           </button>
@@ -61,19 +70,19 @@ const ClienteDetailPage = () => {
   }
 
   return (
-    <div className="dashboard-theme min-h-screen bg-black text-zinc-100 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Page header */}
-      <div className="border-b border-zinc-800 px-6 py-3 flex items-center gap-4 bg-zinc-950/40 backdrop-blur shrink-0">
+      <div className="border-b border-border px-6 py-3 flex items-center gap-4 bg-background/40 backdrop-blur shrink-0">
         <button
           onClick={() => navigate("/dashboard/sistema")}
-          className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+          className="focus-ring rounded flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar
         </button>
-        <div className="w-px h-6 bg-zinc-800" />
+        <div className="w-px h-6 bg-surface-3" />
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden shrink-0">
+          <div className="h-9 w-9 rounded-lg bg-card border border-border flex items-center justify-center overflow-hidden shrink-0">
             {cliente.logo ? (
               <img
                 src={cliente.logo}
@@ -81,20 +90,20 @@ const ClienteDetailPage = () => {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-sm font-bold text-[#3b82f6]">
+              <span className="text-sm font-bold text-primary">
                 {cliente.nome.charAt(0)}
               </span>
             )}
           </div>
           <div className="min-w-0">
-            <h1 className="text-base font-semibold text-white truncate">
+            <h1 className="text-base font-semibold text-foreground truncate">
               {cliente.nome}
             </h1>
             <Badge
               className={`text-[10px] h-4 ${
                 cliente.status === "ativo"
-                  ? "bg-emerald-600/20 text-emerald-400 border-emerald-700"
-                  : "bg-zinc-700/30 text-zinc-400 border-zinc-700"
+                  ? "bg-success/20 text-success border-success"
+                  : "bg-surface-3 text-muted-foreground border-border"
               }`}
             >
               {cliente.status === "ativo" ? "Ativo" : "Inativo"}

@@ -1,8 +1,17 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, ListChecks, Target, Workflow, LogOut, FileText, BookOpen, Library, Loader2, BarChart3, Image as ImageIcon } from "lucide-react";
+import { Users, ListChecks, Target, Workflow, FileText, BookOpen, Library, BarChart3, Image as ImageIcon, ChevronLeft, FolderKanban } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { Stagger, StaggerItem, Reveal } from "@/components/dashboard/Motion";
+import { CardGridSkeleton, PageHeaderSkeleton } from "@/components/dashboard/Skeletons";
+import {
+  DashTabs,
+  DashTabsList,
+  DashTabsTrigger,
+  DashTabsPanel,
+} from "@/components/dashboard/DashboardTabs";
 import { ClienteGallery } from "@/components/sistema/ClienteGallery";
 import { KanbanBoard } from "@/components/sistema/KanbanBoard";
 import { MetasBoard } from "@/components/sistema/MetasBoard";
@@ -34,31 +43,31 @@ const titles: Record<Tab, string> = {
 
 type SectionId = "persona" | "icp" | "escopo" | "biblioteca" | "otimizacao" | "criativos" | null;
 
-const inputCls = "bg-[#1c1c1e] border-[#2a2a2a] text-white rounded-md cursor-default";
+const inputCls = "bg-surface-2 border-surface-3 text-foreground rounded-md cursor-default";
 
 const ReadOnlyField = ({ label, placeholder }: { label: string; placeholder?: string }) => (
   <div className="space-y-1.5">
-    <Label className="text-xs text-zinc-400">{label}</Label>
+    <Label className="text-xs text-muted-foreground">{label}</Label>
     <Input className={inputCls} placeholder={placeholder || "—"} disabled />
   </div>
 );
 
 const ReadOnlyTextarea = ({ label, placeholder, rows }: { label: string; placeholder?: string; rows?: number }) => (
   <div className="space-y-1.5">
-    <Label className="text-xs text-zinc-400">{label}</Label>
+    <Label className="text-xs text-muted-foreground">{label}</Label>
     <Textarea className={`${inputCls} min-h-[80px]`} placeholder={placeholder || "—"} disabled rows={rows} />
   </div>
 );
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <h4 className="text-sm font-semibold text-[#3b82f6] uppercase tracking-wide border-b border-[#2a2a2a] pb-2">
+  <h4 className="text-sm font-semibold text-primary uppercase tracking-wide border-b border-surface-3 pb-2">
     {children}
   </h4>
 );
 
 const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/40 p-4">
-    <h4 className="text-sm font-semibold text-zinc-200">{title}</h4>
+  <div className="space-y-3 rounded-lg border border-border bg-card/40 p-4">
+    <h4 className="text-sm font-semibold text-foreground">{title}</h4>
     <div className="grid gap-3 md:grid-cols-2">{children}</div>
   </div>
 );
@@ -67,7 +76,7 @@ const ReadOnlyBulletList = ({ items }: { items: string[] }) => (
   <div className="space-y-2">
     {items.map((item, i) => (
       <div key={i} className="flex items-center gap-2">
-        <span className="text-[#3b82f6] text-lg leading-none select-none">•</span>
+        <span className="text-primary text-lg leading-none select-none">•</span>
         <Input value={item} className={`${inputCls} flex-1`} disabled />
       </div>
     ))}
@@ -176,7 +185,6 @@ const clientSections = [
 function ClienteSistemaView() {
   const { clienteVinculadoId } = useAuth();
   const [activeSection, setActiveSection] = useState<SectionId>(null);
-  const [logoBroken, setLogoBroken] = useState(false);
 
   const { data: clienteData, isLoading: loadingClient } = useQuery({
     queryKey: ['sistema-cliente-info', clienteVinculadoId],
@@ -196,8 +204,9 @@ function ClienteSistemaView() {
 
   if (loadingClient) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-[#3b82f6]" />
+      <div className="p-5 sm:p-8 lg:p-10 max-w-4xl mx-auto space-y-10">
+        <PageHeaderSkeleton />
+        <CardGridSkeleton count={6} className="md:grid-cols-2 lg:grid-cols-2" />
       </div>
     );
   }
@@ -214,63 +223,54 @@ function ClienteSistemaView() {
     }
   };
 
-  const showLogo = clientLogo && !logoBroken;
+  const secaoAtual = clientSections.find((s) => s.id === activeSection);
 
   return (
-    <div className="dashboard-theme min-h-screen bg-black text-zinc-100">
-      <div className="p-6 lg:p-8 max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          {activeSection && (
-            <button
-              onClick={() => setActiveSection(null)}
-              className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            </button>
-          )}
-          {showLogo ? (
-            <img
-              src={clientLogo!}
-              alt={clientName}
-              className="h-12 w-12 rounded-xl object-cover border border-zinc-800"
-              onError={() => setLogoBroken(true)}
-            />
-          ) : (
-            <div className="h-12 w-12 rounded-xl bg-[#3b82f6]/10 border border-zinc-800 flex items-center justify-center">
-              <span className="text-[#3b82f6] font-bold text-lg">{(clientName || "C").charAt(0).toUpperCase()}</span>
-            </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              {activeSection ? clientSections.find((s) => s.id === activeSection)?.label : "Meu Perfil & Materiais"}
-            </h1>
-            <p className="text-zinc-400 text-sm">{clientName} — Somente leitura</p>
-          </div>
-        </div>
+    <div className="p-5 sm:p-8 lg:p-10 max-w-4xl mx-auto">
+      <Reveal>
+        <PageHeader
+          className="mb-8"
+          title={secaoAtual ? secaoAtual.label : "Meu Perfil & Materiais"}
+          subtitle={`${clientName} — Somente leitura`}
+          imageUrl={clientLogo}
+          initial={(clientName || "C").charAt(0).toUpperCase()}
+          leading={
+            activeSection && (
+              <button
+                onClick={() => setActiveSection(null)}
+                aria-label="Voltar para a lista de secoes"
+                className="focus-ring p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )
+          }
+        />
+      </Reveal>
 
-        {activeSection ? (
-          renderSection()
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {clientSections.map((section) => {
-              const Icon = section.icon;
-              return (
+      {activeSection ? (
+        <Reveal key={activeSection}>{renderSection()}</Reveal>
+      ) : (
+        <Stagger className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {clientSections.map((section) => {
+            const Icon = section.icon;
+            return (
+              <StaggerItem key={section.id}>
                 <button
-                  key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className="group bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 text-left transition-all duration-300 hover:border-[#3b82f6]/50 hover:shadow-lg hover:shadow-[#3b82f6]/5 hover:-translate-y-0.5"
+                  className="focus-ring group w-full h-full bg-card border border-border rounded-xl p-6 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
                 >
-                  <div className="p-3 rounded-lg bg-[#3b82f6]/10 w-fit mb-3">
-                    <Icon className="h-5 w-5 text-[#3b82f6]" />
+                  <div className="p-3 rounded-lg bg-primary/10 w-fit mb-3 transition-colors group-hover:bg-primary/20">
+                    <Icon className="h-5 w-5 text-primary" />
                   </div>
-                  <h3 className="text-base font-semibold text-white mb-1">{section.label}</h3>
-                  <p className="text-sm text-zinc-400">Visualizar informacoes</p>
+                  <h3 className="text-base font-semibold text-foreground mb-1">{section.label}</h3>
+                  <p className="text-sm text-muted-foreground">Visualizar informações</p>
                 </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              </StaggerItem>
+            );
+          })}
+        </Stagger>
+      )}
     </div>
   );
 }
@@ -279,10 +279,12 @@ function ClienteSistemaView() {
 
 function AdminSistemaView() {
   const [tab, setTab] = useState<Tab>("clientes");
-  const { signOut } = useAuth();
 
-  const renderContent = () => {
-    switch (tab) {
+  // A nav lateral que existia aqui foi promovida a abas: o shell do /dashboard
+  // ja monta uma sidebar (com o proprio "Sair"), e a segunda aninhada dentro
+  // dela consumia largura e duplicava a navegacao.
+  const renderContent = (id: Tab) => {
+    switch (id) {
       case "clientes": return <ClienteGallery />;
       case "demandas": return <KanbanBoard />;
       case "metas": return <MetasBoard />;
@@ -291,50 +293,30 @@ function AdminSistemaView() {
   };
 
   return (
-    <div className="dashboard-theme min-h-screen bg-black text-zinc-100 flex w-full">
-      <aside className="w-60 border-r border-zinc-800 bg-zinc-950 flex flex-col">
-        <div className="h-16 border-b border-zinc-800 px-5 flex items-center gap-2">
-          <div className="h-8 w-8 rounded-md bg-[#3b82f6] flex items-center justify-center font-bold">T</div>
-          <div className="leading-tight">
-            <p className="text-xs text-zinc-400">Traffic Solutions</p>
-            <p className="text-sm font-semibold">Sistema</p>
-          </div>
-        </div>
-        <nav className="flex-1 p-3 space-y-1">
+    <div className="p-5 sm:p-8 lg:p-10 space-y-6">
+      <Reveal>
+        <PageHeader title={titles[tab]} subtitle="Sistema Traffic Solutions" icon={FolderKanban} />
+      </Reveal>
+
+      <DashTabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
+        <DashTabsList>
           {nav.map((n) => {
             const Icon = n.icon;
-            const active = tab === n.id;
             return (
-              <button
-                key={n.id}
-                onClick={() => setTab(n.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition ${
-                  active
-                    ? "bg-[#3b82f6]/15 text-[#3b82f6] border border-[#3b82f6]/30"
-                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 border border-transparent"
-                }`}
-              >
+              <DashTabsTrigger key={n.id} value={n.id}>
                 <Icon className="h-4 w-4" />
                 {n.label}
-              </button>
+              </DashTabsTrigger>
             );
           })}
-        </nav>
-        <button
-          onClick={() => signOut()}
-          className="m-3 flex items-center gap-2 px-3 py-2 rounded-md text-sm text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-        >
-          <LogOut className="h-4 w-4" /> Sair
-        </button>
-      </aside>
+        </DashTabsList>
 
-      <main className="flex-1 overflow-auto">
-        <header className="h-16 border-b border-zinc-800 px-6 flex items-center justify-between bg-zinc-950/40 backdrop-blur sticky top-0 z-10">
-          <h1 className="text-lg font-semibold">{titles[tab]}</h1>
-          <span className="text-xs text-zinc-500">Sistema Traffic Solutions</span>
-        </header>
-        <div className="p-6">{renderContent()}</div>
-      </main>
+        {nav.map((n) => (
+          <DashTabsPanel key={n.id} value={n.id}>
+            {renderContent(n.id)}
+          </DashTabsPanel>
+        ))}
+      </DashTabs>
     </div>
   );
 }

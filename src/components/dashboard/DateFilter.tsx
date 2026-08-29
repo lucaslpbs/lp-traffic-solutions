@@ -52,58 +52,58 @@ export const DateFilter = ({
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-3 items-end">
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-end w-full sm:w-auto">
         <div className="flex flex-col gap-1">
-          <span className="text-xs text-gray-400 font-medium">Data Inicial</span>
+          <span className="text-xs text-muted-foreground font-medium">Data Inicial</span>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-[160px] justify-start text-left font-normal bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white",
-                  !startDate && "text-gray-500"
+                  "w-full sm:w-[160px] justify-start text-left font-normal",
+                  !startDate && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-[#1a1a1a] border-white/20" align="start">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={startDate}
                 onSelect={onStartDateChange}
                 initialFocus
                 locale={ptBR}
-                className="pointer-events-auto bg-[#1a1a1a] text-white"
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
         </div>
 
         <div className="flex flex-col gap-1">
-          <span className="text-xs text-gray-400 font-medium">Data Final</span>
+          <span className="text-xs text-muted-foreground font-medium">Data Final</span>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-[160px] justify-start text-left font-normal bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white",
-                  !endDate && "text-gray-500"
+                  "w-full sm:w-[160px] justify-start text-left font-normal",
+                  !endDate && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-[#1a1a1a] border-white/20" align="start">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={endDate}
                 onSelect={onEndDateChange}
                 initialFocus
                 locale={ptBR}
-                className="pointer-events-auto bg-[#1a1a1a] text-white"
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -111,7 +111,7 @@ export const DateFilter = ({
 
         <Button 
           onClick={onFilter}
-          className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white shadow-lg shadow-blue-500/25"
+          className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-primary-foreground shadow-lg shadow-primary/25"
         >
           <Search className="h-4 w-4 mr-2" />
           Filtrar
@@ -121,7 +121,7 @@ export const DateFilter = ({
           <Button 
             onClick={() => setShowPDFDialog(true)}
             variant="outline"
-            className="bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white"
+            className="bg-surface-2/60"
           >
             <FileDown className="h-4 w-4 mr-2" />
             PDF
@@ -130,10 +130,10 @@ export const DateFilter = ({
       </div>
 
       <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
-        <DialogContent className="bg-[#1a1a1a] border-white/20 text-white">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Gerar Relatório PDF</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription>
               Deseja mostrar os rótulos de dados em cada ponto dos gráficos?
             </DialogDescription>
           </DialogHeader>
@@ -142,7 +142,7 @@ export const DateFilter = ({
               variant="outline"
               onClick={() => handleGeneratePDF(false)}
               disabled={generatingPDF}
-              className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+              className="bg-surface-2/60"
             >
               {generatingPDF ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Sem Rótulos
@@ -150,7 +150,7 @@ export const DateFilter = ({
             <Button
               onClick={() => handleGeneratePDF(true)}
               disabled={generatingPDF}
-              className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#1e3a8a] hover:to-[#2563eb] text-white"
+              className="bg-gradient-to-r from-primary-dark to-primary hover:from-primary-darker hover:to-primary-hover text-primary-foreground"
             >
               {generatingPDF ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Com Rótulos

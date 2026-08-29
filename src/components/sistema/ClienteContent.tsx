@@ -41,7 +41,7 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
       default:
         return (
           <Textarea
-            className="min-h-[400px] bg-[#1c1c1e] border-[#2a2a2a] text-white"
+            className="min-h-[400px] bg-surface-2 border-surface-3 text-foreground"
             placeholder={`Descreva ${subArea?.toLowerCase()}...`}
           />
         );
@@ -51,7 +51,7 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
   return (
     <div className="flex flex-col md:flex-row flex-1 min-h-0">
       {/* Mobile: horizontal scrollable tabs */}
-      <div className="md:hidden border-b border-zinc-800 overflow-x-auto shrink-0">
+      <div className="md:hidden border-b border-border overflow-x-auto shrink-0">
         <div className="flex px-3 py-2 gap-1 min-w-max">
           {allSubAreas.map((item) => (
             <button
@@ -59,8 +59,8 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
               onClick={() => setSubArea(item)}
               className={`whitespace-nowrap px-3 py-1.5 rounded-md text-xs transition-colors ${
                 subArea === item
-                  ? "bg-[#3b82f6]/15 text-[#3b82f6]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-surface-3"
               }`}
             >
               {item}
@@ -70,9 +70,9 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
       </div>
 
       {/* Desktop: sidebar */}
-      <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-zinc-800 overflow-y-auto py-3">
+      <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border overflow-y-auto py-3">
         <div className="px-4 mb-1.5">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             <FileText className="h-3 w-3" />
             Materiais de referência
           </div>
@@ -83,15 +83,15 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
             onClick={() => setSubArea(item)}
             className={`w-full text-left px-4 py-1.5 text-[13px] transition-colors ${
               subArea === item
-                ? "bg-[#3b82f6]/10 text-[#3b82f6] border-r-2 border-[#3b82f6]"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                ? "bg-primary/10 text-primary border-r-2 border-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-surface-3/50"
             }`}
           >
             {item}
           </button>
         ))}
         <div className="px-4 mt-5 mb-1.5">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             <Workflow className="h-3 w-3" />
             Fluxo de trabalho
           </div>
@@ -102,8 +102,8 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
             onClick={() => setSubArea(item)}
             className={`w-full text-left px-4 py-1.5 text-[13px] transition-colors ${
               subArea === item
-                ? "bg-[#3b82f6]/10 text-[#3b82f6] border-r-2 border-[#3b82f6]"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                ? "bg-primary/10 text-primary border-r-2 border-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-surface-3/50"
             }`}
           >
             {item}
@@ -113,7 +113,7 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
 
       {/* Content area */}
       <div className="flex-1 overflow-y-auto p-5 md:p-6">
-        <h2 className="text-lg font-semibold text-white mb-5">{subArea}</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-5">{subArea}</h2>
         {renderSubArea()}
       </div>
     </div>

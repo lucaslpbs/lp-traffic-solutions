@@ -32,8 +32,37 @@ export default {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
 					dark: 'hsl(var(--primary-dark))',
+					darker: 'hsl(var(--primary-darker))',
+					hover: 'hsl(var(--primary-hover))',
 					light: 'hsl(var(--primary-light))',
 					glow: 'hsl(var(--primary-glow))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
+				surface: {
+					1: 'hsl(var(--surface-1))',
+					2: 'hsl(var(--surface-2))',
+					3: 'hsl(var(--surface-3))'
+				},
+				chart: {
+					cyan: 'hsl(var(--chart-cyan))',
+					pink: 'hsl(var(--chart-pink))',
+					orange: 'hsl(var(--chart-orange))'
+				},
+				level: {
+					DEFAULT: 'hsl(var(--level))',
+					dark: 'hsl(var(--level-dark))',
+					glow: 'hsl(var(--level-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -68,12 +97,6 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				neon: {
-					pink: 'hsl(var(--neon-pink))',
-					'pink-glow': 'hsl(var(--neon-pink-glow))',
-					red: 'hsl(var(--neon-red))',
-					purple: 'hsl(var(--neon-purple))'
 				}
 			},
 			backgroundImage: {
@@ -88,8 +111,7 @@ export default {
 				'premium': 'var(--shadow-premium)',
 				'modern': 'var(--shadow-modern)',
 				'elegant': 'var(--shadow-elegant)',
-				'glow': 'var(--shadow-glow)',
-				'neon': 'var(--shadow-neon)'
+				'glow': 'var(--shadow-glow)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -112,11 +134,58 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'collapsible-down': {
+					from: {
+						height: '0'
+					},
+					to: {
+						height: 'var(--radix-collapsible-content-height)'
+					}
+				},
+				'collapsible-up': {
+					from: {
+						height: 'var(--radix-collapsible-content-height)'
+					},
+					to: {
+						height: '0'
+					}
+				},
+				shimmer: {
+					'100%': {
+						transform: 'translateX(100%)'
+					}
+				},
+				/* Brilho que atravessa placas e cartoes de nivel. */
+				sheen: {
+					'0%': { transform: 'translateX(-120%) skewX(-18deg)' },
+					'60%, 100%': { transform: 'translateX(220%) skewX(-18deg)' }
+				},
+				/* Manchas de luz que se movem atras do hero do ranking. */
+				aurora: {
+					'0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1)' },
+					'33%': { transform: 'translate3d(6%, -8%, 0) scale(1.12)' },
+					'66%': { transform: 'translate3d(-7%, 5%, 0) scale(0.94)' }
+				},
+				'pulse-glow': {
+					'0%, 100%': { opacity: '0.55' },
+					'50%': { opacity: '1' }
+				},
+				float: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-6px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'collapsible-down': 'collapsible-down 0.22s ease-out',
+				'collapsible-up': 'collapsible-up 0.22s ease-out',
+				shimmer: 'shimmer 1.8s infinite',
+				sheen: 'sheen 3.2s ease-in-out infinite',
+				aurora: 'aurora 18s ease-in-out infinite',
+				'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
+				float: 'float 4s ease-in-out infinite'
 			}
 		}
 	},

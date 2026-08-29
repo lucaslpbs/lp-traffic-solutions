@@ -270,25 +270,25 @@ const WarRoom = () => {
   const comparisonLabel = `${fmtDateBR(prevStart)} – ${fmtDateBR(prevEnd)}`;
 
   return (
-    <div className="p-6 space-y-6 min-h-screen bg-[#0d0f14]">
+    <div className="p-6 space-y-6 min-h-screen bg-background">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-blue-600/20">
-            <Crosshair className="h-6 w-6 text-blue-400" />
+          <div className="p-2.5 rounded-lg bg-primary/20">
+            <Crosshair className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Quarto de Guerra</h1>
+            <h1 className="text-xl font-bold text-foreground">Quarto de Guerra</h1>
             {!loading && !error && (
-              <div className="flex items-center gap-3 text-xs mt-1 text-white">
+              <div className="flex items-center gap-3 text-xs mt-1 text-foreground">
                 <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-red-500 inline-block" /> {globalCounts.critical} críticos
+                  <span className="h-2 w-2 rounded-full bg-destructive inline-block" /> {globalCounts.critical} críticos
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-yellow-500 inline-block" /> {globalCounts.warning} atenção
+                  <span className="h-2 w-2 rounded-full bg-warning inline-block" /> {globalCounts.warning} atenção
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-green-500 inline-block" /> {globalCounts.healthy} saudáveis
+                  <span className="h-2 w-2 rounded-full bg-success inline-block" /> {globalCounts.healthy} saudáveis
                 </span>
               </div>
             )}
@@ -297,25 +297,25 @@ const WarRoom = () => {
 
         <div className="flex items-center gap-2">
           <MetricsSelectorDropdown metrics={globalMetrics} onChange={handleGlobalMetricsChange} />
-          <Button variant="outline" size="sm" onClick={exportCSV} disabled={loading} className="border-white/10 text-gray-300 hover:bg-white/5 bg-transparent">
+          <Button variant="outline" size="sm" onClick={exportCSV} disabled={loading} className="border-foreground/10 text-foreground/85 hover:bg-foreground/5 bg-transparent">
             <Download className="h-4 w-4 mr-1.5" /> Exportar CSV
           </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-[#1a1d24] border border-white/10">
+      <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-surface-2 border border-foreground/10">
         {/* Date presets */}
         <div className="flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5 text-gray-500 flex-shrink-0" />
+          <Calendar className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
           {(['today', 'last_7d', 'last_15d', 'last_30d'] as const).map(preset => (
             <button
               key={preset}
               onClick={() => handlePresetClick(preset)}
               className={`text-xs px-2.5 py-1 rounded transition-colors ${
                 dateRange.preset === preset && !showCustomDate
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
+                  ? 'bg-primary text-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-foreground/10'
               }`}
             >
               {DATE_PRESET_LABELS[preset]}
@@ -325,8 +325,8 @@ const WarRoom = () => {
             onClick={() => handlePresetClick('custom')}
             className={`text-xs px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
               showCustomDate || dateRange.preset === 'custom'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                ? 'bg-primary text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-foreground/10'
             }`}
           >
             Customizar <ChevronRight className="h-3 w-3" />
@@ -340,16 +340,16 @@ const WarRoom = () => {
               type="date"
               value={customStart}
               onChange={e => setCustomStart(e.target.value)}
-              className="h-7 text-xs w-36 bg-[#0d0f14] border-white/10 text-white"
+              className="h-7 text-xs w-36 bg-background border-foreground/10 text-foreground"
             />
-            <span className="text-gray-500 text-xs">até</span>
+            <span className="text-muted-foreground text-xs">até</span>
             <Input
               type="date"
               value={customEnd}
               onChange={e => setCustomEnd(e.target.value)}
-              className="h-7 text-xs w-36 bg-[#0d0f14] border-white/10 text-white"
+              className="h-7 text-xs w-36 bg-background border-foreground/10 text-foreground"
             />
-            <Button size="sm" onClick={handleCustomApply} disabled={!customStart || !customEnd} className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white">
+            <Button size="sm" onClick={handleCustomApply} disabled={!customStart || !customEnd} className="h-7 text-xs bg-primary hover:bg-primary text-foreground">
               Aplicar
             </Button>
           </div>
@@ -357,25 +357,25 @@ const WarRoom = () => {
 
         {/* Comparison period label */}
         {!loading && previousData.length > 0 && (
-          <span className="text-[11px] text-gray-500 ml-auto">
+          <span className="text-[11px] text-muted-foreground ml-auto">
             Comparando com: {comparisonLabel}
           </span>
         )}
 
         {/* Divider */}
-        <div className="h-4 w-px bg-white/10 hidden lg:block" />
+        <div className="h-4 w-px bg-foreground/10 hidden lg:block" />
 
         {/* Client filter */}
         <div className="flex items-center gap-2">
-          <Label className="text-xs text-gray-400 whitespace-nowrap">Cliente</Label>
+          <Label className="text-xs text-muted-foreground whitespace-nowrap">Cliente</Label>
           <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger className="w-44 bg-[#0d0f14] border-white/10 text-white text-xs h-8">
+            <SelectTrigger className="w-44 bg-background border-foreground/10 text-foreground text-xs h-8">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
-            <SelectContent className="bg-[#1a1d24] border-white/10 text-white">
-              <SelectItem value="all" className="text-white focus:bg-white/10 focus:text-white">Todos</SelectItem>
+            <SelectContent className="bg-surface-2 border-foreground/10 text-foreground">
+              <SelectItem value="all" className="text-foreground focus:bg-foreground/10 focus:text-foreground">Todos</SelectItem>
               {data.map(c => (
-                <SelectItem key={c.id} value={c.id} className="text-white focus:bg-white/10 focus:text-white">{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.id} className="text-foreground focus:bg-foreground/10 focus:text-foreground">{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -383,27 +383,27 @@ const WarRoom = () => {
 
         <div className="flex items-center gap-2">
           <Switch id="alerts-toggle" checked={alertsOnly} onCheckedChange={setAlertsOnly} />
-          <Label htmlFor="alerts-toggle" className="text-xs text-gray-400 cursor-pointer">Mostrar apenas com alertas</Label>
+          <Label htmlFor="alerts-toggle" className="text-xs text-muted-foreground cursor-pointer">Mostrar apenas com alertas</Label>
         </div>
       </div>
 
       {/* Loading state */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <RefreshCw className="h-8 w-8 text-blue-400 animate-spin" />
-          <p className="text-gray-400 text-sm">Carregando dados das campanhas…</p>
+          <RefreshCw className="h-8 w-8 text-primary animate-spin" />
+          <p className="text-muted-foreground text-sm">Carregando dados das campanhas…</p>
         </div>
       )}
 
       {/* Error state */}
       {!loading && error && (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <p className="text-red-400 text-sm">{error}</p>
+          <p className="text-destructive text-sm">{error}</p>
           <Button
             variant="outline"
             size="sm"
             onClick={() => queryClient.invalidateQueries({ queryKey: ['war-room'] })}
-            className="border-white/10 text-gray-300 hover:bg-white/5"
+            className="border-foreground/10 text-foreground/85 hover:bg-foreground/5"
           >
             <RefreshCw className="h-4 w-4 mr-2" /> Tentar novamente
           </Button>
