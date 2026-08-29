@@ -53,6 +53,10 @@ import {
   type Venda,
 } from '@/components/ranking/types';
 import { uploadPerfilFoto, validateRankingImage } from '@/lib/rankingStorage';
+import { PlacasAdminPanel } from '@/components/ranking/PlacasAdminPanel';
+import { PontosAdminPanel } from '@/components/ranking/PontosAdminPanel';
+import { ResgatesAdminPanel } from '@/components/ranking/ResgatesAdminPanel';
+import { ComissaoAdminPanel } from '@/components/ranking/ComissaoAdminPanel';
 import { cn } from '@/lib/utils';
 
 interface ClienteOption {
@@ -269,6 +273,12 @@ export default function RankingAdminPage() {
           <KPI icon={Users} label="Clientes com vendas" valor={String(totais.ativos)} />
           <KPI icon={Clock} label="Em análise" valor={String(totalPendentes)} />
         </div>
+
+        {/* ── Filas de aprovacao/entrega dos novos recursos do ranking ── */}
+        <PontosAdminPanel clientes={clientes} nomePorId={nomePorId} />
+        <PlacasAdminPanel nomePorId={nomePorId} />
+        <ResgatesAdminPanel nomePorId={nomePorId} />
+        <ComissaoAdminPanel clientes={clientes} nomePorId={nomePorId} />
 
         {/* ── Ranking consolidado com edicao de perfil ── */}
         <div className="rounded-xl border border-white/10 bg-[#0f0f0f] overflow-hidden">

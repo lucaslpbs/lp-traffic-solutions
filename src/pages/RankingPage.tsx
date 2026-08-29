@@ -43,6 +43,10 @@ import {
 } from '@/components/ranking/types';
 import { ClientesFinaisPanel } from '@/components/ranking/ClientesFinaisPanel';
 import { useClientesFinais } from '@/components/ranking/clientesFinais';
+import { NivelCard } from '@/components/ranking/NivelCard';
+import { PontosPanel } from '@/components/ranking/PontosPanel';
+import { CardapioResgate } from '@/components/ranking/CardapioResgate';
+import { ComissaoPanel } from '@/components/ranking/ComissaoPanel';
 import { uploadPerfilFoto, validateRankingImage } from '@/lib/rankingStorage';
 import { cn } from '@/lib/utils';
 
@@ -506,6 +510,18 @@ export default function RankingPage() {
               privados — você vê apenas os seus. Registre suas vendas para subir no ranking.
             </p>
           </div>
+        )}
+
+        {/* ── Nivel na regua + placas conquistadas ── */}
+        {clienteVinculadoId && <NivelCard clientId={clienteVinculadoId} />}
+
+        {/* ── Pontos de indicacao/engajamento + cardapio de resgate ── */}
+        {clienteVinculadoId && (
+          <>
+            <PontosPanel clientId={clienteVinculadoId} />
+            <CardapioResgate clientId={clienteVinculadoId} />
+            <ComissaoPanel clientId={clienteVinculadoId} />
+          </>
         )}
 
         {/* ── Meus clientes (compradores) ── */}
