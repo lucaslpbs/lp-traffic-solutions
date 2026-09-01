@@ -336,7 +336,7 @@ function AdminChamadosView() {
 // ── Main export ──
 
 const ChamadosPage = () => {
-  const { isAdmin, loading, loadingRole } = useAuth();
+  const { isAdmin, isColaborador, loading, loadingRole } = useAuth();
 
   // O fundo e o tema vem do DashboardLayout — a pagina so entrega o conteudo.
   if (loading || loadingRole) {
@@ -348,7 +348,7 @@ const ChamadosPage = () => {
     );
   }
 
-  return isAdmin ? <AdminChamadosView /> : <ClienteChamadosView />;
+  return isAdmin || isColaborador ? <AdminChamadosView /> : <ClienteChamadosView />;
 };
 
 export default ChamadosPage;

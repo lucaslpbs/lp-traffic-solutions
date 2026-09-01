@@ -324,9 +324,9 @@ function AdminSistemaView() {
 // ── Main export ──
 
 const SistemaPage = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isColaborador } = useAuth();
 
-  return isAdmin ? <AdminSistemaView /> : <ClienteSistemaView />;
+  return isAdmin || isColaborador ? <AdminSistemaView /> : <ClienteSistemaView />;
 };
 
 export default SistemaPage;

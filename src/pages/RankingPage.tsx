@@ -73,7 +73,8 @@ const ABA_PADRAO: AbaId = 'visao-geral';
 const ehAba = (v: string | null): v is AbaId => ABAS.some((a) => a.id === v);
 
 export default function RankingPage() {
-  const { user, isAdmin, clienteVinculadoId } = useAuth();
+  const { user, isAdmin, isColaborador, clienteVinculadoId } = useAuth();
+  const podeGerenciar = isAdmin || isColaborador;
   const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -288,6 +289,8 @@ export default function RankingPage() {
           <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
             {isAdmin
               ? 'Você está vendo o ranking como administrador. Use "Administrar ranking" para lançar e editar vendas de qualquer cliente.'
+              : isColaborador
+              ? 'Você está vendo o ranking de todos os clientes.'
               : 'Sua conta ainda não está vinculada a um cliente. Fale com o suporte para liberar o ranking.'}
           </div>
         )}
@@ -315,7 +318,7 @@ export default function RankingPage() {
           <DashTabsPanel value="visao-geral" className="space-y-8 lg:space-y-10">
             {clienteVinculadoId && <ReguaNiveis ordem={nivel?.ordem_atual} />}
 
-            {isAdmin && !loadingRanking && <Podio rows={ranking} destaqueId={clienteVinculadoId} />}
+            {podeGerenciar && !loadingRanking && <Podio rows={ranking} destaqueId={clienteVinculadoId} />}
 
             {clienteVinculadoId && (
               <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,340px)_1fr]">
@@ -344,7 +347,7 @@ export default function RankingPage() {
             {/* ── Ranking geral — somente admin ──
                 O cliente nunca ve nome/valor dos outros: a RPC ranking_geral
                 devolve apenas a linha dele (com a posicao ja calculada). */}
-            {isAdmin &&
+            {podeGerenciar &&
               (loadingRanking ? (
                 <TableSkeleton rows={8} />
               ) : (

@@ -16,6 +16,7 @@ import {
   Headphones,
   Trophy,
   ShieldCheck,
+  UserCog,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -106,18 +107,25 @@ export const DashboardSidebarContent = ({
   collapseToggle,
   instanceId = 'desktop',
 }: SidebarContentProps) => {
-  const { signOut, isAdmin } = useAuth();
+  const { signOut, isAdmin, isColaborador, colaboradorSessoes, colaboradorClientIds } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const temSessao = (sessao: string) => isAdmin || (isColaborador && colaboradorSessoes.includes(sessao as any));
+  /** Sessoes que ja eram abertas pra qualquer logado (Sistema/Chamados/Ranking) — colaborador sem a sessao liberada nao ve o link, o resto (admin, cliente) continua vendo. */
+  const sessaoAberta = (sessao: string) => !isColaborador || temSessao(sessao);
+  const verClientes = isAdmin || isColaborador;
 
   const { data: clients = [], isLoading: loading } = useQuery({
-    queryKey: ['sidebar-clients'],
+    queryKey: ['sidebar-clients', isAdmin, isColaborador, colaboradorClientIds],
+    enabled: verClientes && (isAdmin || colaboradorClientIds.length > 0),
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      let query = (supabase as any)
         .from('gestao_clientes')
         .select('id, nome_cliente, numero_conta_anuncio, logo_url')
         .eq('status', 'ativo')
         .order('nome_cliente');
+      if (!isAdmin) query = query.in('id', colaboradorClientIds);
+      const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as SidebarCliente[];
     },
@@ -152,56 +160,73 @@ export const DashboardSidebarContent = ({
             instanceId={instanceId}
           />
 
+          {temSessao('guerra') && (
+            <SidebarLink
+              to="/dashboard/guerra"
+              label="Quarto de Guerra"
+              icon={Crosshair}
+              active={path === '/dashboard/guerra'}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
+          {temSessao('gestao_clientes') && (
+            <SidebarLink
+              to="/dashboard/gestao-clientes"
+              label="Gestão de Clientes"
+              icon={Users}
+              active={path === '/dashboard/gestao-clientes'}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
           {isAdmin && (
-            <>
-              <SidebarLink
-                to="/dashboard/guerra"
-                label="Quarto de Guerra"
-                icon={Crosshair}
-                active={path === '/dashboard/guerra'}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-                instanceId={instanceId}
-              />
-              <SidebarLink
-                to="/dashboard/gestao-clientes"
-                label="Gestão de Clientes"
-                icon={Users}
-                active={path === '/dashboard/gestao-clientes'}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-                instanceId={instanceId}
-              />
-            </>
+            <SidebarLink
+              to="/dashboard/usuarios"
+              label="Gestão de Usuários"
+              icon={UserCog}
+              active={path === '/dashboard/usuarios'}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
           )}
 
-          <SidebarLink
-            to="/dashboard/sistema"
-            label="Sistema"
-            icon={FolderKanban}
-            active={isActive('/dashboard/sistema')}
-            collapsed={collapsed}
-            onNavigate={onNavigate}
-            instanceId={instanceId}
-          />
-          <SidebarLink
-            to="/dashboard/chamados"
-            label="Chamados"
-            icon={Headphones}
-            active={isActive('/dashboard/chamados')}
-            collapsed={collapsed}
-            onNavigate={onNavigate}
-            instanceId={instanceId}
-          />
-          <SidebarLink
-            to="/dashboard/ranking"
-            label="Ranking"
-            icon={Trophy}
-            active={path === '/dashboard/ranking'}
-            collapsed={collapsed}
-            onNavigate={onNavigate}
-            instanceId={instanceId}
-          />
+          {sessaoAberta('sistema') && (
+            <SidebarLink
+              to="/dashboard/sistema"
+              label="Sistema"
+              icon={FolderKanban}
+              active={isActive('/dashboard/sistema')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
+          {sessaoAberta('chamados') && (
+            <SidebarLink
+              to="/dashboard/chamados"
+              label="Chamados"
+              icon={Headphones}
+              active={isActive('/dashboard/chamados')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
+          {sessaoAberta('ranking') && (
+            <SidebarLink
+              to="/dashboard/ranking"
+              label="Ranking"
+              icon={Trophy}
+              active={path === '/dashboard/ranking'}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
 
           {isAdmin && (
             <SidebarLink
@@ -216,8 +241,8 @@ export const DashboardSidebarContent = ({
           )}
         </div>
 
-        {/* Clientes — somente admin */}
-        {isAdmin && (
+        {/* Clientes — admin ve todos, colaborador so os liberados pra ele */}
+        {verClientes && (
           <>
             {!collapsed && (
               <div className="mt-6 mb-2 px-3">

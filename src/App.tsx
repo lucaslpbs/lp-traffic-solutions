@@ -8,6 +8,8 @@ import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/dashboard/ProtectedRoute";
 import { ProtectedAdminRoute } from "@/components/dashboard/ProtectedAdminRoute";
+import { ProtectedSessionRoute } from "@/components/dashboard/ProtectedSessionRoute";
+import { ProtectedClientRoute } from "@/components/dashboard/ProtectedClientRoute";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import Home from "./pages/Home";
 import Services from "./pages/Services";
@@ -52,6 +54,7 @@ import RankingAdminPage from "./pages/RankingAdminPage";
 import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 import ClienteDetailPage from "./pages/ClienteDetailPage";
+import GestaoUsuarios from "./pages/GestaoUsuarios";
 import SistemaMarketingPage from "./pages/sistema";
 import OrcamentoEscolaCearenceOftalmologia from "./pages/OrcamentoEscolaCearenceOftalmologia";
 import OrcamentoSeteMares from "./pages/OrcamentoSeteMares";
@@ -204,14 +207,15 @@ const AppRoutes = () => {
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="guerra" element={<ProtectedAdminRoute><WarRoom /></ProtectedAdminRoute>} />
-          <Route path="gestao-clientes" element={<ProtectedAdminRoute><GestaoClientes /></ProtectedAdminRoute>} />
-          <Route path="sistema" element={<SistemaPage />} />
-          <Route path="sistema/cliente/:clientId" element={<ProtectedAdminRoute><ClienteDetailPage /></ProtectedAdminRoute>} />
-          <Route path="chamados" element={<ChamadosPage />} />
-          <Route path="ranking" element={<RankingPage />} />
+          <Route path="guerra" element={<ProtectedSessionRoute session="guerra"><WarRoom /></ProtectedSessionRoute>} />
+          <Route path="gestao-clientes" element={<ProtectedSessionRoute session="gestao_clientes"><GestaoClientes /></ProtectedSessionRoute>} />
+          <Route path="usuarios" element={<ProtectedAdminRoute><GestaoUsuarios /></ProtectedAdminRoute>} />
+          <Route path="sistema" element={<ProtectedSessionRoute session="sistema" fallbackAllowed><SistemaPage /></ProtectedSessionRoute>} />
+          <Route path="sistema/cliente/:clientId" element={<ProtectedSessionRoute session="sistema"><ClienteDetailPage /></ProtectedSessionRoute>} />
+          <Route path="chamados" element={<ProtectedSessionRoute session="chamados" fallbackAllowed><ChamadosPage /></ProtectedSessionRoute>} />
+          <Route path="ranking" element={<ProtectedSessionRoute session="ranking" fallbackAllowed><RankingPage /></ProtectedSessionRoute>} />
           <Route path="ranking/admin" element={<ProtectedAdminRoute><RankingAdminPage /></ProtectedAdminRoute>} />
-          <Route path=":clientId" element={<ProtectedAdminRoute><ClientReport /></ProtectedAdminRoute>} />
+          <Route path=":clientId" element={<ProtectedClientRoute><ClientReport /></ProtectedClientRoute>} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

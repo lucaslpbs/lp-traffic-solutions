@@ -3,6 +3,8 @@ import { useState, useEffect, useRef, createContext, useContext, ReactNode } fro
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+export type SessaoColaborador = 'guerra' | 'gestao_clientes' | 'sistema' | 'chamados' | 'ranking';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -10,6 +12,11 @@ interface AuthContextType {
   isAdmin: boolean;
   clienteVinculadoId: string | null;
   isRemoved: boolean;
+  isColaborador: boolean;
+  colaboradorInativo: boolean;
+  colaboradorClientIds: string[];
+  colaboradorClientAccountNumbers: string[];
+  colaboradorSessoes: SessaoColaborador[];
   loadingRole: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -24,6 +31,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [clienteVinculadoId, setClienteVinculadoId] = useState<string | null>(null);
   const [isRemoved, setIsRemoved] = useState(false);
+  const [isColaborador, setIsColaborador] = useState(false);
+  const [colaboradorInativo, setColaboradorInativo] = useState(false);
+  const [colaboradorClientIds, setColaboradorClientIds] = useState<string[]>([]);
+  const [colaboradorClientAccountNumbers, setColaboradorClientAccountNumbers] = useState<string[]>([]);
+  const [colaboradorSessoes, setColaboradorSessoes] = useState<SessaoColaborador[]>([]);
   const [loadingRole, setLoadingRole] = useState(true);
   const roleFetchedForUser = useRef<string | null>(null);
 
@@ -42,27 +54,88 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAdmin(true);
         setClienteVinculadoId(null);
         setIsRemoved(false);
-      } else {
-        setIsAdmin(false);
-        const { data: uc, error: ucError } = await supabase
-          .from('users_clients')
-          .select('client_id')
-          .eq('user_id', userId)
-          .maybeSingle();
-        if (ucError) throw ucError;
-        setClienteVinculadoId(uc?.client_id ?? null);
+        setIsColaborador(false);
+        setColaboradorInativo(false);
+        setColaboradorClientIds([]);
+        setColaboradorClientAccountNumbers([]);
+        setColaboradorSessoes([]);
+        roleFetchedForUser.current = userId;
+        return;
+      }
 
-        if (!uc?.client_id) {
-          const { data: removed } = await supabase
-            .from('clientes_removidos')
-            .select('id')
-            .eq('user_id', userId)
-            .limit(1)
-            .maybeSingle();
-          setIsRemoved(!!removed);
-        } else {
-          setIsRemoved(false);
+      setIsAdmin(false);
+
+      const { data: colaborador, error: colaboradorError } = await supabase
+        .from('colaboradores')
+        .select('ativo')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (colaboradorError) throw colaboradorError;
+
+      if (colaborador) {
+        setClienteVinculadoId(null);
+        setIsRemoved(false);
+
+        if (!colaborador.ativo) {
+          setIsColaborador(false);
+          setColaboradorInativo(true);
+          setColaboradorClientIds([]);
+          setColaboradorClientAccountNumbers([]);
+          setColaboradorSessoes([]);
+          roleFetchedForUser.current = userId;
+          return;
         }
+
+        setIsColaborador(true);
+        setColaboradorInativo(false);
+
+        const [{ data: clientRows }, { data: sessaoRows }] = await Promise.all([
+          supabase
+            .from('colaborador_clientes')
+            .select('client_id, gestao_clientes(id, numero_conta_anuncio)')
+            .eq('user_id', userId),
+          supabase
+            .from('colaborador_sessoes')
+            .select('sessao')
+            .eq('user_id', userId),
+        ]);
+
+        setColaboradorClientIds((clientRows ?? []).map((row) => row.client_id));
+        setColaboradorClientAccountNumbers(
+          (clientRows ?? [])
+            .map((row) => row.gestao_clientes?.numero_conta_anuncio)
+            .filter((v): v is string => !!v)
+        );
+        setColaboradorSessoes((sessaoRows ?? []).map((row) => row.sessao as SessaoColaborador));
+
+        roleFetchedForUser.current = userId;
+        return;
+      }
+
+      setIsColaborador(false);
+      setColaboradorInativo(false);
+      setColaboradorClientIds([]);
+      setColaboradorClientAccountNumbers([]);
+      setColaboradorSessoes([]);
+
+      const { data: uc, error: ucError } = await supabase
+        .from('users_clients')
+        .select('client_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (ucError) throw ucError;
+      setClienteVinculadoId(uc?.client_id ?? null);
+
+      if (!uc?.client_id) {
+        const { data: removed } = await supabase
+          .from('clientes_removidos')
+          .select('id')
+          .eq('user_id', userId)
+          .limit(1)
+          .maybeSingle();
+        setIsRemoved(!!removed);
+      } else {
+        setIsRemoved(false);
       }
       roleFetchedForUser.current = userId;
     } catch (err) {
@@ -78,6 +151,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAdmin(false);
     setClienteVinculadoId(null);
     setIsRemoved(false);
+    setIsColaborador(false);
+    setColaboradorInativo(false);
+    setColaboradorClientIds([]);
+    setColaboradorClientAccountNumbers([]);
+    setColaboradorSessoes([]);
     setLoadingRole(false);
     roleFetchedForUser.current = null;
   };
@@ -126,7 +204,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, clienteVinculadoId, isRemoved, loadingRole, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        isAdmin,
+        clienteVinculadoId,
+        isRemoved,
+        isColaborador,
+        colaboradorInativo,
+        colaboradorClientIds,
+        colaboradorClientAccountNumbers,
+        colaboradorSessoes,
+        loadingRole,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

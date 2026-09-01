@@ -515,8 +515,8 @@ function RemovedAccessView() {
 }
 
 export default function Dashboard() {
-  const { isAdmin, isRemoved } = useAuth();
+  const { isAdmin, isRemoved, isColaborador, colaboradorInativo } = useAuth();
 
-  if (!isAdmin && isRemoved) return <RemovedAccessView />;
-  return isAdmin ? <AdminDashboardView /> : <ClienteDashboardView />;
+  if (!isAdmin && (isRemoved || colaboradorInativo)) return <RemovedAccessView />;
+  return isAdmin || isColaborador ? <AdminDashboardView /> : <ClienteDashboardView />;
 }
