@@ -3,7 +3,7 @@ import {
   Users, ShoppingCart, TrendingUp, Search, RefreshCw,
   ChevronDown, ChevronUp, MessageSquare, Star, AlertCircle,
   CheckCircle2, Clock, XCircle, ThumbsUp, ThumbsDown, ArrowRight,
-  UserCheck, Smartphone, ImageIcon, CalendarDays, DollarSign, Trophy, Target,
+  UserCheck, Smartphone, ImageIcon, CalendarDays, DollarSign, Trophy, Target, CalendarRange,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,6 +121,8 @@ export default function LivetDashboard() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [leadsAgrupamento, setLeadsAgrupamento] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [ganhosFiltro, setGanhosFiltro] = useState<'todos' | 'pago'>('todos');
+  const [analiseDataInicio, setAnaliseDataInicio] = useState<string>('');
+  const [analiseDataFim, setAnaliseDataFim] = useState<string>('');
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -240,12 +242,31 @@ export default function LivetDashboard() {
     { name: 'Baixo (1-4)', value: resumosAtivos.filter(r => r.qualidade_lead < 5).length, color: '#ef4444' },
   ], [resumosAtivos]);
 
+  // ── Análise de Leads: recorte por data ───────────────────────────────────
+  // Usa o mesmo critério do gráfico (periodo_inicio = data em que a conversa começou)
+
+  const resumosAnalise = useMemo(() => {
+    let result = resumosAtivos;
+
+    if (analiseDataInicio) {
+      const inicio = new Date(analiseDataInicio);
+      result = result.filter(r => new Date(r.periodo_inicio) >= inicio);
+    }
+    if (analiseDataFim) {
+      const fim = new Date(analiseDataFim);
+      fim.setHours(23, 59, 59, 999);
+      result = result.filter(r => new Date(r.periodo_inicio) <= fim);
+    }
+
+    return result;
+  }, [resumosAtivos, analiseDataInicio, analiseDataFim]);
+
   // ── Análise de Leads: por período ────────────────────────────────────────
 
   const leadsPorPeriodo = useMemo(() => {
     const buckets = new Map<string, { label: string; sortKey: string; total: number }>();
 
-    resumosAtivos.forEach(r => {
+    resumosAnalise.forEach(r => {
       const data = parseISO(r.periodo_inicio);
       let key: string;
       let label: string;
@@ -269,32 +290,45 @@ export default function LivetDashboard() {
     });
 
     return Array.from(buckets.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-  }, [resumosAtivos, leadsAgrupamento]);
+  }, [resumosAnalise, leadsAgrupamento]);
 
   // ── Análise de Leads: por origem ─────────────────────────────────────────
 
   const leadsPorOrigem = useMemo(() => {
     const buckets = new Map<string, number>();
-    resumosAtivos.forEach(r => {
+    resumosAnalise.forEach(r => {
       const origem = r.trafego_pago || 'Não informado';
       buckets.set(origem, (buckets.get(origem) ?? 0) + 1);
     });
     return Array.from(buckets.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [resumosAtivos]);
+  }, [resumosAnalise]);
 
   const ORIGEM_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'];
 
   // ── Análise de Leads: ganhos ──────────────────────────────────────────────
+  // "Tráfego pago" só conta quando a origem é exatamente esse rótulo — leads de
+  // Instagram orgânico (ou qualquer outra origem preenchida) não entram na contagem.
+
+  const isTrafegoPago = (origem: string | null | undefined) => {
+    if (!origem) return false;
+    const normalizado = origem
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/_/g, ' ')
+      .trim()
+      .toLowerCase();
+    return normalizado === 'trafego pago';
+  };
 
   const ganhos = useMemo(
-    () => resumosAtivos.filter(r => r.vendeu),
-    [resumosAtivos]
+    () => resumosAnalise.filter(r => r.vendeu),
+    [resumosAnalise]
   );
 
   const ganhosFiltrados = useMemo(
-    () => ganhosFiltro === 'pago' ? ganhos.filter(r => !!r.trafego_pago) : ganhos,
+    () => ganhosFiltro === 'pago' ? ganhos.filter(r => isTrafegoPago(r.trafego_pago)) : ganhos,
     [ganhos, ganhosFiltro]
   );
 
@@ -443,11 +477,40 @@ export default function LivetDashboard() {
 
       {/* Análise de Leads */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-lg bg-pink-500/20 border border-pink-500/30">
-            <TrendingUp className="h-4 w-4 text-pink-400" />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-pink-500/20 border border-pink-500/30">
+              <TrendingUp className="h-4 w-4 text-pink-400" />
+            </div>
+            <h2 className="text-lg font-bold text-white">Análise de Leads</h2>
           </div>
-          <h2 className="text-lg font-bold text-white">Análise de Leads</h2>
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2">
+            <span className="text-xs text-gray-400 flex items-center gap-1.5 whitespace-nowrap">
+              <CalendarRange className="h-3.5 w-3.5" /> Período da análise:
+            </span>
+            <Input
+              type="date"
+              value={analiseDataInicio}
+              onChange={e => setAnaliseDataInicio(e.target.value)}
+              className="w-full sm:w-[150px] h-8 bg-white/5 border-white/10 text-gray-300 text-xs [color-scheme:dark]"
+            />
+            <span className="text-xs text-gray-500">até</span>
+            <Input
+              type="date"
+              value={analiseDataFim}
+              onChange={e => setAnaliseDataFim(e.target.value)}
+              className="w-full sm:w-[150px] h-8 bg-white/5 border-white/10 text-gray-300 text-xs [color-scheme:dark]"
+            />
+            {(analiseDataInicio || analiseDataFim) && (
+              <button
+                onClick={() => { setAnaliseDataInicio(''); setAnaliseDataFim(''); }}
+                className="text-xs text-gray-500 hover:text-white transition-colors whitespace-nowrap"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Leads por período */}
