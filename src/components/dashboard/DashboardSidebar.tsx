@@ -17,6 +17,7 @@ import {
   Trophy,
   ShieldCheck,
   UserCog,
+  Sparkles,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -107,7 +108,7 @@ export const DashboardSidebarContent = ({
   collapseToggle,
   instanceId = 'desktop',
 }: SidebarContentProps) => {
-  const { signOut, isAdmin, isColaborador, colaboradorSessoes, colaboradorClientIds } = useAuth();
+  const { signOut, isAdmin, isColaborador, colaboradorSessoes, colaboradorClientIds, isInfluenciador, clienteVinculadoId } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const temSessao = (sessao: string) => isAdmin || (isColaborador && colaboradorSessoes.includes(sessao as any));
@@ -128,6 +129,21 @@ export const DashboardSidebarContent = ({
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as SidebarCliente[];
+    },
+  });
+
+  const souClienteSimples = !isAdmin && !isColaborador && !isInfluenciador && !!clienteVinculadoId;
+
+  const { data: influenciadoresVinculados = [] } = useQuery({
+    queryKey: ['sidebar-influenciadores-cliente', clienteVinculadoId],
+    enabled: souClienteSimples,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('influenciador_clientes')
+        .select('influenciador_id, influenciadores(id, nome)')
+        .eq('client_id', clienteVinculadoId);
+      if (error) throw error;
+      return (data ?? []) as { influenciador_id: string; influenciadores: { id: string; nome: string } | null }[];
     },
   });
 
@@ -193,6 +209,43 @@ export const DashboardSidebarContent = ({
               instanceId={instanceId}
             />
           )}
+          {isAdmin && (
+            <SidebarLink
+              to="/dashboard/influenciadores"
+              label="Influenciadores"
+              icon={Sparkles}
+              active={isActive('/dashboard/influenciadores')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
+          {isInfluenciador && (
+            <SidebarLink
+              to="/dashboard/minha-agenda"
+              label="Minha Agenda"
+              icon={Sparkles}
+              active={isActive('/dashboard/influenciadores')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
+          {souClienteSimples &&
+            influenciadoresVinculados.map((v) =>
+              v.influenciadores ? (
+                <SidebarLink
+                  key={v.influenciador_id}
+                  to={`/dashboard/influenciadores/${v.influenciador_id}`}
+                  label={v.influenciadores.nome}
+                  icon={Sparkles}
+                  active={isActive(`/dashboard/influenciadores/${v.influenciador_id}`)}
+                  collapsed={collapsed}
+                  onNavigate={onNavigate}
+                  instanceId={instanceId}
+                />
+              ) : null
+            )}
 
           {sessaoAberta('sistema') && (
             <SidebarLink

@@ -22,7 +22,8 @@ export default function Login() {
   const location = useLocation();
   const { toast } = useToast();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const fromLocation = location.state?.from;
+  const from = fromLocation ? `${fromLocation.pathname}${fromLocation.search || ''}` : '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

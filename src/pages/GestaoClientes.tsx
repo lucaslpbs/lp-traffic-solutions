@@ -80,6 +80,8 @@ type FormData = {
   fluxo_resumos: boolean;
   email_acesso: string;
   senha_acesso: string;
+  instagram: string;
+  endereco: string;
 };
 
 const EMPTY_PARCELA: Parcela = { parcelas: '', valor: '', inicio: new Date().toISOString().split('T')[0] };
@@ -105,6 +107,8 @@ const EMPTY_FORM: FormData = {
   fluxo_resumos: true,
   email_acesso: '',
   senha_acesso: '',
+  instagram: '',
+  endereco: '',
 };
 
 const N8N_WEBHOOK_CONTROLAR_FLUXO = 'https://n8n.trafficsolutions.cloud/webhook/controlar-fluxo-cliente';
@@ -380,6 +384,8 @@ export default function GestaoClientes() {
       fluxo_resumos: c.fluxo_resumos_ativo ?? true,
       email_acesso: c.login_email ?? '',
       senha_acesso: '',
+      instagram: c.instagram ?? '',
+      endereco: c.endereco ?? '',
     });
     setModalOpen(true);
   };
@@ -468,6 +474,8 @@ export default function GestaoClientes() {
         data_fim: form.data_fim || null,
         limite_minimo_saldo: parseFloat(form.limite_minimo_saldo) || 58,
         observacoes: form.observacoes || null,
+        instagram: form.instagram || null,
+        endereco: form.endereco || null,
         plano_personalizado: form.plano_personalizado,
         parcelas_detalhes: form.plano_personalizado ? form.parcelas : null,
         fluxo_alerta_saldo_ativo: form.fluxo_alerta_saldo,
@@ -1091,6 +1099,18 @@ export default function GestaoClientes() {
                               <div>
                                 <p className="text-muted-foreground text-xs mb-1">Fim do Contrato</p>
                                 <p className="text-foreground">{c.data_fim}</p>
+                              </div>
+                            )}
+                            {c.instagram && (
+                              <div>
+                                <p className="text-muted-foreground text-xs mb-1">Instagram</p>
+                                <p className="text-foreground">{c.instagram}</p>
+                              </div>
+                            )}
+                            {c.endereco && (
+                              <div className="col-span-2">
+                                <p className="text-muted-foreground text-xs mb-1">Endereço</p>
+                                <p className="text-foreground">{c.endereco}</p>
                               </div>
                             )}
                             {c.observacoes && (
@@ -1731,6 +1751,31 @@ export default function GestaoClientes() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Informações Adicionais (opcional) */}
+            <div>
+              <p className={sectionTitleCls}>Informações Adicionais (opcional)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Instagram</label>
+                  <Input
+                    value={form.instagram}
+                    onChange={(e) => handleField('instagram', e.target.value)}
+                    placeholder="@usuario"
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Endereço</label>
+                  <Input
+                    value={form.endereco}
+                    onChange={(e) => handleField('endereco', e.target.value)}
+                    placeholder="Rua, número, cidade - UF"
+                    className={inputCls}
+                  />
                 </div>
               </div>
             </div>

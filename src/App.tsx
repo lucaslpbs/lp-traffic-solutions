@@ -2,14 +2,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Header } from "@/components/sections/modern-header";
 import { Footer } from "@/components/sections/Footer";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/dashboard/ProtectedRoute";
 import { ProtectedAdminRoute } from "@/components/dashboard/ProtectedAdminRoute";
 import { ProtectedSessionRoute } from "@/components/dashboard/ProtectedSessionRoute";
 import { ProtectedClientRoute } from "@/components/dashboard/ProtectedClientRoute";
+import { ProtectedInfluencerBoardRoute } from "@/components/dashboard/ProtectedInfluencerBoardRoute";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import Home from "./pages/Home";
 import Services from "./pages/Services";
@@ -69,6 +70,8 @@ import RoadmapEstrutureSuaEmpresa from "./pages/roadmap-estruture";
 import DiagnosticoEstrutureSuaEmpresa from "./pages/diagnostico-estruture";
 import PropostaUseBiquinisQSol from "./pages/proposta-usebiquinisqsol/index.jsx";
 import PainelOftalmologia from "./pages/PainelOftalmologia";
+import InfluenciadoresAdminPage from "./pages/InfluenciadoresAdminPage";
+import InfluenciadorBoardPage from "./pages/InfluenciadorBoardPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -116,6 +119,13 @@ const HIDDEN_PATHS = [
   '/proposta-usebiquinisqsol',
   '/painel-oftalmologia',
 ];
+
+/** Atalho pro influenciador logado nao precisar saber a propria URL. */
+const MinhaAgendaRedirect = () => {
+  const { influenciadorId, loadingRole } = useAuth();
+  if (loadingRole) return null;
+  return <Navigate to={influenciadorId ? `/dashboard/influenciadores/${influenciadorId}` : '/dashboard'} replace />;
+};
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -210,6 +220,10 @@ const AppRoutes = () => {
           <Route path="guerra" element={<ProtectedSessionRoute session="guerra"><WarRoom /></ProtectedSessionRoute>} />
           <Route path="gestao-clientes" element={<ProtectedSessionRoute session="gestao_clientes"><GestaoClientes /></ProtectedSessionRoute>} />
           <Route path="usuarios" element={<ProtectedAdminRoute><GestaoUsuarios /></ProtectedAdminRoute>} />
+          <Route path="influenciadores" element={<ProtectedAdminRoute><InfluenciadoresAdminPage /></ProtectedAdminRoute>} />
+          <Route path="influenciadores/:influenciadorId" element={<ProtectedInfluencerBoardRoute><InfluenciadorBoardPage /></ProtectedInfluencerBoardRoute>} />
+          <Route path="influenciadores/:influenciadorId/confirmar/:agendamentoId" element={<ProtectedInfluencerBoardRoute><InfluenciadorBoardPage /></ProtectedInfluencerBoardRoute>} />
+          <Route path="minha-agenda" element={<ProtectedRoute><MinhaAgendaRedirect /></ProtectedRoute>} />
           <Route path="sistema" element={<ProtectedSessionRoute session="sistema" fallbackAllowed><SistemaPage /></ProtectedSessionRoute>} />
           <Route path="sistema/cliente/:clientId" element={<ProtectedSessionRoute session="sistema"><ClienteDetailPage /></ProtectedSessionRoute>} />
           <Route path="chamados" element={<ProtectedSessionRoute session="chamados" fallbackAllowed><ChamadosPage /></ProtectedSessionRoute>} />

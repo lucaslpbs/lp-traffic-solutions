@@ -29,6 +29,7 @@ import {
   PlayCircle,
   Eye,
   EyeOff,
+  ShieldCheck,
 } from 'lucide-react';
 
 type Colaborador = {
@@ -37,6 +38,12 @@ type Colaborador = {
   email: string;
   cargo: string | null;
   ativo: boolean;
+  created_at: string;
+};
+
+type AdminUser = {
+  user_id: string;
+  email: string;
   created_at: string;
 };
 
@@ -108,6 +115,15 @@ export default function GestaoUsuarios() {
         .order('nome');
       if (error) throw error;
       return (data ?? []) as Colaborador[];
+    },
+  });
+
+  const { data: admins = [] } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const { data, error } = await supabaseGestao.rpc('list_admin_users');
+      if (error) throw error;
+      return (data ?? []) as AdminUser[];
     },
   });
 
@@ -271,6 +287,48 @@ export default function GestaoUsuarios() {
           <Plus className="h-4 w-4" />
           Novo Colaborador
         </Button>
+      </div>
+
+      {/* Administradores — acesso total, so leitura aqui */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold text-foreground">Administradores</h2>
+          <span className="text-xs text-muted-foreground">— acesso total ao sistema</span>
+        </div>
+        <div className="bg-foreground/5 backdrop-blur-xl rounded-xl border border-foreground/10 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-foreground/10">
+                  {['E-mail', 'Desde'].map((h) => (
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {admins.length === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="px-4 py-6 text-center text-muted-foreground text-sm">
+                      Nenhum administrador encontrado.
+                    </td>
+                  </tr>
+                ) : (
+                  admins.map((a) => (
+                    <tr key={a.user_id} className="border-b border-foreground/5 last:border-0">
+                      <td className="px-4 py-2.5 text-sm font-medium text-foreground">{a.email}</td>
+                      <td className="px-4 py-2.5 text-sm text-muted-foreground">
+                        {new Date(a.created_at).toLocaleDateString('pt-BR')}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}

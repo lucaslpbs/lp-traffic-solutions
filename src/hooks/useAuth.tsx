@@ -17,6 +17,8 @@ interface AuthContextType {
   colaboradorClientIds: string[];
   colaboradorClientAccountNumbers: string[];
   colaboradorSessoes: SessaoColaborador[];
+  isInfluenciador: boolean;
+  influenciadorId: string | null;
   loadingRole: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -36,6 +38,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [colaboradorClientIds, setColaboradorClientIds] = useState<string[]>([]);
   const [colaboradorClientAccountNumbers, setColaboradorClientAccountNumbers] = useState<string[]>([]);
   const [colaboradorSessoes, setColaboradorSessoes] = useState<SessaoColaborador[]>([]);
+  const [isInfluenciador, setIsInfluenciador] = useState(false);
+  const [influenciadorId, setInfluenciadorId] = useState<string | null>(null);
   const [loadingRole, setLoadingRole] = useState(true);
   const roleFetchedForUser = useRef<string | null>(null);
 
@@ -59,6 +63,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setColaboradorClientIds([]);
         setColaboradorClientAccountNumbers([]);
         setColaboradorSessoes([]);
+        setIsInfluenciador(false);
+        setInfluenciadorId(null);
         roleFetchedForUser.current = userId;
         return;
       }
@@ -75,6 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (colaborador) {
         setClienteVinculadoId(null);
         setIsRemoved(false);
+        setIsInfluenciador(false);
+        setInfluenciadorId(null);
 
         if (!colaborador.ativo) {
           setIsColaborador(false);
@@ -118,6 +126,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setColaboradorClientAccountNumbers([]);
       setColaboradorSessoes([]);
 
+      const { data: influenciador, error: influenciadorError } = await supabase
+        .from('influenciadores')
+        .select('id, ativo')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (influenciadorError) throw influenciadorError;
+
+      if (influenciador) {
+        setClienteVinculadoId(null);
+        setIsRemoved(false);
+        setIsInfluenciador(!!influenciador.ativo);
+        setInfluenciadorId(influenciador.id);
+        roleFetchedForUser.current = userId;
+        return;
+      }
+
+      setIsInfluenciador(false);
+      setInfluenciadorId(null);
+
       const { data: uc, error: ucError } = await supabase
         .from('users_clients')
         .select('client_id')
@@ -142,6 +169,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Erro ao buscar papel do usuario:', err);
       setIsAdmin(false);
       setClienteVinculadoId(null);
+      setIsInfluenciador(false);
+      setInfluenciadorId(null);
     } finally {
       setLoadingRole(false);
     }
@@ -156,6 +185,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setColaboradorClientIds([]);
     setColaboradorClientAccountNumbers([]);
     setColaboradorSessoes([]);
+    setIsInfluenciador(false);
+    setInfluenciadorId(null);
     setLoadingRole(false);
     roleFetchedForUser.current = null;
   };
@@ -217,6 +248,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         colaboradorClientIds,
         colaboradorClientAccountNumbers,
         colaboradorSessoes,
+        isInfluenciador,
+        influenciadorId,
         loadingRole,
         signIn,
         signOut,
