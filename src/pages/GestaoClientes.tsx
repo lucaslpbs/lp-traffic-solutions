@@ -49,11 +49,17 @@ import {
   Loader2,
   RefreshCw,
   Zap,
+  Link2,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { uploadClientLogo, validateLogoFile } from '@/lib/supabaseStorage';
 import { useAuth } from '@/hooks/useAuth';
+import { extractPaletteFromImage } from '@/lib/colorExtraction';
+import { slugify, isReservedSlug } from '@/lib/slugify';
+import { LinkPageEditor, type LinkItem } from '@/components/linktree/LinkPageEditor';
 
 type GestaoCliente = Tables<'gestao_clientes'>;
 
@@ -82,6 +88,14 @@ type FormData = {
   senha_acesso: string;
   instagram: string;
   endereco: string;
+  link_page_ativo: boolean;
+  link_page_slug: string;
+  link_page_titulo: string;
+  link_page_bio: string;
+  link_page_cor_primaria: string;
+  link_page_cor_secundaria: string;
+  link_page_cor_fundo: string;
+  link_page_links: LinkItem[];
 };
 
 const EMPTY_PARCELA: Parcela = { parcelas: '', valor: '', inicio: new Date().toISOString().split('T')[0] };
@@ -109,6 +123,14 @@ const EMPTY_FORM: FormData = {
   senha_acesso: '',
   instagram: '',
   endereco: '',
+  link_page_ativo: false,
+  link_page_slug: '',
+  link_page_titulo: '',
+  link_page_bio: '',
+  link_page_cor_primaria: '',
+  link_page_cor_secundaria: '',
+  link_page_cor_fundo: '',
+  link_page_links: [],
 };
 
 const N8N_WEBHOOK_CONTROLAR_FLUXO = 'https://n8n.trafficsolutions.cloud/webhook/controlar-fluxo-cliente';
@@ -250,6 +272,7 @@ export default function GestaoClientes() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [slugTouched, setSlugTouched] = useState(false);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cobrarCliente, setCobrarCliente] = useState<GestaoCliente | null>(null);
@@ -344,6 +367,26 @@ export default function GestaoClientes() {
     }
     setLogoFile(file);
     setLogoPreview(URL.createObjectURL(file));
+
+    extractPaletteFromImage(file)
+      .then(({ primaria, secundaria }) => {
+        setForm((prev) => ({
+          ...prev,
+          link_page_cor_primaria: prev.link_page_cor_primaria || primaria,
+          link_page_cor_secundaria: prev.link_page_cor_secundaria || secundaria,
+        }));
+      })
+      .catch(() => {
+        // extração de cor é só uma sugestão — se falhar, o admin escolhe manualmente
+      });
+  };
+
+  const handleNomeClienteChange = (value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      nome_cliente: value,
+      link_page_slug: slugTouched ? prev.link_page_slug : slugify(value),
+    }));
   };
 
   const openCreate = () => {
@@ -353,6 +396,7 @@ export default function GestaoClientes() {
     setLogoFile(null);
     setLogoPreview(null);
     setShowPassword(false);
+    setSlugTouched(false);
     setModalOpen(true);
   };
 
@@ -362,6 +406,7 @@ export default function GestaoClientes() {
     setLogoFile(null);
     setLogoPreview(c.logo_url || null);
     setShowPassword(false);
+    setSlugTouched(!!c.link_page_slug);
     const parcelasDetalhes = Array.isArray(c.parcelas_detalhes) ? (c.parcelas_detalhes as Parcela[]) : null;
     setForm({
       nome_cliente: c.nome_cliente,
@@ -386,9 +431,28 @@ export default function GestaoClientes() {
       senha_acesso: '',
       instagram: c.instagram ?? '',
       endereco: c.endereco ?? '',
+      link_page_ativo: c.link_page_ativo ?? false,
+      link_page_slug: c.link_page_slug ?? '',
+      link_page_titulo: c.link_page_titulo ?? '',
+      link_page_bio: c.link_page_bio ?? '',
+      link_page_cor_primaria: c.link_page_cor_primaria ?? '',
+      link_page_cor_secundaria: c.link_page_cor_secundaria ?? '',
+      link_page_cor_fundo: c.link_page_cor_fundo ?? '',
+      link_page_links: Array.isArray(c.link_page_links) ? (c.link_page_links as unknown as LinkItem[]) : [],
     });
     setModalOpen(true);
   };
+
+  const slugError = useMemo(() => {
+    const slug = form.link_page_slug.trim();
+    if (!slug) return form.link_page_ativo ? 'Defina um endereço para publicar a página.' : null;
+    if (isReservedSlug(slug)) return 'Esse endereço é reservado, escolha outro.';
+    const emUsoPorOutro = clientes.some(
+      (c) => c.id !== editingId && c.link_page_slug === slug
+    );
+    if (emUsoPorOutro) return 'Esse endereço já está em uso por outro cliente.';
+    return null;
+  }, [form.link_page_slug, form.link_page_ativo, clientes, editingId]);
 
   const handleField = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -442,6 +506,11 @@ export default function GestaoClientes() {
       return;
     }
 
+    if (slugError) {
+      toast.error(slugError);
+      return;
+    }
+
     if (form.email_acesso) {
       const isNewLogin = !editingId || !editingCliente?.login_email;
       if (isNewLogin && !form.senha_acesso) {
@@ -481,6 +550,14 @@ export default function GestaoClientes() {
         fluxo_alerta_saldo_ativo: form.fluxo_alerta_saldo,
         fluxo_relatorio_diario_ativo: form.fluxo_relatorio_diario,
         fluxo_resumos_ativo: form.fluxo_resumos,
+        link_page_ativo: form.link_page_ativo,
+        link_page_slug: form.link_page_slug.trim() || null,
+        link_page_titulo: form.link_page_titulo.trim() || form.nome_cliente,
+        link_page_bio: form.link_page_bio || null,
+        link_page_cor_primaria: form.link_page_cor_primaria || null,
+        link_page_cor_secundaria: form.link_page_cor_secundaria || null,
+        link_page_cor_fundo: form.link_page_cor_fundo || null,
+        link_page_links: form.link_page_links,
       };
 
       if (editingId) {
@@ -1195,7 +1272,7 @@ export default function GestaoClientes() {
                   </label>
                   <Input
                     value={form.nome_cliente}
-                    onChange={(e) => handleField('nome_cliente', e.target.value)}
+                    onChange={(e) => handleNomeClienteChange(e.target.value)}
                     placeholder="Ex: Livet Indústria"
                     className={inputCls}
                   />
@@ -1246,6 +1323,83 @@ export default function GestaoClientes() {
                     className={inputCls}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Página de Links */}
+            <div>
+              <p className={sectionTitleCls}>
+                <span className="flex items-center gap-2">
+                  <Link2 className="h-3.5 w-3.5" />
+                  Página de Links
+                </span>
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className={labelCls}>Endereço da página</label>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground shrink-0">.../</span>
+                    <Input
+                      value={form.link_page_slug}
+                      onChange={(e) => {
+                        setSlugTouched(true);
+                        handleField('link_page_slug', slugify(e.target.value));
+                      }}
+                      placeholder="nome-do-cliente"
+                      className={inputCls}
+                    />
+                  </div>
+                  {slugError ? (
+                    <p className="text-xs text-destructive mt-1.5">{slugError}</p>
+                  ) : form.link_page_slug ? (
+                    <div className="flex items-center gap-4 mt-1.5">
+                      <a
+                        href={`/${form.link_page_slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline flex items-center gap-1"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Abrir página
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/${form.link_page_slug}`);
+                          toast.success('Link copiado!');
+                        }}
+                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copiar link
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
+                <LinkPageEditor
+                  value={{
+                    titulo: form.link_page_titulo,
+                    bio: form.link_page_bio,
+                    corPrimaria: form.link_page_cor_primaria,
+                    corSecundaria: form.link_page_cor_secundaria,
+                    corFundo: form.link_page_cor_fundo,
+                    links: form.link_page_links,
+                    ativo: form.link_page_ativo,
+                  }}
+                  onChange={(v) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      link_page_titulo: v.titulo,
+                      link_page_bio: v.bio,
+                      link_page_cor_primaria: v.corPrimaria,
+                      link_page_cor_secundaria: v.corSecundaria,
+                      link_page_cor_fundo: v.corFundo,
+                      link_page_links: v.links,
+                      link_page_ativo: v.ativo,
+                    }))
+                  }
+                />
               </div>
             </div>
 
