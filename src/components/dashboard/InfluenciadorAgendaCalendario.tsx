@@ -28,11 +28,24 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 /**
- * Visao de calendario (mes grande) pro painel do influenciador: marca com um
- * ponto verde/ambar os dias que tem agendamento confirmado/pendente, e ao
- * clicar num dia mostra a lista de agendamentos daquele dia ao lado.
+ * Visao de calendario (mes grande): marca com um ponto verde/ambar os dias
+ * que tem agendamento confirmado/pendente, e ao clicar num dia mostra os
+ * agendamentos daquele dia ao lado.
+ *
+ * `detalhado` controla o nivel de informacao do painel do dia: admin/
+ * influenciador (true) veem cliente, telefone, instagram e servico de cada
+ * item; cliente (false) ve so o horario e o status — os itens que chegam
+ * nesse caso vem da RPC listar_ocupacao_influenciador, que ja nao devolve
+ * dado de contato de outros clientes (RLS de influenciador_agendamentos
+ * restringe o cliente a ver so os PROPRIOS agendamentos).
  */
-export default function InfluenciadorAgendaCalendario({ agendamentos }: { agendamentos: any[] }) {
+export default function InfluenciadorAgendaCalendario({
+  agendamentos,
+  detalhado = true,
+}: {
+  agendamentos: any[];
+  detalhado?: boolean;
+}) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const porData = useMemo(() => {
@@ -105,30 +118,36 @@ export default function InfluenciadorAgendaCalendario({ agendamentos }: { agenda
           <p className="text-sm text-muted-foreground">Dia livre — nenhum agendamento.</p>
         ) : (
           <div className="space-y-2">
-            {itensDoDia.map((a: any) => (
+            {itensDoDia.map((a: any, idx: number) => (
               <div
-                key={a.id}
+                key={a.id ?? `${a.hora_inicio}-${idx}`}
                 className="flex items-center justify-between gap-3 rounded-lg border border-foreground/10 bg-foreground/[0.02] px-3 py-2"
               >
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {String(a.hora_inicio).slice(0, 5)} ·{' '}
-                    <span className="capitalize text-muted-foreground">{a.servico}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">{a.gestao_clientes?.nome_cliente ?? '—'}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                    <span className="flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
-                      {a.telefone_contato}
-                    </span>
-                    {a.instagram_contato && (
+                {detalhado ? (
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {String(a.hora_inicio).slice(0, 5)} ·{' '}
+                      <span className="capitalize text-muted-foreground">{a.servico}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">{a.gestao_clientes?.nome_cliente ?? '—'}</p>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                       <span className="flex items-center gap-1">
-                        <Instagram className="h-3 w-3" />
-                        {a.instagram_contato}
+                        <Phone className="h-3 w-3" />
+                        {a.telefone_contato}
                       </span>
-                    )}
+                      {a.instagram_contato && (
+                        <span className="flex items-center gap-1">
+                          <Instagram className="h-3 w-3" />
+                          {a.instagram_contato}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <p className="text-sm font-medium text-foreground">
+                    {String(a.hora_inicio).slice(0, 5)}–{String(a.hora_fim).slice(0, 5)}
+                  </p>
+                )}
                 <StatusBadge status={a.status} />
               </div>
             ))}

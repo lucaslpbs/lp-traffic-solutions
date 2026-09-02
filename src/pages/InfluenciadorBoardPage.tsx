@@ -149,6 +149,22 @@ export default function InfluenciadorBoardPage() {
     enabled: !!influenciadorId,
   });
 
+  // So data/hora/status, sem contato de outros clientes — RLS de
+  // influenciador_agendamentos restringe o cliente a ver so os PROPRIOS
+  // agendamentos, entao essa e a unica forma dele enxergar a ocupacao real
+  // (pra escolher horario e pra aba Agenda).
+  const { data: ocupacao = [] } = useQuery({
+    queryKey: ['influenciador-ocupacao', influenciadorId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('listar_ocupacao_influenciador', {
+        p_influenciador_id: influenciadorId!,
+      });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!influenciadorId,
+  });
+
   const [selectedClientId, setSelectedClientId] = useState('');
   const [servico, setServico] = useState('');
   const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
@@ -165,7 +181,8 @@ export default function InfluenciadorBoardPage() {
   const diaSemana = dataSelecionada.getDay();
   const dataStr = format(dataSelecionada, 'yyyy-MM-dd');
   const clientIdFinal = isAdmin ? selectedClientId : clienteVinculadoId;
-  const podeVerAgenda = isAdmin || souInfluenciador;
+  const podeVerAgenda = isAdmin || souInfluenciador || souCliente;
+  const agendaDetalhada = isAdmin || souInfluenciador;
 
   const inicioSemana = startOfWeek(dataSelecionada, { weekStartsOn: 1 });
   const fimSemana = endOfWeek(dataSelecionada, { weekStartsOn: 1 });
@@ -200,9 +217,9 @@ export default function InfluenciadorBoardPage() {
       (h: any) => h.dia_semana === diaSemana && (h.servico === null || h.servico === servico)
     );
     const ocupados = new Set(
-      agendamentos
-        .filter((a: any) => a.data === dataStr && a.status !== 'cancelado')
-        .map((a: any) => String(a.hora_inicio).slice(0, 5))
+      ocupacao
+        .filter((o: any) => o.data === dataStr)
+        .map((o: any) => String(o.hora_inicio).slice(0, 5))
     );
     const slots = new Set<string>();
     for (const h of horariosDoDia as any[]) {
@@ -215,7 +232,7 @@ export default function InfluenciadorBoardPage() {
       }
     }
     return Array.from(slots).sort();
-  }, [servico, dataStr, diaSemana, horarios, agendamentos]);
+  }, [servico, dataStr, diaSemana, horarios, ocupacao]);
 
   const resetForm = () => {
     setServico('');
@@ -305,6 +322,7 @@ export default function InfluenciadorBoardPage() {
       resetForm();
       setMostrarFormulario(false);
       qc.invalidateQueries({ queryKey: ['influenciador-agendamentos', influenciadorId] });
+      qc.invalidateQueries({ queryKey: ['influenciador-ocupacao', influenciadorId] });
       qc.invalidateQueries({ queryKey: ['influenciador-limite-semanal'] });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao criar agendamento.');
@@ -338,6 +356,7 @@ export default function InfluenciadorBoardPage() {
 
       toast.success('Agendamento confirmado! O grupo do cliente foi avisado.');
       qc.invalidateQueries({ queryKey: ['influenciador-agendamentos', influenciadorId] });
+      qc.invalidateQueries({ queryKey: ['influenciador-ocupacao', influenciadorId] });
     } catch {
       toast.error('Erro ao confirmar agendamento.');
     } finally {
@@ -600,7 +619,10 @@ export default function InfluenciadorBoardPage() {
         </div>
 
         {viewMode === 'agenda' && podeVerAgenda ? (
-          <InfluenciadorAgendaCalendario agendamentos={agendamentos} />
+          <InfluenciadorAgendaCalendario
+            agendamentos={agendaDetalhada ? agendamentos : ocupacao}
+            detalhado={agendaDetalhada}
+          />
         ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
