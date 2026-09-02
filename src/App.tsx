@@ -72,6 +72,8 @@ import PropostaUseBiquinisQSol from "./pages/proposta-usebiquinisqsol/index.jsx"
 import PainelOftalmologia from "./pages/PainelOftalmologia";
 import InfluenciadoresAdminPage from "./pages/InfluenciadoresAdminPage";
 import InfluenciadorBoardPage from "./pages/InfluenciadorBoardPage";
+import LinkPage from "./pages/LinkPage";
+import { RESERVED_SLUGS } from "@/lib/slugify";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -135,7 +137,16 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     (path) => location.pathname === path || location.pathname.startsWith(path + '/')
   );
 
-  if (isDashboard || isLogin || isHiddenPage) {
+  // Segmento único que não bate com nenhuma rota estática conhecida — cai na
+  // rota dinâmica /:slug (página de links do cliente), que cuida do próprio
+  // header/logo/rodapé.
+  const slugSegment = location.pathname.slice(1);
+  const isLinkPageRoute =
+    slugSegment.length > 0 &&
+    !slugSegment.includes('/') &&
+    !RESERVED_SLUGS.has(slugSegment.toLowerCase());
+
+  if (isDashboard || isLogin || isHiddenPage || isLinkPageRoute) {
     return <>{children}</>;
   }
 
@@ -231,6 +242,9 @@ const AppRoutes = () => {
           <Route path="ranking/admin" element={<ProtectedAdminRoute><RankingAdminPage /></ProtectedAdminRoute>} />
           <Route path=":clientId" element={<ProtectedClientRoute><ClientReport /></ProtectedClientRoute>} />
         </Route>
+
+        {/* Página de links (linktree) do cliente — raiz, ex: /nome-do-cliente */}
+        <Route path="/:slug" element={<LinkPage />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
