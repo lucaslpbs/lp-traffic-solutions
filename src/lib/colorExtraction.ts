@@ -3,6 +3,23 @@ export interface ExtractedPalette {
   secundaria: string;
 }
 
+/** Luminância relativa (0-1) de uma cor hex — usada pra decidir texto claro ou escuro em cima dela. */
+export function getRelativeLuminance(hex: string): number {
+  const clean = hex.replace('#', '');
+  const full =
+    clean.length === 3
+      ? clean.split('').map((c) => c + c).join('')
+      : clean.padEnd(6, '0').slice(0, 6);
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+  const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+/** Se um fundo dessa cor precisa de texto escuro em cima (fundo claro). */
+export function isLightColor(hex: string): boolean {
+  return getRelativeLuminance(hex) > 0.6;
+}
+
 const rgbToHex = (r: number, g: number, b: number) =>
   '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
 

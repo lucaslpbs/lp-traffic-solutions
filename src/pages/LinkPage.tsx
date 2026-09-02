@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { Stagger, StaggerItem, Reveal } from '@/components/dashboard/Motion';
 import { fadeUp } from '@/lib/motion';
+import { isLightColor } from '@/lib/colorExtraction';
 import { LINK_TIPO_ICON, type LinkItem, type LinkTipo } from '@/components/linktree/LinkPageEditor';
 import { Building2 } from 'lucide-react';
 import NotFound from './NotFound';
@@ -79,12 +80,23 @@ export default function LinkPage() {
   const corSecundaria = data.cor_secundaria || DEFAULT_SECONDARY;
   const corFundo = data.cor_fundo || DEFAULT_BG;
 
+  // O fundo é 100% escolhido pelo cliente (pode ser claro ou escuro), então o
+  // texto/vidro precisa se adaptar ao contraste em vez de assumir branco fixo.
+  const isLight = isLightColor(corFundo);
+  const textPrimary = isLight ? '#18181b' : '#ffffff';
+  const textMuted = isLight ? 'rgba(24,24,27,0.65)' : 'rgba(255,255,255,0.7)';
+  const textFooter = isLight ? 'rgba(24,24,27,0.45)' : 'rgba(255,255,255,0.4)';
+  const glassBg = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.05)';
+  const glassBgHover = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
+  const glassBorder = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.15)';
+  const glassBorderHover = isLight ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.25)';
+
   return (
     <div
       className="relative min-h-screen flex flex-col items-center px-6 py-16"
       style={{
         background: `radial-gradient(circle at 20% -10%, ${corPrimaria}33, transparent 55%), radial-gradient(circle at 80% 110%, ${corSecundaria}33, transparent 55%), ${corFundo}`,
-        color: '#fff',
+        color: textPrimary,
       }}
     >
       <motion.div
@@ -101,18 +113,23 @@ export default function LinkPage() {
           variants={fadeUp}
           initial="hidden"
           animate="show"
-          className="h-24 w-24 rounded-2xl overflow-hidden border border-white/15 bg-white/5 backdrop-blur flex items-center justify-center shrink-0"
+          className="h-24 w-24 rounded-2xl overflow-hidden backdrop-blur flex items-center justify-center shrink-0"
+          style={{ border: `1px solid ${glassBorder}`, background: glassBg }}
         >
           {data.logo_url ? (
             <img src={data.logo_url} alt={data.nome_cliente} className="h-full w-full object-cover" />
           ) : (
-            <Building2 className="h-10 w-10 text-white/60" />
+            <Building2 className="h-10 w-10" style={{ color: textMuted }} />
           )}
         </motion.div>
 
         <Reveal delay={0.1} className="mt-5 text-center">
           <h1 className="text-2xl font-bold">{data.titulo || data.nome_cliente}</h1>
-          {data.bio && <p className="mt-2 text-sm text-white/70">{data.bio}</p>}
+          {data.bio && (
+            <p className="mt-2 text-sm" style={{ color: textMuted }}>
+              {data.bio}
+            </p>
+          )}
         </Reveal>
 
         <Stagger className="mt-8 w-full flex flex-col gap-3" stagger={0.06} delay={0.2}>
@@ -125,8 +142,20 @@ export default function LinkPage() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 w-full rounded-xl border border-white/15 bg-white/5 backdrop-blur px-5 py-3.5 hover:bg-white/10 hover:border-white/25 hover:-translate-y-0.5 transition-all"
-                  style={{ boxShadow: `0 0 0 1px ${corPrimaria}22` }}
+                  className="flex items-center gap-3 w-full rounded-xl backdrop-blur px-5 py-3.5 transition-all hover:-translate-y-0.5"
+                  style={{
+                    border: `1px solid ${glassBorder}`,
+                    background: glassBg,
+                    boxShadow: `0 0 0 1px ${corPrimaria}22`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = glassBgHover;
+                    e.currentTarget.style.borderColor = glassBorderHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = glassBg;
+                    e.currentTarget.style.borderColor = glassBorder;
+                  }}
                 >
                   <Icon className="h-5 w-5 shrink-0" style={{ color: corPrimaria }} />
                   <span className="font-medium">{link.label || link.url}</span>
@@ -136,8 +165,10 @@ export default function LinkPage() {
           })}
         </Stagger>
 
-        <Reveal delay={0.4} subtle className="mt-12 text-xs text-white/40">
-          Traffic Solutions
+        <Reveal delay={0.4} subtle className="mt-12">
+          <span className="text-xs" style={{ color: textFooter }}>
+            Traffic Solutions
+          </span>
         </Reveal>
       </div>
     </div>
