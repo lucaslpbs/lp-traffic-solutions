@@ -211,10 +211,12 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // upsert (nao update) porque essa acao tambem e usada pra criar o
+    // perfil de colaborador na hora de rebaixar um admin existente pra
+    // colaborador — nesse caso ainda nao existe linha em colaboradores.
     const { error: profileUpdateError } = await supabaseAdmin
       .from("colaboradores")
-      .update({ nome, email, cargo: cargo || null })
-      .eq("user_id", collaboratorId);
+      .upsert({ user_id: collaboratorId, nome, email, cargo: cargo || null });
 
     if (profileUpdateError) {
       return jsonResponse(200, {

@@ -2,11 +2,12 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import InfluenciadorAgendaCalendario from '@/components/dashboard/InfluenciadorAgendaCalendario';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,6 +28,8 @@ import {
   Clock,
   Phone,
   Instagram,
+  Plus,
+  X,
 } from 'lucide-react';
 
 const SERVICOS = [
@@ -156,9 +159,40 @@ export default function InfluenciadorBoardPage() {
   const [observacoes, setObservacoes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'lista' | 'agenda'>('lista');
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   const diaSemana = dataSelecionada.getDay();
   const dataStr = format(dataSelecionada, 'yyyy-MM-dd');
+  const clientIdFinal = isAdmin ? selectedClientId : clienteVinculadoId;
+  const podeVerAgenda = isAdmin || souInfluenciador;
+
+  const inicioSemana = startOfWeek(dataSelecionada, { weekStartsOn: 1 });
+  const fimSemana = endOfWeek(dataSelecionada, { weekStartsOn: 1 });
+
+  const { data: agendamentosNaSemana = 0 } = useQuery({
+    queryKey: [
+      'influenciador-limite-semanal',
+      influenciadorId,
+      clientIdFinal,
+      format(inicioSemana, 'yyyy-MM-dd'),
+    ],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('influenciador_agendamentos')
+        .select('id', { count: 'exact', head: true })
+        .eq('influenciador_id', influenciadorId!)
+        .eq('client_id', clientIdFinal!)
+        .neq('status', 'cancelado')
+        .gte('data', format(inicioSemana, 'yyyy-MM-dd'))
+        .lte('data', format(fimSemana, 'yyyy-MM-dd'));
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!influenciadorId && !!clientIdFinal,
+  });
+
+  const limiteSemanalAtingido = agendamentosNaSemana >= 2;
 
   const slotsDisponiveis = useMemo(() => {
     if (!servico) return [];
@@ -196,14 +230,16 @@ export default function InfluenciadorBoardPage() {
   const handleAgendar = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const clientIdFinal = isAdmin ? selectedClientId : clienteVinculadoId;
-
     if (!clientIdFinal) {
       toast.error('Selecione o cliente.');
       return;
     }
     if (!servico || !horaSelecionada || !nomeContato || !telefoneContato) {
       toast.error('Preencha serviço, horário, nome e telefone de contato.');
+      return;
+    }
+    if (limiteSemanalAtingido) {
+      toast.error('Limite de 2 agendamentos nesta semana atingido para este cliente.');
       return;
     }
 
@@ -223,10 +259,10 @@ export default function InfluenciadorBoardPage() {
         telefone_contato: telefoneContato,
         instagram_contato: instagramContato || null,
         observacoes: observacoes || null,
-        status: isAdmin ? 'confirmado' : 'pendente_confirmacao',
+        status: 'pendente_confirmacao',
         origem: isAdmin ? 'admin' : 'cliente',
         created_by: user?.id ?? null,
-        confirmed_at: isAdmin ? new Date().toISOString() : null,
+        confirmed_at: null,
       };
 
       const { data: novoAgendamento, error } = await supabase
@@ -237,6 +273,7 @@ export default function InfluenciadorBoardPage() {
       if (error) throw error;
 
       const clienteInfo = (novoAgendamento as any).gestao_clientes;
+      const linkConfirmacao = `${window.location.origin}/dashboard/influenciadores/${influenciadorId}/confirmar/${novoAgendamento.id}`;
       const webhookPayloadBase = {
         agendamento_id: novoAgendamento.id,
         data: dataStr,
@@ -248,18 +285,15 @@ export default function InfluenciadorBoardPage() {
         instagram_contato: instagramContato || null,
         nome_cliente: clienteInfo?.nome_cliente ?? null,
         numero_grupo_whatsapp: clienteInfo?.numero_grupo_whatsapp ?? null,
+        nome_influenciador: influenciador?.nome ?? null,
+        telefone_influenciador: influenciador?.telefone ?? null,
+        link_confirmacao: linkConfirmacao,
       };
 
       if (isAdmin) {
         await dispararWebhook('influenciador-agendamento-admin', webhookPayloadBase);
       } else {
-        const linkConfirmacao = `${window.location.origin}/dashboard/influenciadores/${influenciadorId}/confirmar/${novoAgendamento.id}`;
-        await dispararWebhook('cliente-agendou', {
-          ...webhookPayloadBase,
-          nome_influenciador: influenciador?.nome ?? null,
-          telefone_influenciador: influenciador?.telefone ?? null,
-          link_confirmacao: linkConfirmacao,
-        });
+        await dispararWebhook('cliente-agendou', webhookPayloadBase);
       }
 
       await supabase
@@ -267,11 +301,11 @@ export default function InfluenciadorBoardPage() {
         .update({ webhook_criado_disparado: true })
         .eq('id', novoAgendamento.id);
 
-      toast.success(
-        isAdmin ? 'Agendamento criado e confirmado!' : 'Agendamento solicitado! Aguardando confirmação do influenciador.'
-      );
+      toast.success('Agendamento solicitado! Aguardando confirmação do influenciador.');
       resetForm();
+      setMostrarFormulario(false);
       qc.invalidateQueries({ queryKey: ['influenciador-agendamentos', influenciadorId] });
+      qc.invalidateQueries({ queryKey: ['influenciador-limite-semanal'] });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao criar agendamento.');
     } finally {
@@ -384,14 +418,35 @@ export default function InfluenciadorBoardPage() {
         </div>
       )}
 
-      {podeAgendar && (
+      {podeAgendar && !mostrarFormulario && (
+        <button
+          type="button"
+          onClick={() => setMostrarFormulario(true)}
+          className="w-full flex items-center justify-center gap-2 bg-foreground/5 hover:bg-foreground/10 backdrop-blur-xl rounded-xl border border-dashed border-foreground/20 p-4 text-sm font-semibold text-foreground/85 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Novo agendamento
+        </button>
+      )}
+
+      {podeAgendar && mostrarFormulario && (
         <form
           onSubmit={handleAgendar}
           className="bg-foreground/5 backdrop-blur-xl rounded-xl border border-foreground/10 p-5 space-y-4"
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Novo agendamento
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Novo agendamento
+            </h2>
+            <button
+              type="button"
+              onClick={() => { setMostrarFormulario(false); resetForm(); }}
+              className="text-muted-foreground hover:text-foreground"
+              title="Fechar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             {isAdmin && (
@@ -504,16 +559,49 @@ export default function InfluenciadorBoardPage() {
             <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} className={inputCls} rows={2} />
           </div>
 
-          <Button type="submit" disabled={submitting} className="bg-primary hover:bg-primary text-foreground">
-            {submitting ? 'Salvando...' : isAdmin ? 'Agendar (confirmado)' : 'Solicitar agendamento'}
+          {limiteSemanalAtingido && (
+            <p className="text-sm text-destructive">
+              Limite de 2 agendamentos nesta semana atingido para este cliente.
+            </p>
+          )}
+
+          <Button type="submit" disabled={submitting || limiteSemanalAtingido} className="bg-primary hover:bg-primary text-foreground">
+            {submitting ? 'Salvando...' : 'Solicitar agendamento'}
           </Button>
         </form>
       )}
 
       <div className="bg-foreground/5 backdrop-blur-xl rounded-xl border border-foreground/10 overflow-hidden">
-        <div className="px-5 py-4 border-b border-foreground/10">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Agendamentos</h2>
+        <div className="px-5 py-4 border-b border-foreground/10 flex items-center justify-between">
+          {podeVerAgenda ? (
+            <div className="inline-flex items-center rounded-lg border border-foreground/10 bg-foreground/5 p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode('lista')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  viewMode === 'lista' ? 'bg-primary text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Agendamentos
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('agenda')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  viewMode === 'agenda' ? 'bg-primary text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Agenda
+              </button>
+            </div>
+          ) : (
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Agendamentos</h2>
+          )}
         </div>
+
+        {viewMode === 'agenda' && podeVerAgenda ? (
+          <InfluenciadorAgendaCalendario agendamentos={agendamentos} />
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -569,6 +657,7 @@ export default function InfluenciadorBoardPage() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

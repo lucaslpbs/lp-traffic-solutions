@@ -10,6 +10,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isMaster: boolean;
   clienteVinculadoId: string | null;
   isRemoved: boolean;
   isColaborador: boolean;
@@ -31,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isMaster, setIsMaster] = useState(false);
   const [clienteVinculadoId, setClienteVinculadoId] = useState<string | null>(null);
   const [isRemoved, setIsRemoved] = useState(false);
   const [isColaborador, setIsColaborador] = useState(false);
@@ -65,11 +67,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setColaboradorSessoes([]);
         setIsInfluenciador(false);
         setInfluenciadorId(null);
+
+        const { data: masterData } = await supabase.rpc('user_is_master', { p_user_id: userId });
+        setIsMaster(masterData === true);
+
         roleFetchedForUser.current = userId;
         return;
       }
 
       setIsAdmin(false);
+      setIsMaster(false);
 
       const { data: colaborador, error: colaboradorError } = await supabase
         .from('colaboradores')
@@ -168,6 +175,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error('Erro ao buscar papel do usuario:', err);
       setIsAdmin(false);
+      setIsMaster(false);
       setClienteVinculadoId(null);
       setIsInfluenciador(false);
       setInfluenciadorId(null);
@@ -178,6 +186,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearRole = () => {
     setIsAdmin(false);
+    setIsMaster(false);
     setClienteVinculadoId(null);
     setIsRemoved(false);
     setIsColaborador(false);
@@ -241,6 +250,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session,
         loading,
         isAdmin,
+        isMaster,
         clienteVinculadoId,
         isRemoved,
         isColaborador,

@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase as supabaseGestao } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,9 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
+  KeyRound,
+  ArrowDownCircle,
+  ArrowUpCircle,
 } from 'lucide-react';
 
 type Colaborador = {
@@ -45,6 +49,7 @@ type AdminUser = {
   user_id: string;
   email: string;
   created_at: string;
+  master: boolean;
 };
 
 type ClienteOpcao = { id: string; nome_cliente: string };
@@ -97,14 +102,21 @@ function StatusBadge({ ativo }: { ativo: boolean }) {
 
 export default function GestaoUsuarios() {
   const qc = useQueryClient();
+  const { isMaster } = useAuth();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('todos');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [rebaixandoAdminId, setRebaixandoAdminId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [passwordTarget, setPasswordTarget] = useState<AdminUser | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const { data: colaboradores = [], isLoading: loading } = useQuery({
     queryKey: ['colaboradores'],
@@ -161,13 +173,28 @@ export default function GestaoUsuarios() {
 
   const openCreate = () => {
     setEditingId(null);
+    setRebaixandoAdminId(null);
     setForm(EMPTY_FORM);
     setShowPassword(false);
     setModalOpen(true);
   };
 
+  const openRebaixarAdmin = (a: AdminUser) => {
+    setEditingId(a.user_id);
+    setRebaixandoAdminId(a.user_id);
+    setForm({ ...EMPTY_FORM, email: a.email });
+    setShowPassword(false);
+    setModalOpen(true);
+  };
+
+  const closeModal = (open: boolean) => {
+    setModalOpen(open);
+    if (!open) setRebaixandoAdminId(null);
+  };
+
   const openEdit = async (c: Colaborador) => {
     setEditingId(c.user_id);
+    setRebaixandoAdminId(null);
     setShowPassword(false);
     setModalOpen(true);
     setForm({
@@ -222,6 +249,59 @@ export default function GestaoUsuarios() {
     invalidateColaboradores();
   };
 
+  const promoverAdmin = async (c: Colaborador) => {
+    const { error: insError } = await supabaseGestao
+      .from('admin_users')
+      .insert({ user_id: c.user_id, master: false });
+    if (insError) {
+      toast.error('Erro ao promover a administrador: ' + insError.message);
+      return;
+    }
+    const { error: delError } = await supabaseGestao.from('colaboradores').delete().eq('user_id', c.user_id);
+    if (delError) {
+      toast.error(
+        'Promovido a administrador, mas houve erro ao limpar o perfil de colaborador: ' + delError.message
+      );
+    } else {
+      toast.success(`${c.nome} agora é administrador.`);
+    }
+    invalidateColaboradores();
+    qc.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
+  const openPasswordModal = (a: AdminUser) => {
+    setPasswordTarget(a);
+    setNewPassword('');
+    setPasswordModalOpen(true);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordTarget) return;
+    if (newPassword.length < 6) {
+      toast.error('A senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { data, error } = await supabaseGestao.functions.invoke('manage-admin-password', {
+        body: { user_id: passwordTarget.user_id, password: newPassword },
+      });
+      if (error) throw error;
+      if (!data?.success) {
+        toast.error(data?.error || 'Erro ao trocar senha.');
+        return;
+      }
+      toast.success(`Senha de ${passwordTarget.email} atualizada com sucesso!`);
+      setPasswordModalOpen(false);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao trocar senha.');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -240,6 +320,18 @@ export default function GestaoUsuarios() {
 
     setSubmitting(true);
     try {
+      if (rebaixandoAdminId) {
+        const { error: delError } = await supabaseGestao
+          .from('admin_users')
+          .delete()
+          .eq('user_id', rebaixandoAdminId)
+          .eq('master', false);
+        if (delError) {
+          toast.error('Erro ao rebaixar administrador: ' + delError.message);
+          return;
+        }
+      }
+
       const { data, error } = await supabaseGestao.functions.invoke('manage-collaborator-auth', {
         body: {
           action: editingId ? 'update' : 'create',
@@ -254,13 +346,25 @@ export default function GestaoUsuarios() {
       });
       if (error) throw error;
       if (!data?.success) {
-        toast.error(data?.error || 'Erro ao salvar colaborador.');
+        toast.error(
+          rebaixandoAdminId
+            ? `Administrador removido, mas houve erro ao criar o perfil de colaborador: ${data?.error || 'erro desconhecido'}`
+            : data?.error || 'Erro ao salvar colaborador.'
+        );
         return;
       }
 
-      toast.success(editingId ? 'Colaborador atualizado com sucesso!' : 'Colaborador criado com sucesso!');
+      toast.success(
+        rebaixandoAdminId
+          ? 'Administrador rebaixado para colaborador com sucesso!'
+          : editingId
+            ? 'Colaborador atualizado com sucesso!'
+            : 'Colaborador criado com sucesso!'
+      );
       setModalOpen(false);
+      setRebaixandoAdminId(null);
       invalidateColaboradores();
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao salvar colaborador.');
     } finally {
@@ -301,7 +405,7 @@ export default function GestaoUsuarios() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-foreground/10">
-                  {['E-mail', 'Desde'].map((h) => (
+                  {['E-mail', 'Desde', ...(isMaster ? ['Ações'] : [])].map((h) => (
                     <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       {h}
                     </th>
@@ -311,17 +415,50 @@ export default function GestaoUsuarios() {
               <tbody>
                 {admins.length === 0 ? (
                   <tr>
-                    <td colSpan={2} className="px-4 py-6 text-center text-muted-foreground text-sm">
+                    <td colSpan={isMaster ? 3 : 2} className="px-4 py-6 text-center text-muted-foreground text-sm">
                       Nenhum administrador encontrado.
                     </td>
                   </tr>
                 ) : (
                   admins.map((a) => (
                     <tr key={a.user_id} className="border-b border-foreground/5 last:border-0">
-                      <td className="px-4 py-2.5 text-sm font-medium text-foreground">{a.email}</td>
+                      <td className="px-4 py-2.5 text-sm font-medium text-foreground">
+                        {a.email}
+                        {a.master && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/30">
+                            Master
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-2.5 text-sm text-muted-foreground">
                         {new Date(a.created_at).toLocaleDateString('pt-BR')}
                       </td>
+                      {isMaster && (
+                        <td className="px-4 py-2.5">
+                          {!a.master && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                onClick={() => openPasswordModal(a)}
+                                title="Trocar senha"
+                              >
+                                <KeyRound className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                onClick={() => openRebaixarAdmin(a)}
+                                title="Rebaixar para colaborador"
+                              >
+                                <ArrowDownCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
@@ -414,6 +551,17 @@ export default function GestaoUsuarios() {
                         >
                           {c.ativo ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
                         </Button>
+                        {isMaster && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => promoverAdmin(c)}
+                            title="Promover a administrador"
+                          >
+                            <ArrowUpCircle className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -425,10 +573,16 @@ export default function GestaoUsuarios() {
       </div>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+      <Dialog open={modalOpen} onOpenChange={closeModal}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-foreground/10">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Editar Colaborador' : 'Novo Colaborador'}</DialogTitle>
+            <DialogTitle>
+              {rebaixandoAdminId
+                ? 'Rebaixar administrador para colaborador'
+                : editingId
+                  ? 'Editar Colaborador'
+                  : 'Novo Colaborador'}
+            </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -528,11 +682,41 @@ export default function GestaoUsuarios() {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => closeModal(false)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={submitting} className="bg-primary hover:bg-primary text-foreground">
                 {submitting ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Trocar senha de administrador (master) */}
+      <Dialog open={passwordModalOpen} onOpenChange={setPasswordModalOpen}>
+        <DialogContent className="max-w-sm bg-card border-foreground/10">
+          <DialogHeader>
+            <DialogTitle>Trocar senha</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <p className="text-sm text-muted-foreground">{passwordTarget?.email}</p>
+            <div>
+              <label className={labelCls}>Nova senha</label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className={inputCls}
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setPasswordModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={changingPassword} className="bg-primary hover:bg-primary text-foreground">
+                {changingPassword ? 'Salvando...' : 'Salvar'}
               </Button>
             </DialogFooter>
           </form>
