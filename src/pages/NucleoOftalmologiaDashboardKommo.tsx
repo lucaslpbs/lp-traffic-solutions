@@ -11,8 +11,8 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import {
-  loadNucleoKommoData, dayOfWeekData, hourData,
-  type NucleoKommoData,
+  loadNucleoKommoLeads, buildNucleoKommoData, dayOfWeekData, hourData,
+  type NucleoKommoData, type KommoLead,
 } from '@/lib/nucleoOftalmologiaKommoUtils';
 
 // ── Visual constants ────────────────────────────────────────────────────────
@@ -207,8 +207,12 @@ function LoadingSkeleton() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+function leadDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export default function NucleoOftalmologiaDashboardKommo() {
-  const [data, setData] = useState<NucleoKommoData | null>(null);
+  const [leads, setLeads] = useState<KommoLead[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
@@ -218,8 +222,8 @@ export default function NucleoOftalmologiaDashboardKommo() {
     setLoading(true);
     setError(null);
     try {
-      const result = await loadNucleoKommoData();
-      setData(result);
+      const result = await loadNucleoKommoLeads();
+      setLeads(result);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
       setError('Não foi possível carregar a planilha de dados.');
@@ -231,10 +235,29 @@ export default function NucleoOftalmologiaDashboardKommo() {
 
   // ── Derived data ──────────────────────────────────────────────────────────
 
-  const dailyData = useMemo(() => {
-    if (!data) return [];
-    return data.daily.filter(d => (!dateFrom || d.key >= dateFrom) && (!dateTo || d.key <= dateTo));
-  }, [data, dateFrom, dateTo]);
+  // Filtro de data global: recalcula todos os gráficos da página a partir dos leads brutos.
+  const filteredLeads = useMemo(() => {
+    if (!leads) return null;
+    if (!dateFrom && !dateTo) return leads;
+    return leads.filter(l => {
+      if (!l.dataCriada) return false;
+      const key = leadDateKey(l.dataCriada);
+      return (!dateFrom || key >= dateFrom) && (!dateTo || key <= dateTo);
+    });
+  }, [leads, dateFrom, dateTo]);
+
+  const data = useMemo<NucleoKommoData | null>(
+    () => (filteredLeads ? buildNucleoKommoData(filteredLeads) : null),
+    [filteredLeads],
+  );
+
+  const dateBounds = useMemo(() => {
+    if (!leads) return { min: undefined as string | undefined, max: undefined as string | undefined };
+    const keys = leads.filter(l => l.dataCriada).map(l => leadDateKey(l.dataCriada as Date)).sort();
+    return { min: keys[0], max: keys[keys.length - 1] };
+  }, [leads]);
+
+  const dailyData = data?.daily ?? [];
 
   const dowData = useMemo(() => (data ? dayOfWeekData(data.byDayOfWeek) : []), [data]);
   const hrData = useMemo(() => (data ? hourData(data.byHour) : []), [data]);
@@ -368,6 +391,41 @@ export default function NucleoOftalmologiaDashboardKommo() {
             </Button>
           </div>
         </header>
+
+        {/* Filtro de data global — controla todos os gráficos e métricas da página */}
+        <Card className="mb-8 !py-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[11px] font-semibold tracking-[0.1em] uppercase text-white/35">Filtrar por data</span>
+            <input
+              type="date"
+              value={dateFrom}
+              min={dateBounds.min}
+              max={dateBounds.max}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="bg-white/[0.04] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/80 [color-scheme:dark] focus:outline-none focus:border-[#00D4FF]/40"
+            />
+            <span className="text-white/25 text-xs">até</span>
+            <input
+              type="date"
+              value={dateTo}
+              min={dateBounds.min}
+              max={dateBounds.max}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="bg-white/[0.04] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/80 [color-scheme:dark] focus:outline-none focus:border-[#00D4FF]/40"
+            />
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="text-[11px] text-white/35 hover:text-white/65 underline underline-offset-2"
+              >
+                Limpar filtro
+              </button>
+            )}
+            <span className="text-[11px] text-white/35 ml-auto">
+              {dateFrom || dateTo ? `${fmtNum(data.totalLeads)} leads no período selecionado` : 'Mostrando todo o histórico disponível'}
+            </span>
+          </div>
+        </Card>
 
         {/* KPIs row 1 */}
         <SectionLabel>Indicadores Principais</SectionLabel>
@@ -512,33 +570,6 @@ export default function NucleoOftalmologiaDashboardKommo() {
               <div className="font-display text-[15px] font-semibold">Conversas por Dia</div>
               <div className="text-[11px] text-white/35 mt-0.5">Quantidade de leads/conversas iniciadas por dia</div>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={dateFrom}
-                min={data.daily[0]?.key}
-                max={data.daily[data.daily.length - 1]?.key}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="bg-white/[0.04] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/80 [color-scheme:dark] focus:outline-none focus:border-[#00D4FF]/40"
-              />
-              <span className="text-white/25 text-xs">até</span>
-              <input
-                type="date"
-                value={dateTo}
-                min={data.daily[0]?.key}
-                max={data.daily[data.daily.length - 1]?.key}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="bg-white/[0.04] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white/80 [color-scheme:dark] focus:outline-none focus:border-[#00D4FF]/40"
-              />
-              {(dateFrom || dateTo) && (
-                <button
-                  onClick={() => { setDateFrom(''); setDateTo(''); }}
-                  className="text-[11px] text-white/35 hover:text-white/65 underline underline-offset-2"
-                >
-                  Limpar
-                </button>
-              )}
-            </div>
           </div>
           {dailyData.length > 0 ? (
             <div className="h-56">
@@ -652,6 +683,72 @@ export default function NucleoOftalmologiaDashboardKommo() {
             </div>
           </Card>
         </div>
+
+        {/* Jeane x Carina */}
+        <SectionLabel>Jeane × Carina — Comparativo Detalhado</SectionLabel>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+          <Card className="lg:col-span-2">
+            <div className="font-display text-[15px] font-semibold mb-1">Leads, Convertidos e Perdidos</div>
+            <div className="text-[11px] text-white/35 mb-5">Comparativo no período selecionado pelo filtro de data</div>
+            <div className="flex flex-wrap gap-3.5 mb-3">
+              <LegendDot color={C.cyan} label="Total" />
+              <LegendDot color={C.green} label="Convertidos" />
+              <LegendDot color={C.coral} label="Perdidos" />
+            </div>
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.jeaneCarina}>
+                  <CartesianGrid {...grid} vertical={false} />
+                  <XAxis dataKey="nome" tick={tick} axisLine={false} tickLine={false} />
+                  <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                  <Bar dataKey="total" name="Total" fill="rgba(0,212,255,0.25)" stroke={C.cyan} strokeWidth={2} radius={[6, 6, 0, 0]} barSize={36} />
+                  <Bar dataKey="convertidos" name="Convertidos" fill="rgba(0,229,155,0.3)" stroke={C.green} strokeWidth={2} radius={[6, 6, 0, 0]} barSize={36} />
+                  <Bar dataKey="perdidos" name="Perdidos" fill="rgba(255,107,107,0.3)" stroke={C.coral} strokeWidth={2} radius={[6, 6, 0, 0]} barSize={36} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="font-display text-[15px] font-semibold mb-1">Taxa de Conversão</div>
+            <div className="text-[11px] text-white/35 mb-5">Jeane vs Carina no período</div>
+            {data.jeaneCarina.map((a, i) => (
+              <ProgressRow
+                key={a.key}
+                avatar={a.nome.slice(0, 2).toUpperCase()}
+                label={a.nome}
+                sublabel={`${fmtNum(a.total)} leads · ${fmtNum(a.convertidos)} convertidos · ${fmtNum(a.perdidos)} perdidos`}
+                pct={a.conversao}
+                color={i === 0 ? C.purple : C.yellow}
+              />
+            ))}
+            {data.jeaneCarina.every(a => a.total === 0) && (
+              <div className="text-xs text-white/35 mt-2">Nenhum lead de Jeane ou Carina no período selecionado.</div>
+            )}
+          </Card>
+        </div>
+
+        <Card className="mb-5">
+          <div className="font-display text-[15px] font-semibold mb-1">Evolução Mensal — Jeane x Carina</div>
+          <div className="text-[11px] text-white/35 mb-3">Volume de leads por mês, dentro do período filtrado</div>
+          <div className="flex flex-wrap gap-3.5 mb-3">
+            <LegendDot color={C.purple} label="Jeane" />
+            <LegendDot color={C.yellow} label="Carina" />
+          </div>
+          <div className="h-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.jeaneCarinaMonthly}>
+                <CartesianGrid {...grid} vertical={false} />
+                <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} />
+                <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+                <Bar dataKey="jeane" name="Jeane" fill="rgba(155,89,255,0.3)" stroke={C.purple} strokeWidth={2} radius={[6, 6, 0, 0]} />
+                <Bar dataKey="carina" name="Carina" fill="rgba(255,209,102,0.3)" stroke={C.yellow} strokeWidth={2} radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
 
         {/* Padrões de demanda */}
         <SectionLabel>Padrões de Demanda</SectionLabel>

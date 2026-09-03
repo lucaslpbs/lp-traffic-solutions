@@ -57,6 +57,23 @@ export interface AttendantMetric {
   conversao: number;
 }
 
+export interface AttendantDetailMetric {
+  key: 'jeane' | 'carina';
+  nome: string;
+  total: number;
+  convertidos: number;
+  perdidos: number;
+  abertos: number;
+  conversao: number;
+}
+
+export interface AttendantMonthlyMetric {
+  key: string;
+  label: string;
+  jeane: number;
+  carina: number;
+}
+
 export interface FunnelMetric {
   nome: string;
   total: number;
@@ -95,6 +112,8 @@ export interface NucleoKommoData {
   byDayOfWeek: number[]; // Segunda..Domingo
   byHour: number[]; // 0..23
   lostLeads: LostLead[];
+  jeaneCarina: AttendantDetailMetric[];
+  jeaneCarinaMonthly: AttendantMonthlyMetric[];
   periodoInicio: Date | null;
   periodoFim: Date | null;
   geradoEm: Date;
@@ -411,6 +430,55 @@ function computeLostLeads(leads: KommoLead[]): LostLead[] {
     .sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
 }
 
+const JEANE_CARINA_KEYS: { key: 'jeane' | 'carina'; nome: string; match: string }[] = [
+  { key: 'jeane', nome: 'Jeane', match: 'jeane' },
+  { key: 'carina', nome: 'Carina', match: 'carina' },
+];
+
+function computeJeaneCarina(leads: KommoLead[]): AttendantDetailMetric[] {
+  return JEANE_CARINA_KEYS.map(({ key, nome, match }) => {
+    const own = leads.filter(l => l.responsavel.toLowerCase().includes(match));
+    const total = own.length;
+    const convertidos = own.filter(l => l.status === 'convertido').length;
+    const perdidos = own.filter(l => l.status === 'perdido').length;
+    const abertos = own.filter(l => l.status === 'aberto').length;
+    return {
+      key,
+      nome,
+      total,
+      convertidos,
+      perdidos,
+      abertos,
+      conversao: total > 0 ? (convertidos / total) * 100 : 0,
+    };
+  });
+}
+
+function computeJeaneCarinaMonthly(leads: KommoLead[]): AttendantMonthlyMetric[] {
+  const map = new Map<string, { jeane: number; carina: number }>();
+  for (const l of leads) {
+    if (!l.dataCriada) continue;
+    const responsavel = l.responsavel.toLowerCase();
+    const isJeane = responsavel.includes('jeane');
+    const isCarina = responsavel.includes('carina');
+    if (!isJeane && !isCarina) continue;
+    const key = `${l.dataCriada.getFullYear()}-${String(l.dataCriada.getMonth() + 1).padStart(2, '0')}`;
+    const entry = map.get(key) || { jeane: 0, carina: 0 };
+    if (isJeane) entry.jeane++;
+    if (isCarina) entry.carina++;
+    map.set(key, entry);
+  }
+
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, { jeane, carina }]) => {
+      const [year, month] = key.split('-');
+      const date = new Date(+year, +month - 1, 1);
+      const label = format(date, 'MMM/yy', { locale: ptBR });
+      return { key, label: label.charAt(0).toUpperCase() + label.slice(1), jeane, carina };
+    });
+}
+
 function computeByDayOfWeek(leads: KommoLead[]): number[] {
   const counts = new Array(7).fill(0);
   for (const l of leads) {
@@ -440,9 +508,7 @@ export function hourData(byHour: number[]): { name: string; value: number }[] {
 
 // ── Main builder ──────────────────────────────────────────────────────────────
 
-function buildDashboardFromRows(rawData: Record<string, unknown>[]): NucleoKommoData {
-  const leads = parseLeads(rawData);
-
+export function buildNucleoKommoData(leads: KommoLead[]): NucleoKommoData {
   const totalLeads = leads.length;
   const convertidos = leads.filter(l => l.status === 'convertido').length;
   const perdidos = leads.filter(l => l.status === 'perdido').length;
@@ -468,6 +534,8 @@ function buildDashboardFromRows(rawData: Record<string, unknown>[]): NucleoKommo
     byDayOfWeek: computeByDayOfWeek(leads),
     byHour: computeByHour(leads),
     lostLeads: computeLostLeads(leads),
+    jeaneCarina: computeJeaneCarina(leads),
+    jeaneCarinaMonthly: computeJeaneCarinaMonthly(leads),
     periodoInicio,
     periodoFim,
     geradoEm: new Date(),
@@ -480,7 +548,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
 
 const NUCLEO_DASHBOARD_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/nucleo-oftalmologia-dashboard-data`;
 
-export async function loadNucleoKommoData(): Promise<NucleoKommoData> {
+export async function loadNucleoKommoLeads(): Promise<KommoLead[]> {
   const anonKey = SUPABASE_ANON_KEY;
   const response = await fetch(NUCLEO_DASHBOARD_FUNCTION_URL, {
     headers: {
@@ -490,5 +558,9 @@ export async function loadNucleoKommoData(): Promise<NucleoKommoData> {
   });
   if (!response.ok) throw new Error(`Falha ao carregar dados: ${response.statusText}`);
   const rawData = (await response.json()) as Record<string, unknown>[];
-  return buildDashboardFromRows(rawData);
+  return parseLeads(rawData);
+}
+
+export async function loadNucleoKommoData(): Promise<NucleoKommoData> {
+  return buildNucleoKommoData(await loadNucleoKommoLeads());
 }
