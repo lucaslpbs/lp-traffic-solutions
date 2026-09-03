@@ -216,7 +216,7 @@ export default function LinkPage() {
         >
           <h1 className="text-2xl font-bold">{data.titulo || data.nome_cliente}</h1>
           {data.bio && (
-            <p className="mt-2 text-sm" style={{ color: textMuted }}>
+            <p className="mt-2 text-sm" style={{ color: textMuted, whiteSpace: 'pre-line' }}>
               {data.bio}
             </p>
           )}
