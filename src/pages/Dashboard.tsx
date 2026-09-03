@@ -387,6 +387,8 @@ function ClienteDashboardView() {
 }
 
 function AdminDashboardView() {
+  const { isAdmin, colaboradorClientAccountNumbers } = useAuth();
+
   const { data, isLoading: loading } = useQuery({
     queryKey: ['admin-dashboard-clients'],
     queryFn: async () => {
@@ -409,11 +411,19 @@ function AdminDashboardView() {
     );
   }
 
-  const clients = data?.clientes || [];
+  // Admin ve todos os clientes; colaborador so ve os liberados pra ele
+  const clients = isAdmin
+    ? data?.clientes || []
+    : (data?.clientes || []).filter((c) => colaboradorClientAccountNumbers.includes(c.id_conta));
 
   const resumo = [
-    { title: 'Total de Clientes', value: data?.total_clientes || 0, icon: Building2, tone: 'brand' },
-    { title: 'Campanhas Ativas', value: data?.campanhas_ativas || 0, icon: TrendingUp, tone: 'success' },
+    { title: 'Total de Clientes', value: clients.length, icon: Building2, tone: 'brand' },
+    {
+      title: 'Campanhas Ativas',
+      value: isAdmin ? data?.campanhas_ativas || 0 : clients.reduce((sum, c) => sum + (c.campanhas_ativas || 0), 0),
+      icon: TrendingUp,
+      tone: 'success',
+    },
     { title: 'Relatórios Disponíveis', value: data?.relatorios_disponiveis || 0, icon: MessageSquare, tone: 'info' },
   ];
 

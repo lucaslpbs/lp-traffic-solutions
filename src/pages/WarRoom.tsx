@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { WarRoomTable } from '@/components/war-room/WarRoomTable';
 import { MetricSettingsModal } from '@/components/war-room/MetricSettingsModal';
 import { MetricsSelectorDropdown } from '@/components/war-room/MetricsSelectorDropdown';
@@ -29,6 +31,23 @@ const DATE_PRESET_LABELS: Record<string, string> = {
 
 const WarRoom = () => {
   const queryClient = useQueryClient();
+  const { isAdmin, isColaborador, colaboradorClientIds } = useAuth();
+
+  // Nomes dos clientes liberados pro colaborador (o Quarto de Guerra so tem
+  // nome/id vindos do n8n, sem numero_conta_anuncio — cruza com gestao_clientes
+  // pelo mesmo padrao usado na sidebar).
+  const { data: allowedClientNames } = useQuery({
+    queryKey: ['war-room-allowed-clients', colaboradorClientIds],
+    enabled: isColaborador && colaboradorClientIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('gestao_clientes')
+        .select('nome_cliente')
+        .in('id', colaboradorClientIds);
+      if (error) throw error;
+      return new Set((data ?? []).map((c: { nome_cliente: string }) => c.nome_cliente));
+    },
+  });
 
   // Metrics config
   const [globalMetrics, setGlobalMetrics] = useState<MetricConfig[]>([]);
@@ -86,8 +105,15 @@ const WarRoom = () => {
     },
   });
 
-  const data = warRoomData?.currentData ?? [];
-  const previousData = warRoomData?.prevData ?? [];
+  const rawData = warRoomData?.currentData ?? [];
+  const rawPreviousData = warRoomData?.prevData ?? [];
+  // Admin ve todos os clientes; colaborador so ve os liberados pra ele.
+  const data = isAdmin || !isColaborador
+    ? rawData
+    : rawData.filter((c) => allowedClientNames?.has(c.name));
+  const previousData = isAdmin || !isColaborador
+    ? rawPreviousData
+    : rawPreviousData.filter((c) => allowedClientNames?.has(c.name));
   const error = queryError ? 'Erro ao carregar dados. Verifique a conexão.' : null;
 
   useEffect(() => {
