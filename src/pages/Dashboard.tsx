@@ -17,11 +17,8 @@ import {
   BarChart3,
   Megaphone,
   LineChart,
-  Link2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { MinhaPaginaTab } from '@/components/dashboard/MinhaPaginaTab';
-import type { LinkItem } from '@/components/linktree/LinkPageEditor';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { DateFilter } from '@/components/dashboard/DateFilter';
@@ -84,7 +81,7 @@ interface ReportData {
   adicionados_carrinho?: number;
 }
 
-type TabType = 'mensagem' | 'site' | 'pagina';
+type TabType = 'mensagem' | 'site';
 
 /** Grade de KPIs com entrada escalonada. */
 const KPIGrid = ({ items }: { items: any[] }) => (
@@ -112,29 +109,15 @@ function ClienteDashboardView() {
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
-  const { data: clienteInfo, isLoading: loadingClient, refetch: refetchClienteInfo } = useQuery({
+  const { data: clienteInfo, isLoading: loadingClient } = useQuery({
     queryKey: ['cliente-info', clienteVinculadoId],
     queryFn: async () => {
       const { data } = await supabase
         .from('gestao_clientes')
-        .select(
-          'id, nome_cliente, logo_url, numero_conta_anuncio, link_page_ativo, link_page_slug, link_page_titulo, link_page_bio, link_page_cor_primaria, link_page_cor_secundaria, link_page_cor_fundo, link_page_links'
-        )
+        .select('id, nome_cliente, logo_url, numero_conta_anuncio')
         .eq('id', clienteVinculadoId!)
         .single();
-      return data as {
-        nome_cliente: string;
-        logo_url: string | null;
-        numero_conta_anuncio: string | null;
-        link_page_ativo: boolean;
-        link_page_slug: string | null;
-        link_page_titulo: string | null;
-        link_page_bio: string | null;
-        link_page_cor_primaria: string | null;
-        link_page_cor_secundaria: string | null;
-        link_page_cor_fundo: string | null;
-        link_page_links: LinkItem[];
-      } | null;
+      return data as { nome_cliente: string; logo_url: string | null; numero_conta_anuncio: string | null } | null;
     },
     enabled: !!clienteVinculadoId,
   });
@@ -316,10 +299,6 @@ function ClienteDashboardView() {
             <Megaphone className="h-4 w-4" />
             Site
           </DashTabsTrigger>
-          <DashTabsTrigger value="pagina">
-            <Link2 className="h-4 w-4" />
-            Minha Página
-          </DashTabsTrigger>
         </DashTabsList>
 
         <DashTabsPanel value="mensagem">
@@ -400,22 +379,6 @@ function ClienteDashboardView() {
             />
           ) : (
             <SiteDashboard dailyData={dailyData} showLabelsForPDF={false} />
-          )}
-        </DashTabsPanel>
-
-        <DashTabsPanel value="pagina">
-          {clienteInfo && (
-            <MinhaPaginaTab
-              slug={clienteInfo.link_page_slug}
-              titulo={clienteInfo.link_page_titulo}
-              bio={clienteInfo.link_page_bio}
-              corPrimaria={clienteInfo.link_page_cor_primaria}
-              corSecundaria={clienteInfo.link_page_cor_secundaria}
-              corFundo={clienteInfo.link_page_cor_fundo}
-              links={clienteInfo.link_page_links ?? []}
-              ativo={clienteInfo.link_page_ativo}
-              onSaved={() => refetchClienteInfo()}
-            />
           )}
         </DashTabsPanel>
       </DashTabs>

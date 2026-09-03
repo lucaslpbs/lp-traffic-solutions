@@ -147,7 +147,7 @@ export function LinkPageEditor({ value, onChange }: LinkPageEditorProps) {
         <Switch checked={value.ativo} onCheckedChange={(v) => set('ativo', v)} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="col-span-2">
           <label className={labelCls}>Título</label>
           <Input
@@ -178,7 +178,7 @@ export function LinkPageEditor({ value, onChange }: LinkPageEditorProps) {
           const Icon = LINK_TIPO_ICON[link.tipo];
           return (
             <div key={link.id} className="border border-foreground/10 rounded-lg p-3 space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
                 <Select value={link.tipo} onValueChange={(v) => setLink(link.id, { tipo: v as LinkTipo })}>
                   <SelectTrigger className={`${inputCls} w-40 shrink-0`}>
                     <SelectValue />
@@ -194,13 +194,6 @@ export function LinkPageEditor({ value, onChange }: LinkPageEditorProps) {
                     ))}
                   </SelectContent>
                 </Select>
-                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                <Input
-                  value={link.label}
-                  onChange={(e) => setLink(link.id, { label: e.target.value })}
-                  placeholder="Texto do botão"
-                  className={inputCls}
-                />
                 <div className="flex items-center gap-0.5 shrink-0">
                   <button
                     type="button"
@@ -226,6 +219,15 @@ export function LinkPageEditor({ value, onChange }: LinkPageEditorProps) {
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Input
+                  value={link.label}
+                  onChange={(e) => setLink(link.id, { label: e.target.value })}
+                  placeholder="Texto do botão"
+                  className={inputCls}
+                />
               </div>
               <Input
                 value={link.url}

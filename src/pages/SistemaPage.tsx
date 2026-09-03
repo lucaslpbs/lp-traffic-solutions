@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, ListChecks, Target, Workflow, FileText, BookOpen, Library, BarChart3, Image as ImageIcon, ChevronLeft, FolderKanban } from "lucide-react";
+import { Users, ListChecks, Target, Workflow, FileText, BookOpen, Library, BarChart3, Image as ImageIcon, ChevronLeft, FolderKanban, Link2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Stagger, StaggerItem, Reveal } from "@/components/dashboard/Motion";
@@ -18,6 +18,8 @@ import { MetasBoard } from "@/components/sistema/MetasBoard";
 import { FluxosPage } from "@/components/sistema/FluxosPage";
 import { OtimizacaoForm } from "@/components/sistema/forms/OtimizacaoForm";
 import { CriativosGallery } from "@/components/sistema/CriativosGallery";
+import { MinhaPaginaTab } from "@/components/dashboard/MinhaPaginaTab";
+import type { LinkItem } from "@/components/linktree/LinkPageEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,7 +43,7 @@ const titles: Record<Tab, string> = {
 
 // ── Client read-only view components ──
 
-type SectionId = "persona" | "icp" | "escopo" | "biblioteca" | "otimizacao" | "criativos" | null;
+type SectionId = "persona" | "icp" | "escopo" | "biblioteca" | "otimizacao" | "criativos" | "pagina-links" | null;
 
 const inputCls = "bg-surface-2 border-surface-3 text-foreground rounded-md cursor-default";
 
@@ -174,27 +176,41 @@ const BibliotecaReadOnly = () => (
 );
 
 const clientSections = [
-  { id: "persona" as const, label: "Persona", icon: FileText },
-  { id: "icp" as const, label: "ICP", icon: Target },
-  { id: "escopo" as const, label: "Escopo do Trabalho", icon: BookOpen },
-  { id: "biblioteca" as const, label: "Biblioteca de Referencias", icon: Library },
-  { id: "otimizacao" as const, label: "Otimização", icon: BarChart3 },
-  { id: "criativos" as const, label: "Criativos", icon: ImageIcon },
+  { id: "persona" as const, label: "Persona", icon: FileText, description: "Visualizar informações" },
+  { id: "icp" as const, label: "ICP", icon: Target, description: "Visualizar informações" },
+  { id: "escopo" as const, label: "Escopo do Trabalho", icon: BookOpen, description: "Visualizar informações" },
+  { id: "biblioteca" as const, label: "Biblioteca de Referencias", icon: Library, description: "Visualizar informações" },
+  { id: "otimizacao" as const, label: "Otimização", icon: BarChart3, description: "Visualizar informações" },
+  { id: "criativos" as const, label: "Criativos", icon: ImageIcon, description: "Visualizar informações" },
+  { id: "pagina-links" as const, label: "Página de Links", icon: Link2, description: "Editar conteúdo, cores e links" },
 ];
 
 function ClienteSistemaView() {
   const { clienteVinculadoId } = useAuth();
   const [activeSection, setActiveSection] = useState<SectionId>(null);
 
-  const { data: clienteData, isLoading: loadingClient } = useQuery({
+  const { data: clienteData, isLoading: loadingClient, refetch: refetchClienteData } = useQuery({
     queryKey: ['sistema-cliente-info', clienteVinculadoId],
     queryFn: async () => {
       const { data } = await supabase
         .from("gestao_clientes")
-        .select("nome_cliente, logo_url")
+        .select(
+          "nome_cliente, logo_url, link_page_ativo, link_page_slug, link_page_titulo, link_page_bio, link_page_cor_primaria, link_page_cor_secundaria, link_page_cor_fundo, link_page_links"
+        )
         .eq("id", clienteVinculadoId!)
         .single();
-      return data as { nome_cliente: string; logo_url: string | null } | null;
+      return data as {
+        nome_cliente: string;
+        logo_url: string | null;
+        link_page_ativo: boolean;
+        link_page_slug: string | null;
+        link_page_titulo: string | null;
+        link_page_bio: string | null;
+        link_page_cor_primaria: string | null;
+        link_page_cor_secundaria: string | null;
+        link_page_cor_fundo: string | null;
+        link_page_links: LinkItem[];
+      } | null;
     },
     enabled: !!clienteVinculadoId,
   });
@@ -219,6 +235,20 @@ function ClienteSistemaView() {
       case "biblioteca": return <BibliotecaReadOnly />;
       case "otimizacao": return <OtimizacaoForm clientId={clienteVinculadoId || undefined} readOnly />;
       case "criativos": return <CriativosGallery clientId={clienteVinculadoId || undefined} />;
+      case "pagina-links":
+        return clienteData ? (
+          <MinhaPaginaTab
+            slug={clienteData.link_page_slug}
+            titulo={clienteData.link_page_titulo}
+            bio={clienteData.link_page_bio}
+            corPrimaria={clienteData.link_page_cor_primaria}
+            corSecundaria={clienteData.link_page_cor_secundaria}
+            corFundo={clienteData.link_page_cor_fundo}
+            links={clienteData.link_page_links ?? []}
+            ativo={clienteData.link_page_ativo}
+            onSaved={() => refetchClienteData()}
+          />
+        ) : null;
       default: return null;
     }
   };
@@ -231,7 +261,7 @@ function ClienteSistemaView() {
         <PageHeader
           className="mb-8"
           title={secaoAtual ? secaoAtual.label : "Meu Perfil & Materiais"}
-          subtitle={`${clientName} — Somente leitura`}
+          subtitle={activeSection === "pagina-links" ? clientName : `${clientName} — Somente leitura`}
           imageUrl={clientLogo}
           initial={(clientName || "C").charAt(0).toUpperCase()}
           leading={
@@ -264,7 +294,7 @@ function ClienteSistemaView() {
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="text-base font-semibold text-foreground mb-1">{section.label}</h3>
-                  <p className="text-sm text-muted-foreground">Visualizar informações</p>
+                  <p className="text-sm text-muted-foreground">{section.description}</p>
                 </button>
               </StaggerItem>
             );
