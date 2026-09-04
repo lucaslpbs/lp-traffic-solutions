@@ -12,6 +12,10 @@ import { Link } from 'react-router-dom';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const API_URL = 'https://n8n.trafficsolutions.cloud/webhook/buscar-leads-koru-engenharia';
+const FUNIL_SNAPSHOT_FUNCTION_URL = 'https://twclltazkfvtufbsehsv.supabase.co/functions/v1/get-funil-interno-snapshot';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Y2xsdGF6a2Z2dHVmYnNlaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDAzNDEsImV4cCI6MjA5NDg3NjM0MX0.9tlBCuOcBNYYR0GZYztMRMLQH0uZdbuKhUX4s6mQHO0';
+const FUNIL_INTERNA = 'Funil Vendas Internas';
+const FUNIS_EXTERNA = ['Atendimento Geral', 'Funil Rodrigo Jefferson', 'Agenda Imobiliárias'];
 const DEFAULT_TICKET = 245000;
 const PIPELINE_ID_INTERNA = 12157328;
 const PIPELINE_ID_EXTERNA = 13422447;
@@ -140,31 +144,6 @@ function computeMetricas(records: LeadRecord[]): Metricas {
     vendasFechadas: ganhaCount,
     pastaRecebida,
   };
-}
-
-// Etapa atual (último evento) de cada lead, agrupada por etapa — exclui etapas terminais (venda ganha/perdida).
-// Usada pela Seção I para refletir a etapa de hoje dos leads criados no período filtrado.
-function computeEtapaAtualRows(records: LeadRecord[]): EtapaRow[] {
-  const byLead = new Map<string, LeadRecord[]>();
-  for (const r of records) {
-    const id = String(r.lead_id);
-    if (!byLead.has(id)) byLead.set(id, []);
-    byLead.get(id)!.push(r);
-  }
-
-  const map = new Map<string, number>();
-  for (const events of byLead.values()) {
-    const last = events.reduce((a, b) =>
-      parseDateBR(a.data_hora_etapa ?? '') >= parseDateBR(b.data_hora_etapa ?? '') ? a : b
-    );
-    const e = (last.etapa_nome ?? '').trim();
-    if (!e || ETAPAS_TERMINAL.some(t => norm(e).includes(norm(t)))) continue;
-    map.set(e, (map.get(e) ?? 0) + 1);
-  }
-
-  return Array.from(map.entries())
-    .map(([etapa, quantidade]) => ({ etapa, quantidade }))
-    .sort((a, b) => b.quantidade - a.quantidade);
 }
 
 // ── Ciclo de Vendas — types ────────────────────────────────────────────────
@@ -485,6 +464,50 @@ function CicloHBarChart({ data, color = D.blue }: { data: CicloAgente[]; color?:
 
 const FAIXA_CC = [D.green, D.cyan, D.amber, D.orange, D.red, '#B91C1C'];
 
+// ── Hooks ──────────────────────────────────────────────────────────────────
+function useFunilSnapshot(tab: 'interna' | 'externa') {
+  const [rows, setRows] = useState<EtapaRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true); setError(null);
+
+    fetch(FUNIL_SNAPSHOT_FUNCTION_URL, {
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+    })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then((json: { etapa_lead: string | null; funil_vendas: string | null }[]) => {
+        if (!Array.isArray(json) || !json.length) { setRows([]); return; }
+
+        const filtered = json.filter(row => {
+          const funil = (row.funil_vendas ?? '').trim();
+          return tab === 'interna'
+            ? funil === FUNIL_INTERNA
+            : FUNIS_EXTERNA.includes(funil);
+        });
+
+        const map = new Map<string, number>();
+        for (const row of filtered) {
+          const e = (row.etapa_lead ?? '').trim();
+          if (!e) continue;
+          if (ETAPAS_TERMINAL.some(t => norm(e).includes(norm(t)))) continue;
+          map.set(e, (map.get(e) ?? 0) + 1);
+        }
+        setRows(Array.from(map.entries())
+          .map(([etapa, quantidade]) => ({ etapa, quantidade }))
+          .sort((a, b) => b.quantidade - a.quantidade));
+      })
+      .catch(err => setError(err instanceof Error ? err.message : 'Erro ao carregar dados do Supabase'))
+      .finally(() => setLoading(false));
+  }, [tab]);
+
+  return { rows, loading, error };
+}
+
 // ── Shared UI ──────────────────────────────────────────────────────────────
 function OrigemTabs({ active, onChange }: { active: 'todos' | 'trafego'; onChange: (v: 'todos' | 'trafego') => void }) {
   const OPTS = [
@@ -518,12 +541,15 @@ function FunilTabs({ active, onChange }: { active: 'interna' | 'externa'; onChan
   );
 }
 
-function Card({ title, sub, icon, children }: { title: string; sub: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Card({ title, sub, icon, badge, children }: { title: string; sub: string; icon: React.ReactNode; badge?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl p-6" style={{ background: D.card, border: `1px solid ${D.border}` }}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold" style={{ color: D.text }}>{title}</h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-lg font-bold" style={{ color: D.text }}>{title}</h2>
+            {badge}
+          </div>
           <p className="text-xs mt-1" style={{ color: D.textSec }}>{sub}</p>
         </div>
         {icon}
@@ -573,13 +599,15 @@ const PTip = ({ active, payload }: { active?: boolean; payload?: { name: string;
 };
 
 // ── Section I ──────────────────────────────────────────────────────────────
-function SecaoEstatica({ records }: { records: LeadRecord[] }) {
-  const rows = useMemo(() => computeEtapaAtualRows(records), [records]);
+function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
+  const { rows, loading, error } = useFunilSnapshot(tab);
   const total = rows.reduce((s, r) => s + r.quantidade, 0);
   const chartH = Math.max(rows.length * 52 + 20, 180);
   const pieData = rows.filter(r => r.quantidade > 0);
 
-  if (!rows.length) return <p className="text-center py-16" style={{ color: D.textSec }}>Nenhum lead encontrado para o período.</p>;
+  if (loading) return <Spinner />;
+  if (error) return <ErrBanner msg={error} />;
+  if (!rows.length) return <p className="text-center py-16" style={{ color: D.textSec }}>Nenhum dado encontrado na planilha.</p>;
 
   return (
     <div className="space-y-6">
@@ -604,7 +632,7 @@ function SecaoEstatica({ records }: { records: LeadRecord[] }) {
               </tr>
             ))}
             <tr style={{ background: D.cardHover, borderTop: `1px solid ${D.borderLight}` }}>
-              <td className="px-4 py-3 font-bold" style={{ color: D.text }}>TOTAL (LEADS ATIVOS NO PERÍODO)</td>
+              <td className="px-4 py-3 font-bold" style={{ color: D.text }}>TOTAL GERAL (LEADS ATIVOS)</td>
               <td className="px-4 py-3 text-right font-black text-base" style={{ color: D.green }}>{total}</td>
               <td className="px-4 py-3 text-right font-bold" style={{ color: D.green }}>100,00%</td>
             </tr>
@@ -1102,28 +1130,20 @@ export default function KoruVendas() {
         {/* I — Static */}
         <Card
           title="(I) Análise Estática — Situação Atual do Funil"
-          sub="Etapa atual dos leads criados no período selecionado acima · dados em tempo real do Kommo"
+          sub="Dados sincronizados automaticamente do Kommo · Atualização diária via n8n · Não é afetado pelo filtro de período acima"
           icon={<BarChart2 size={20} style={{ color: D.blue }} />}
+          badge={
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+              style={{ background: `${D.cyan}22`, color: D.cyan, border: `1px solid ${D.cyan}55` }}
+              title="Este card mostra a foto atual do funil no Kommo, independente do período selecionado acima. Para leads criados no período, veja a Seção (II)."
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: D.cyan }} />
+              Tempo Real · ignora período
+            </span>
+          }
         >
-          {apiLoading && <Spinner />}
-          {!apiLoading && activeTab === 'interna' && (
-            rawDataInterna !== null
-              ? <SecaoEstatica records={filteredInterna} />
-              : !apiError && (
-                <p className="text-center py-16" style={{ color: D.textSec }}>
-                  Clique em <strong>Atualizar</strong> para carregar os dados.
-                </p>
-              )
-          )}
-          {!apiLoading && activeTab === 'externa' && (
-            rawDataExterna !== null
-              ? <SecaoEstatica records={filteredExterna} />
-              : !apiError && (
-                <p className="text-center py-16" style={{ color: D.textSec }}>
-                  Clique em <strong>Atualizar</strong> para carregar os dados.
-                </p>
-              )
-          )}
+          <SecaoEstatica tab={activeTab} />
         </Card>
 
         {/* II — Periodic */}
