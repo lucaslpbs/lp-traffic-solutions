@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Stagger, StaggerItem } from '@/components/dashboard/Motion';
 import { EASE_OUT } from '@/lib/motion';
-import { isLightColor } from '@/lib/colorExtraction';
+import { isLightColor, hexToRgba } from '@/lib/colorExtraction';
 import { LINK_TIPO_ICON, type LinkItem, type LinkTipo } from '@/components/linktree/LinkPageEditor';
-import { Building2 } from 'lucide-react';
+import { Building2, Share2, ExternalLink as ExternalLinkIcon } from 'lucide-react';
 import NotFound from './NotFound';
 
 interface LinktreeData {
@@ -25,8 +26,8 @@ const DEFAULT_SECONDARY = '#8b5cf6';
 const DEFAULT_BG = '#0b0b14';
 
 /**
- * Fundo animado: gradiente vivo migrando entre as cores da paleta + linhas
- * grossas cruzando a tela em diagonal, como feixes de luz passando.
+ * Fundo animado por trás do cartão: gradiente vivo migrando entre as cores
+ * da paleta + linhas grossas cruzando a tela em diagonal.
  */
 function AnimatedBackground({
   corPrimaria,
@@ -149,125 +150,167 @@ export default function LinkPage() {
   const textPrimary = isLight ? '#18181b' : '#ffffff';
   const textMuted = isLight ? 'rgba(24,24,27,0.65)' : 'rgba(255,255,255,0.7)';
   const textFooter = isLight ? 'rgba(24,24,27,0.45)' : 'rgba(255,255,255,0.4)';
-  const glassBg = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.05)';
-  const glassBgHover = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
-  const glassBorder = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.15)';
-  const glassBorderHover = isLight ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.25)';
+  const glassBg = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)';
+  const glassBgHover = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.12)';
+  const glassBorder = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)';
+  const glassBorderHover = isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.25)';
+  // O cartão flutua sobre o fundo animado — translúcido pra deixar o
+  // gradiente/linhas migrarem por trás dele, com um blur pra não brigar com o texto.
+  const cardBg = hexToRgba(corFundo, isLight ? 0.85 : 0.78);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const shareData = { title: data.titulo || data.nome_cliente, url };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // usuario cancelou o compartilhamento — nada a fazer
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copiado!');
+    } catch {
+      toast.error('Não foi possível copiar o link.');
+    }
+  };
 
   return (
-    <div
-      className="relative z-0 min-h-screen flex flex-col items-center px-6 py-16"
-      style={{ background: corFundo, color: textPrimary }}
-    >
-      <AnimatedBackground
-        corPrimaria={corPrimaria}
-        corSecundaria={corSecundaria}
-        corFundo={corFundo}
-        isLight={isLight}
-        reduceMotion={reduceMotion}
-      />
-
-      <motion.div
-        className="w-full max-w-md flex flex-col items-center"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: EASE_OUT }}
-      >
-        <div className="relative">
-          <motion.div
-            className="absolute inset-0 rounded-2xl blur-xl -z-10"
-            style={{ background: corPrimaria }}
-            animate={reduceMotion ? undefined : { opacity: [0.35, 0.6, 0.35], scale: [0.95, 1.08, 0.95] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <motion.div
-            className="h-24 w-24 rounded-2xl overflow-hidden backdrop-blur flex items-center justify-center shrink-0"
-            style={{ border: `1px solid ${glassBorder}`, background: glassBg }}
-            initial={{ opacity: 0, scale: 0.7, rotate: -8 }}
-            animate={
-              reduceMotion
-                ? { opacity: 1, scale: 1, rotate: 0 }
-                : { opacity: 1, scale: 1, rotate: 0, y: [0, -6, 0] }
-            }
-            transition={
-              reduceMotion
-                ? { duration: 0.5, ease: EASE_OUT }
-                : {
-                    opacity: { duration: 0.5, ease: EASE_OUT },
-                    scale: { duration: 0.5, ease: EASE_OUT },
-                    rotate: { duration: 0.5, ease: EASE_OUT },
-                    y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.6 },
-                  }
-            }
-          >
-            {data.logo_url ? (
-              <img src={data.logo_url} alt={data.nome_cliente} className="h-full w-full object-cover" />
-            ) : (
-              <Building2 className="h-10 w-10" style={{ color: textMuted }} />
-            )}
-          </motion.div>
-        </div>
+    <div className="relative min-h-screen" style={{ background: corFundo }}>
+      <div className="relative z-0 min-h-screen w-full flex justify-center">
+        <AnimatedBackground
+          corPrimaria={corPrimaria}
+          corSecundaria={corSecundaria}
+          corFundo={corFundo}
+          isLight={isLight}
+          reduceMotion={reduceMotion}
+        />
 
         <motion.div
-          className="mt-5 text-center"
-          initial={{ opacity: 0, y: 10 }}
+          className="relative w-full min-h-screen sm:max-w-[540px] sm:min-h-[calc(100vh-2.5rem)] sm:mt-10 sm:rounded-t-[28px] sm:shadow-2xl overflow-hidden backdrop-blur-xl"
+          style={{ background: cardBg, color: textPrimary }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: EASE_OUT, delay: 0.15 }}
+          transition={{ duration: 0.5, ease: EASE_OUT }}
         >
-          <h1 className="text-2xl font-bold">{data.titulo || data.nome_cliente}</h1>
-          {data.bio && (
-            <p className="mt-2 text-sm" style={{ color: textMuted, whiteSpace: 'pre-line' }}>
-              {data.bio}
-            </p>
-          )}
+          <div className="flex justify-end px-5 pt-4">
+            <button
+              type="button"
+              onClick={handleShare}
+              aria-label="Compartilhar"
+              className="h-10 w-10 rounded-full flex items-center justify-center transition-colors"
+              style={{ color: textMuted }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = glassBg)}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center px-6 sm:px-10 pb-16">
+            <div className="relative">
+              <motion.div
+                className="absolute inset-0 rounded-full blur-xl -z-10"
+                style={{ background: corPrimaria }}
+                animate={reduceMotion ? undefined : { opacity: [0.35, 0.6, 0.35], scale: [0.95, 1.08, 0.95] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <motion.div
+                className="h-24 w-24 rounded-full overflow-hidden backdrop-blur flex items-center justify-center shrink-0"
+                style={{ border: `1px solid ${glassBorder}`, background: glassBg }}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={
+                  reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1, y: [0, -6, 0] }
+                }
+                transition={
+                  reduceMotion
+                    ? { duration: 0.5, ease: EASE_OUT }
+                    : {
+                        opacity: { duration: 0.5, ease: EASE_OUT },
+                        scale: { duration: 0.5, ease: EASE_OUT },
+                        y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.6 },
+                      }
+                }
+              >
+                {data.logo_url ? (
+                  <img src={data.logo_url} alt={data.nome_cliente} className="h-full w-full object-cover" />
+                ) : (
+                  <Building2 className="h-10 w-10" style={{ color: textMuted }} />
+                )}
+              </motion.div>
+            </div>
+
+            <motion.div
+              className="mt-5 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: EASE_OUT, delay: 0.15 }}
+            >
+              <h1 className="text-2xl font-bold">{data.titulo || data.nome_cliente}</h1>
+              {data.bio && (
+                <p className="mt-2 text-sm" style={{ color: textMuted, whiteSpace: 'pre-line' }}>
+                  {data.bio}
+                </p>
+              )}
+            </motion.div>
+
+            <Stagger className="mt-8 w-full flex flex-col gap-3" stagger={0.07} delay={0.3}>
+              {data.links.map((link) => {
+                const Icon = LINK_TIPO_ICON[link.tipo as LinkTipo] ?? LINK_TIPO_ICON.custom;
+                if (!link.url) return null;
+                return (
+                  <StaggerItem key={link.id}>
+                    <motion.a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative flex items-center w-full rounded-full py-2.5 pl-2 pr-11 gap-3"
+                      style={{ border: `1px solid ${glassBorder}`, background: glassBg }}
+                      whileHover={{ scale: reduceMotion ? 1 : 1.02, y: reduceMotion ? 0 : -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = glassBgHover;
+                        e.currentTarget.style.borderColor = glassBorderHover;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = glassBg;
+                        e.currentTarget.style.borderColor = glassBorder;
+                      }}
+                    >
+                      <span
+                        className="h-11 w-11 rounded-full flex items-center justify-center shrink-0"
+                        style={{ background: `${corPrimaria}22` }}
+                      >
+                        <Icon className="h-5 w-5" style={{ color: corPrimaria }} />
+                      </span>
+                      <span className="flex-1 text-center font-medium truncate">
+                        {link.label || link.url}
+                      </span>
+                      <ExternalLinkIcon
+                        className="h-3.5 w-3.5 absolute right-4 top-1/2 -translate-y-1/2"
+                        style={{ color: textMuted }}
+                      />
+                    </motion.a>
+                  </StaggerItem>
+                );
+              })}
+            </Stagger>
+
+            <motion.span
+              className="mt-12 text-xs"
+              style={{ color: textFooter }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.6 }}
+            >
+              Traffic Solutions
+            </motion.span>
+          </div>
         </motion.div>
-
-        <Stagger className="mt-8 w-full flex flex-col gap-3" stagger={0.07} delay={0.3}>
-          {data.links.map((link) => {
-            const Icon = LINK_TIPO_ICON[link.tipo as LinkTipo] ?? LINK_TIPO_ICON.custom;
-            if (!link.url) return null;
-            return (
-              <StaggerItem key={link.id}>
-                <motion.a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 w-full rounded-xl backdrop-blur px-5 py-3.5"
-                  style={{
-                    border: `1px solid ${glassBorder}`,
-                    background: glassBg,
-                    boxShadow: `0 0 0 1px ${corPrimaria}22`,
-                  }}
-                  whileHover={{ scale: reduceMotion ? 1 : 1.02, y: reduceMotion ? 0 : -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = glassBgHover;
-                    e.currentTarget.style.borderColor = glassBorderHover;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = glassBg;
-                    e.currentTarget.style.borderColor = glassBorder;
-                  }}
-                >
-                  <Icon className="h-5 w-5 shrink-0" style={{ color: corPrimaria }} />
-                  <span className="font-medium">{link.label || link.url}</span>
-                </motion.a>
-              </StaggerItem>
-            );
-          })}
-        </Stagger>
-
-        <motion.span
-          className="mt-12 text-xs"
-          style={{ color: textFooter }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.6 }}
-        >
-          Traffic Solutions
-        </motion.span>
-      </motion.div>
+      </div>
     </div>
   );
 }
