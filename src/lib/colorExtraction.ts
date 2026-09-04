@@ -3,14 +3,25 @@ export interface ExtractedPalette {
   secundaria: string;
 }
 
-/** Luminância relativa (0-1) de uma cor hex — usada pra decidir texto claro ou escuro em cima dela. */
-export function getRelativeLuminance(hex: string): number {
+/** Converte um hex (#fff ou #ffffff) em [r,g,b] 0-255. */
+export function hexToRgb(hex: string): [number, number, number] {
   const clean = hex.replace('#', '');
   const full =
     clean.length === 3
       ? clean.split('').map((c) => c + c).join('')
       : clean.padEnd(6, '0').slice(0, 6);
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+  return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16)) as [number, number, number];
+}
+
+/** Cor hex como rgba() CSS com a opacidade dada — usado pros cartões "vidro". */
+export function hexToRgba(hex: string, alpha: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Luminância relativa (0-1) de uma cor hex — usada pra decidir texto claro ou escuro em cima dela. */
+export function getRelativeLuminance(hex: string): number {
+  const [r, g, b] = hexToRgb(hex).map((c) => c / 255);
   const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
   return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
 }
