@@ -44,7 +44,18 @@ interface LeadRecord {
   data_hora_etapa?: string;
   produto?: string;
   tags?: string;
+  // Calculados pelo n8n (nó de code) — ver comentário em cima de fetchData
+  data_criacao_local?: string;
+  is_facebook?: boolean;
   [key: string]: unknown;
+}
+// Formato retornado pelo webhook: leads já classificados pelo n8n (data_criacao_local,
+// is_facebook), divididos em "todos" e "trafego" (somente Facebook). O filtro de período
+// ainda é aplicado do lado do Supabase/n8n conforme inicio/fim — enquanto isso não estiver
+// configurado lá, "todos"/"trafego" vêm com o histórico inteiro.
+interface KoruApiResponse {
+  todos: LeadRecord[];
+  trafego: LeadRecord[];
 }
 interface EtapaRow { etapa: string; quantidade: number }
 interface Metricas {
@@ -59,8 +70,10 @@ const fmtBRL = (v: number) =>
 const fmtPct = (v: number) => `${v.toFixed(2)}%`;
 const norm = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
-// Leads do Kommo vindos de Meta Ads Forms/Messenger recebem nome padrão "Facebook №<psid>"
-const isFacebookLead = (r: LeadRecord) => norm((r.lead_nome as string) ?? '').includes('facebook');
+// Formata a data local (sem passar por UTC) — toISOString() converteria para UTC e,
+// no fuso do Brasil (UTC-3), "agora" à noite viraria o dia seguinte.
+const toLocalISODate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 function parseDateBR(s: string): number {
   if (!s) return 0;
@@ -68,40 +81,6 @@ function parseDateBR(s: string): number {
   if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:${m[6]}`).getTime();
   return new Date(s).getTime();
 }
-
-// Extrai a data de criação do lead como string YYYY-MM-DD (sem conversão de timezone)
-function extractLeadCreatedDate(r: LeadRecord): string {
-  // data_hora_criacao_lead é estável (mesmo valor em todas as linhas de um lead).
-  // lead_criado_em costuma vir vazio e, quando preenchido, na maioria das vezes reflete
-  // a data do evento de etapa daquela linha (não a criação real) — não usar como fonte primária.
-  // Usa || (não ??) para que string vazia "" também faça fallback
-  const s = ((r.data_hora_criacao_lead as string) || (r.lead_criado_em as string) || '');
-  if (!s) return '';
-  // Formato DD/MM/YYYY HH:MM:SS → converte para YYYY-MM-DD
-  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-  // Já está em YYYY-MM-DD ou ISO → pega os 10 primeiros chars
-  return s.substring(0, 10);
-}
-
-// Filtra os leads criados no período e retorna TODOS os seus registros de etapa.
-// Compara strings YYYY-MM-DD diretamente para evitar problemas de fuso horário (UTC vs BRT).
-function filterLeadsCreatedInPeriod(allRecords: LeadRecord[], start: string, end: string): LeadRecord[] {
-  if (!start || !end) return allRecords;
-
-  // Passo 1: encontra os lead_ids cujo dia de criação está dentro do período
-  const createdLeadIds = new Set<string>();
-  for (const r of allRecords) {
-    const dateStr = extractLeadCreatedDate(r);
-    if (dateStr && dateStr >= start && dateStr <= end) {
-      createdLeadIds.add(String(r.lead_id));
-    }
-  }
-
-  // Passo 2: retorna TODOS os registros desses leads (incluindo etapas fora do período)
-  return allRecords.filter(r => createdLeadIds.has(String(r.lead_id)));
-}
-
 
 function computeMetricas(records: LeadRecord[]): Metricas {
   // Agrupa por lead e usa apenas o último estado de cada um
@@ -975,60 +954,76 @@ export default function KoruVendas() {
 
   const today = new Date();
   const [dateStart, setDateStart] = useState(
-    new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]
+    toLocalISODate(new Date(today.getFullYear(), today.getMonth(), 1))
   );
-  const [dateEnd, setDateEnd] = useState(today.toISOString().split('T')[0]);
-  const [rawData, setRawData] = useState<LeadRecord[] | null>(null);
+  const [dateEnd, setDateEnd] = useState(toLocalISODate(today));
+  const [apiResponse, setApiResponse] = useState<KoruApiResponse | null>(null);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [investimento, setInvestimento] = useState('');
   const [ticketMedio, setTicketMedio] = useState(String(DEFAULT_TICKET));
 
+  // Período e classificação "Facebook" agora são calculados no n8n (nó de code, antes do
+  // Respond to Webhook) — evita reproduzir no browser as regras de fuso horário/parsing.
+  // inicio/fim vão como query params; o n8n devolve { todos, trafego } (filtro de período
+  // aplicado lá quando configurado — ver filtro do Supabase). O n8n às vezes envolve a
+  // resposta num array de 1 item ([{ todos, trafego }]) dependendo do "Respond to Webhook";
+  // desembrulha os dois formatos aqui.
   const fetchData = useCallback(async () => {
     setApiLoading(true); setApiError(null);
     try {
-      const res = await fetch(API_URL);
+      const url = new URL(API_URL);
+      url.searchParams.set('inicio', dateStart);
+      url.searchParams.set('fim', dateEnd);
+      const res = await fetch(url.toString());
       if (!res.ok) throw new Error(`Erro ${res.status}: ${res.statusText}`);
-      const json = await res.json();
-      setRawData(Array.isArray(json) ? json : (json?.data ?? []));
+      const raw = await res.json();
+      const json: KoruApiResponse = Array.isArray(raw) ? raw[0] : raw;
+      setApiResponse(json ?? null);
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : 'Erro ao buscar dados da API.');
     } finally {
       setApiLoading(false);
     }
-  }, []);
+  }, [dateStart, dateEnd]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // Busca só uma vez, com o período padrão — refetch é manual (botão "Atualizar"),
+  // que sempre usa o fetchData mais recente (já fechado sobre o dateStart/dateEnd atuais).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(); }, []);
 
-  // Filtra por pipeline_id antes de aplicar o filtro de data — única fonte de verdade
+  const byPipeline = (records: LeadRecord[] | undefined, pipelineId: number) =>
+    records?.filter(r => String(r.pipeline_id) === String(pipelineId)) ?? [];
+
+  // Seção IV (Ciclo de Vendas) está desativada — enquanto isso, reaproveita "todos" também
+  // como histórico "sem filtro de período". Se reativar essa seção, vai precisar de uma
+  // leitura separada, sem o filtro de data, para não perder o histórico completo.
   const rawDataInterna = useMemo(
-    () => rawData?.filter(r => String(r.pipeline_id) === String(PIPELINE_ID_INTERNA)) ?? null,
-    [rawData]
+    () => apiResponse ? byPipeline(apiResponse.todos, PIPELINE_ID_INTERNA) : null,
+    [apiResponse]
   );
   const rawDataExterna = useMemo(
-    () => rawData?.filter(r => String(r.pipeline_id) === String(PIPELINE_ID_EXTERNA)) ?? null,
-    [rawData]
+    () => apiResponse ? byPipeline(apiResponse.todos, PIPELINE_ID_EXTERNA) : null,
+    [apiResponse]
   );
 
-  const filteredInterna = useMemo(() => {
-    if (!rawDataInterna) return [];
-    return filterLeadsCreatedInPeriod(rawDataInterna, dateStart, dateEnd);
-  }, [rawDataInterna, dateStart, dateEnd]);
+  const filteredInterna = useMemo(
+    () => byPipeline(apiResponse?.todos, PIPELINE_ID_INTERNA),
+    [apiResponse]
+  );
+  const filteredExterna = useMemo(
+    () => byPipeline(apiResponse?.todos, PIPELINE_ID_EXTERNA),
+    [apiResponse]
+  );
 
-  const filteredExterna = useMemo(() => {
-    if (!rawDataExterna) return [];
-    return filterLeadsCreatedInPeriod(rawDataExterna, dateStart, dateEnd);
-  }, [rawDataExterna, dateStart, dateEnd]);
-
-  // Seção II — aplica o filtro "Tráfego (Facebook)" por cima do filtro de período,
-  // sem alterar filteredInterna/filteredExterna usados pelas demais seções
+  // Seção II — alterna entre "todos" e "trafego"
   const periodicoInterna = useMemo(
-    () => origemLeads === 'trafego' ? filteredInterna.filter(isFacebookLead) : filteredInterna,
-    [filteredInterna, origemLeads]
+    () => byPipeline(origemLeads === 'trafego' ? apiResponse?.trafego : apiResponse?.todos, PIPELINE_ID_INTERNA),
+    [apiResponse, origemLeads]
   );
   const periodicoExterna = useMemo(
-    () => origemLeads === 'trafego' ? filteredExterna.filter(isFacebookLead) : filteredExterna,
-    [filteredExterna, origemLeads]
+    () => byPipeline(origemLeads === 'trafego' ? apiResponse?.trafego : apiResponse?.todos, PIPELINE_ID_EXTERNA),
+    [apiResponse, origemLeads]
   );
 
   const metricasInterna = useMemo(() => computeMetricas(filteredInterna), [filteredInterna]);
@@ -1038,9 +1033,9 @@ export default function KoruVendas() {
   // (o "Valor Investido" é o gasto de anúncio), então usa sempre o recorte "Tráfego (Facebook)",
   // independente do toggle "Todos/Tráfego" da Seção II.
   const filteredRecordsTrafego = useMemo(() => {
-    const base = activeTab === 'interna' ? filteredInterna : filteredExterna;
-    return base.filter(isFacebookLead);
-  }, [activeTab, filteredInterna, filteredExterna]);
+    const pipelineId = activeTab === 'interna' ? PIPELINE_ID_INTERNA : PIPELINE_ID_EXTERNA;
+    return byPipeline(apiResponse?.trafego, pipelineId);
+  }, [activeTab, apiResponse]);
 
   const metricas = useMemo(() => computeMetricas(filteredRecordsTrafego), [filteredRecordsTrafego]);
 
@@ -1222,7 +1217,7 @@ export default function KoruVendas() {
                 Preencha o <strong style={{ color: D.text }}>Valor Investido</strong> e selecione um período para ver as métricas de custo.
               </p>
             </div>
-          ) : rawData === null ? (
+          ) : apiResponse === null ? (
             <ErrBanner msg="Aguardando dados da API para calcular métricas." />
           ) : (
             <SecaoInvestimento metricas={metricas} inv={inv} ticket={ticket} tab={activeTab} />
