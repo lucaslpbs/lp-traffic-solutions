@@ -56,6 +56,7 @@ import RelatorioLV3Multimarcas from "./pages/RelatorioLV3Multimarcas";
 import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 import ClienteDetailPage from "./pages/ClienteDetailPage";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
+import ProdutosPage from "./pages/ProdutosPage";
 import SistemaMarketingPage from "./pages/sistema";
 import OrcamentoEscolaCearenceOftalmologia from "./pages/OrcamentoEscolaCearenceOftalmologia";
 import OrcamentoSeteMares from "./pages/OrcamentoSeteMares";
@@ -238,6 +239,7 @@ const AppRoutes = () => {
           <Route path="sistema" element={<ProtectedSessionRoute session="sistema" fallbackAllowed><SistemaPage /></ProtectedSessionRoute>} />
           <Route path="sistema/cliente/:clientId" element={<ProtectedSessionRoute session="sistema"><ClienteDetailPage /></ProtectedSessionRoute>} />
           <Route path="chamados" element={<ProtectedSessionRoute session="chamados" fallbackAllowed><ChamadosPage /></ProtectedSessionRoute>} />
+          <Route path="produtos" element={<ProtectedRoute><ProdutosPage /></ProtectedRoute>} />
           <Route path="ranking" element={<ProtectedSessionRoute session="ranking" fallbackAllowed><RankingPage /></ProtectedSessionRoute>} />
           <Route path="ranking/admin" element={<ProtectedAdminRoute><RankingAdminPage /></ProtectedAdminRoute>} />
           <Route path=":clientId" element={<ProtectedClientRoute><ClientReport /></ProtectedClientRoute>} />

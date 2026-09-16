@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   UserCog,
   Sparkles,
+  Package,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -134,6 +135,20 @@ export const DashboardSidebarContent = ({
 
   const souClienteSimples = !isAdmin && !isColaborador && !isInfluenciador && !!clienteVinculadoId;
 
+  const { data: clienteFlags } = useQuery({
+    queryKey: ['sidebar-cliente-flags', clienteVinculadoId],
+    enabled: souClienteSimples,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('gestao_clientes')
+        .select('cadastro_produtos_ativo')
+        .eq('id', clienteVinculadoId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { cadastro_produtos_ativo: boolean } | null;
+    },
+  });
+
   const { data: influenciadoresVinculados = [] } = useQuery({
     queryKey: ['sidebar-influenciadores-cliente', clienteVinculadoId],
     enabled: souClienteSimples,
@@ -220,12 +235,34 @@ export const DashboardSidebarContent = ({
               instanceId={instanceId}
             />
           )}
+          {isAdmin && (
+            <SidebarLink
+              to="/dashboard/produtos"
+              label="Produtos"
+              icon={Package}
+              active={isActive('/dashboard/produtos')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
           {isInfluenciador && (
             <SidebarLink
               to="/dashboard/minha-agenda"
               label="Minha Agenda"
               icon={Sparkles}
               active={isActive('/dashboard/influenciadores')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
+          {souClienteSimples && clienteFlags?.cadastro_produtos_ativo && (
+            <SidebarLink
+              to="/dashboard/produtos"
+              label="Meus Produtos"
+              icon={Package}
+              active={isActive('/dashboard/produtos')}
               collapsed={collapsed}
               onNavigate={onNavigate}
               instanceId={instanceId}

@@ -52,6 +52,7 @@ import {
   Link2,
   Copy,
   ExternalLink,
+  Package,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -96,6 +97,7 @@ type FormData = {
   link_page_cor_secundaria: string;
   link_page_cor_fundo: string;
   link_page_links: LinkItem[];
+  cadastro_produtos_ativo: boolean;
 };
 
 const EMPTY_PARCELA: Parcela = { parcelas: '', valor: '', inicio: new Date().toISOString().split('T')[0] };
@@ -131,6 +133,7 @@ const EMPTY_FORM: FormData = {
   link_page_cor_secundaria: '',
   link_page_cor_fundo: '',
   link_page_links: [],
+  cadastro_produtos_ativo: false,
 };
 
 const N8N_WEBHOOK_CONTROLAR_FLUXO = 'https://n8n.trafficsolutions.cloud/webhook/controlar-fluxo-cliente';
@@ -439,6 +442,7 @@ export default function GestaoClientes() {
       link_page_cor_secundaria: c.link_page_cor_secundaria ?? '',
       link_page_cor_fundo: c.link_page_cor_fundo ?? '',
       link_page_links: Array.isArray(c.link_page_links) ? (c.link_page_links as unknown as LinkItem[]) : [],
+      cadastro_produtos_ativo: c.cadastro_produtos_ativo ?? false,
     });
     setModalOpen(true);
   };
@@ -558,6 +562,7 @@ export default function GestaoClientes() {
         link_page_cor_secundaria: form.link_page_cor_secundaria || null,
         link_page_cor_fundo: form.link_page_cor_fundo || null,
         link_page_links: form.link_page_links,
+        cadastro_produtos_ativo: form.cadastro_produtos_ativo,
       };
 
       if (editingId) {
@@ -1852,6 +1857,29 @@ export default function GestaoClientes() {
                   </Button>
                 </div>
               )}
+            </div>
+
+            {/* Permissões */}
+            <div>
+              <p className={sectionTitleCls}>Permissões</p>
+              <div className="flex items-center justify-between p-3 rounded-lg border border-foreground/10 bg-foreground/[0.03]">
+                <div className="flex items-center gap-3">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Cadastro de Imagens/Produtos</p>
+                    <p className="text-xs text-muted-foreground">
+                      Libera para o cliente cadastrar produtos (imagem + descrição) no sistema dele.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={form.cadastro_produtos_ativo}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({ ...prev, cadastro_produtos_ativo: checked }))
+                  }
+                  className="data-[state=checked]:bg-success"
+                />
+              </div>
             </div>
 
             {/* Acesso do Cliente */}
