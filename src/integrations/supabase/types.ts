@@ -17,14 +17,17 @@ export type Database = {
       admin_users: {
         Row: {
           created_at: string | null
+          master: boolean
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          master?: boolean
           user_id: string
         }
         Update: {
           created_at?: string | null
+          master?: boolean
           user_id?: string
         }
         Relationships: []
@@ -73,6 +76,104 @@ export type Database = {
           nome?: string
         }
         Relationships: []
+      }
+      client_product_images: {
+        Row: {
+          created_at: string
+          id: string
+          ordem: number
+          original_url: string
+          product_id: string
+          storage_path: string
+          webp_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ordem?: number
+          original_url: string
+          product_id: string
+          storage_path: string
+          webp_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ordem?: number
+          original_url?: string
+          product_id?: string
+          storage_path?: string
+          webp_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_products: {
+        Row: {
+          categoria: string | null
+          client_id: string
+          created_at: string
+          descricao: string
+          id: string
+          motivo_rejeicao: string | null
+          nome_produto: string
+          preco: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string | null
+          client_id: string
+          created_at?: string
+          descricao: string
+          id?: string
+          motivo_rejeicao?: string | null
+          nome_produto: string
+          preco?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string | null
+          client_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          motivo_rejeicao?: string | null
+          nome_produto?: string
+          preco?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_products_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "gestao_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_products_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "linktree_publico"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clientes_removidos: {
         Row: {
@@ -229,6 +330,7 @@ export type Database = {
       }
       gestao_clientes: {
         Row: {
+          cadastro_produtos_ativo: boolean
           created_at: string | null
           data_fim: string | null
           data_inicio: string
@@ -273,6 +375,7 @@ export type Database = {
           webhook_cadastro_disparado: boolean | null
         }
         Insert: {
+          cadastro_produtos_ativo?: boolean
           created_at?: string | null
           data_fim?: string | null
           data_inicio?: string
@@ -317,6 +420,7 @@ export type Database = {
           webhook_cadastro_disparado?: boolean | null
         }
         Update: {
+          cadastro_produtos_ativo?: boolean
           created_at?: string | null
           data_fim?: string | null
           data_inicio?: string
@@ -1670,6 +1774,60 @@ export type Database = {
           },
         ]
       }
+      sistema_checklist_itens: {
+        Row: {
+          client_id: string
+          concluido: boolean
+          created_at: string | null
+          created_by: string | null
+          id: string
+          observacao: string | null
+          ordem: number
+          responsavel: string | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          concluido?: boolean
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          observacao?: string | null
+          ordem?: number
+          responsavel?: string | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          concluido?: boolean
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          observacao?: string | null
+          ordem?: number
+          responsavel?: string | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sistema_checklist_itens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "gestao_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sistema_checklist_itens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "linktree_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sistema_demandas: {
         Row: {
           client_id: string | null
@@ -1982,7 +2140,17 @@ export type Database = {
         Returns: {
           created_at: string
           email: string
+          master: boolean
           user_id: string
+        }[]
+      }
+      listar_ocupacao_influenciador: {
+        Args: { p_influenciador_id: string }
+        Returns: {
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          status: string
         }[]
       }
       ranking_faturamento_cliente: {
@@ -2035,6 +2203,8 @@ export type Database = {
         Args: { p_client_id: string }
         Returns: number
       }
+      slugify_cliente: { Args: { p_nome: string }; Returns: string }
+      unaccent: { Args: { "": string }; Returns: string }
       update_linktree_page: {
         Args: {
           p_ativo: boolean
@@ -2052,6 +2222,7 @@ export type Database = {
         | { Args: { client_id: string; user_id: string }; Returns: boolean }
       user_is_admin: { Args: { user_id: string }; Returns: boolean }
       user_is_colaborador: { Args: { user_id: string }; Returns: boolean }
+      user_is_master: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
