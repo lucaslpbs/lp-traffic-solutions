@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Loader2, Trash2, Search } from "lucide-react";
+import { Plus, Loader2, Trash2, Search, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
 import { Reveal, Stagger, StaggerItem } from "@/components/dashboard/Motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +17,7 @@ interface ChecklistItem {
   observacao: string | null;
   concluido: boolean;
   ordem: number;
+  eh_otimizacao: boolean;
 }
 
 interface ClienteOption {
@@ -65,7 +68,7 @@ const tomLabel: Record<Tom, string> = {
   vazio: "Sem itens",
 };
 
-const emptyDraft = { titulo: "", responsavel: "" };
+const emptyDraft = { titulo: "", responsavel: "", otimizacao: false };
 
 const CheckMark = ({ done, onClick }: { done: boolean; onClick: () => void }) => (
   <button
@@ -100,6 +103,9 @@ export const ChecklistBoard = () => {
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
   const [drafts, setDrafts] = useState<Record<string, typeof emptyDraft>>({});
+  const [otimItem, setOtimItem] = useState<ChecklistItem | null>(null);
+  const [otimTexto, setOtimTexto] = useState("");
+  const [otimSaving, setOtimSaving] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -109,7 +115,7 @@ export const ChecklistBoard = () => {
         .order("nome_cliente"),
       (supabase as any)
         .from("sistema_checklist_itens")
-        .select("id, client_id, titulo, responsavel, observacao, concluido, ordem")
+        .select("id, client_id, titulo, responsavel, observacao, concluido, ordem, eh_otimizacao")
         .order("ordem", { ascending: true }),
     ]).then(([cliRes, itemRes]: any[]) => {
       if (!cliRes.error && cliRes.data)
@@ -181,12 +187,13 @@ export const ChecklistBoard = () => {
       responsavel: draft.responsavel.trim() || null,
       concluido: false,
       ordem,
+      eh_otimizacao: draft.otimizacao,
       created_by: user.id,
     };
     const { data, error } = await (supabase as any)
       .from("sistema_checklist_itens")
       .insert(payload)
-      .select("id, client_id, titulo, responsavel, observacao, concluido, ordem")
+      .select("id, client_id, titulo, responsavel, observacao, concluido, ordem, eh_otimizacao")
       .single();
     if (error) {
       toast.error("Erro ao adicionar item");
@@ -208,7 +215,55 @@ export const ChecklistBoard = () => {
       setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, concluido: item.concluido } : it)));
       toast.error("Erro ao atualizar item");
       console.error(error);
+      return;
     }
+    if (novo && item.eh_otimizacao) {
+      setOtimItem(item);
+      setOtimTexto(item.titulo + (item.observacao ? `\n\n${item.observacao}` : ""));
+    }
+  };
+
+  const toggleOtimizacaoFlag = async (item: ChecklistItem) => {
+    const novo = !item.eh_otimizacao;
+    setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, eh_otimizacao: novo } : it)));
+    const { error } = await (supabase as any)
+      .from("sistema_checklist_itens")
+      .update({ eh_otimizacao: novo, updated_at: new Date().toISOString() })
+      .eq("id", item.id);
+    if (error) {
+      setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, eh_otimizacao: item.eh_otimizacao } : it)));
+      toast.error("Erro ao atualizar item");
+      console.error(error);
+    }
+  };
+
+  const closeOtimModal = () => {
+    if (otimTexto.trim() && !window.confirm("Descartar o registro de otimização?")) return;
+    setOtimItem(null);
+    setOtimTexto("");
+  };
+
+  const saveOtim = async () => {
+    if (!otimItem || !user) return;
+    setOtimSaving(true);
+    const today = new Date().toISOString().slice(0, 10);
+    const { error } = await (supabase as any).from("sistema_otimizacoes").insert({
+      client_id: otimItem.client_id,
+      data: today,
+      otimizado: true,
+      observacoes: otimTexto.trim() || null,
+      created_by: user.id,
+    });
+    if (error) {
+      toast.error("Erro ao registrar otimização");
+      console.error(error);
+    } else {
+      const clienteNome = clientes.find((c) => c.id === otimItem.client_id)?.nome;
+      toast.success(`Otimização registrada para ${clienteNome}`);
+      setOtimItem(null);
+      setOtimTexto("");
+    }
+    setOtimSaving(false);
   };
 
   const commitField = async (item: ChecklistItem, field: "titulo" | "responsavel" | "observacao", value: string) => {
@@ -398,6 +453,21 @@ export const ChecklistBoard = () => {
                         className="font-mono-plex w-[4.5rem] shrink-0 bg-transparent text-[10px] uppercase tracking-wider text-muted-foreground outline-none focus:underline decoration-dashed text-right mt-1.5 text-ellipsis"
                       />
                       <button
+                        onClick={() => toggleOtimizacaoFlag(it)}
+                        className={`shrink-0 mt-1 transition-opacity ${
+                          it.eh_otimizacao
+                            ? "text-accent opacity-100"
+                            : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-accent"
+                        }`}
+                        title={
+                          it.eh_otimizacao
+                            ? "Otimização: sim — ao concluir, registra na Otimização do cliente"
+                            : "Marcar como otimização"
+                        }
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                      </button>
+                      <button
                         onClick={() => removeItem(it)}
                         className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity shrink-0 mt-1"
                         title="Excluir item"
@@ -429,6 +499,19 @@ export const ChecklistBoard = () => {
                     className={`${inputCls} h-8 text-sm w-20 rounded-full px-3`}
                   />
                   <button
+                    type="button"
+                    onClick={() => setDraft(c.id, { otimizacao: !draft.otimizacao })}
+                    className={`h-8 shrink-0 px-2.5 rounded-full border flex items-center gap-1 text-[10px] font-mono-plex uppercase tracking-wider transition-colors ${
+                      draft.otimizacao
+                        ? "bg-accent/15 border-accent/50 text-accent"
+                        : "bg-surface-2 border-surface-3 text-muted-foreground hover:border-accent/40"
+                    }`}
+                    title="Ao concluir, registra como Otimização do cliente"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Otim.
+                  </button>
+                  <button
                     onClick={() => addItem(c.id)}
                     className="h-8 w-8 shrink-0 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center text-primary-foreground transition-transform hover:scale-105"
                     title="Adicionar"
@@ -446,6 +529,50 @@ export const ChecklistBoard = () => {
           </p>
         )}
       </Stagger>
+
+      <Dialog open={!!otimItem} onOpenChange={(o) => { if (!o) closeOtimModal(); }}>
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-accent" />
+              Registrar otimização
+              {otimItem && (
+                <span className="text-muted-foreground font-normal text-sm">
+                  · {clientes.find((c) => c.id === otimItem.client_id)?.nome}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground -mt-2">
+            Este item do checklist está marcado como otimização. Ao concluir, ele vira um registro na aba
+            Otimização do cliente.
+          </p>
+          <MarkdownEditor
+            value={otimTexto}
+            onChange={setOtimTexto}
+            placeholder="Descreva as otimizações realizadas, hipóteses, resultados..."
+            minHeight="220px"
+          />
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={closeOtimModal}
+              className="px-3.5 py-1.5 rounded-full text-sm border border-border text-foreground/85 hover:bg-surface-3"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={saveOtim}
+              disabled={otimSaving}
+              className="px-4 py-1.5 rounded-full text-sm bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-1.5"
+            >
+              {otimSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              Salvar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

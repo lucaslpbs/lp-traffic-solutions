@@ -1780,6 +1780,7 @@ export type Database = {
           concluido: boolean
           created_at: string | null
           created_by: string | null
+          eh_otimizacao: boolean
           id: string
           observacao: string | null
           ordem: number
@@ -1792,6 +1793,7 @@ export type Database = {
           concluido?: boolean
           created_at?: string | null
           created_by?: string | null
+          eh_otimizacao?: boolean
           id?: string
           observacao?: string | null
           ordem?: number
@@ -1804,6 +1806,7 @@ export type Database = {
           concluido?: boolean
           created_at?: string | null
           created_by?: string | null
+          eh_otimizacao?: boolean
           id?: string
           observacao?: string | null
           ordem?: number
