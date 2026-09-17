@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Plus, Loader2, Trash2, Search, Sparkles, Archive, ArchiveRestore, ChevronRight } from "lucide-react";
+import { Plus, Loader2, Trash2, Search, Sparkles, Archive, ArchiveRestore, ChevronRight, Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -30,6 +30,11 @@ interface ClienteOption {
   status: string;
   cor: string | null;
   intensidade: number;
+  saldoAtual: number | null;
+  saldoAtualizadoEm: string | null;
+  saldoTipo: string | null;
+  saldoUltimaRecargaValor: number | null;
+  saldoUltimaRecargaData: string | null;
 }
 
 type Filtro = "todos" | "pendentes" | "lucas" | "lane";
@@ -75,6 +80,12 @@ const tomLabel: Record<Tom, string> = {
 };
 
 const emptyDraft = { titulo: "", responsavel: "", otimizacao: false };
+
+const formatBRL = (valor: number) =>
+  valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const formatDataHora = (iso: string) =>
+  new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 const paletaCores = [
   "#7f1d1d",
@@ -270,12 +281,17 @@ export const ChecklistBoard = () => {
   const [otimItem, setOtimItem] = useState<ChecklistItem | null>(null);
   const [otimTexto, setOtimTexto] = useState("");
   const [otimSaving, setOtimSaving] = useState(false);
+  const [saldoItem, setSaldoItem] = useState<ClienteOption | null>(null);
+  const [saldoValor, setSaldoValor] = useState("");
+  const [saldoSaving, setSaldoSaving] = useState(false);
 
   useEffect(() => {
     Promise.all([
       (supabase as any)
         .from("gestao_clientes")
-        .select("id, nome_cliente, status, checklist_cor, checklist_cor_intensidade")
+        .select(
+          "id, nome_cliente, status, checklist_cor, checklist_cor_intensidade, saldo_atual, saldo_atualizado_em, saldo_tipo, saldo_ultima_recarga_valor, saldo_ultima_recarga_data"
+        )
         .order("nome_cliente"),
       (supabase as any)
         .from("sistema_checklist_itens")
@@ -290,6 +306,11 @@ export const ChecklistBoard = () => {
             status: c.status,
             cor: c.checklist_cor,
             intensidade: c.checklist_cor_intensidade ?? 100,
+            saldoAtual: c.saldo_atual,
+            saldoAtualizadoEm: c.saldo_atualizado_em,
+            saldoTipo: c.saldo_tipo,
+            saldoUltimaRecargaValor: c.saldo_ultima_recarga_valor,
+            saldoUltimaRecargaData: c.saldo_ultima_recarga_data,
           }))
         );
       if (!itemRes.error && itemRes.data) setItems(itemRes.data);
@@ -493,6 +514,63 @@ export const ChecklistBoard = () => {
         setClientes((prev) => prev.map((c) => (c.id === clientId ? anterior : c)));
       toast.error("Erro ao salvar cor do cliente");
       console.error(error);
+    }
+  };
+
+  const openSaldoModal = (c: ClienteOption) => {
+    setSaldoItem(c);
+    setSaldoValor("");
+  };
+
+  const closeSaldoModal = () => {
+    setSaldoItem(null);
+    setSaldoValor("");
+  };
+
+  const saveSaldo = async () => {
+    if (!saldoItem) return;
+    const valorNum = parseFloat(saldoValor.replace(",", "."));
+    if (!valorNum || valorNum <= 0) {
+      toast.error("Informe um valor válido de recarga");
+      return;
+    }
+    setSaldoSaving(true);
+    try {
+      const res = await fetch(
+        "https://n8n.trafficsolutions.cloud/webhook/registrar-recarga-cliente",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "registrar_recarga",
+            client_id: saldoItem.id,
+            valor: valorNum,
+            timestamp: new Date().toISOString(),
+          }),
+        }
+      );
+      if (!res.ok) throw new Error(`Webhook retornou status ${res.status}`);
+      const agora = new Date().toISOString();
+      setClientes((prev) =>
+        prev.map((c) =>
+          c.id === saldoItem.id
+            ? {
+                ...c,
+                saldoAtual: valorNum,
+                saldoAtualizadoEm: agora,
+                saldoUltimaRecargaValor: valorNum,
+                saldoUltimaRecargaData: agora,
+              }
+            : c
+        )
+      );
+      toast.success(`Recarga de ${formatBRL(valorNum)} registrada para ${saldoItem.nome}`);
+      closeSaldoModal();
+    } catch (err) {
+      toast.error("Erro ao registrar recarga. Verifique se o fluxo de automação está ativo.");
+      console.error(err);
+    } finally {
+      setSaldoSaving(false);
     }
   };
 
@@ -773,6 +851,14 @@ export const ChecklistBoard = () => {
                         ? c.status.charAt(0).toUpperCase() + c.status.slice(1)
                         : tomLabel[tom]}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => openSaldoModal(c)}
+                      className="h-7 w-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-success hover:border-success/50 transition-colors"
+                      title="Adicionar saldo (recarga via PIX)"
+                    >
+                      <Wallet className="h-3.5 w-3.5" />
+                    </button>
                     <ColorSwatchPicker
                       cor={c.cor}
                       intensidade={c.intensidade}
@@ -782,6 +868,20 @@ export const ChecklistBoard = () => {
                     />
                   </div>
                 </div>
+
+                {c.saldoUltimaRecargaValor != null && (
+                  <div className="flex items-center justify-between gap-2 -mt-1.5 px-0.5 font-mono-plex text-[10px] uppercase tracking-wider">
+                    <span className="text-muted-foreground">
+                      Recarga {formatBRL(c.saldoUltimaRecargaValor)}
+                      {c.saldoUltimaRecargaData && <> · {formatDataHora(c.saldoUltimaRecargaData)}</>}
+                    </span>
+                    {c.saldoAtual != null && (
+                      <span className={c.saldoAtual <= 0 ? "text-destructive" : "text-success"}>
+                        Restante {formatBRL(c.saldoAtual)}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {total > 0 && (
                   <div className="space-y-1">
@@ -954,6 +1054,56 @@ export const ChecklistBoard = () => {
               className="px-4 py-1.5 rounded-full text-sm bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-1.5"
             >
               {otimSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              Salvar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!saldoItem} onOpenChange={(o) => { if (!o) closeSaldoModal(); }}>
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-success" />
+              Adicionar saldo
+              {saldoItem && (
+                <span className="text-muted-foreground font-normal text-sm">· {saldoItem.nome}</span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground -mt-2">
+            Informe o valor que o cliente colocou (ex: via PIX). A partir de agora o valor será descontado
+            automaticamente conforme o gasto da conta de anúncio, e você é avisado quando estiver acabando.
+          </p>
+          <Input
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="0.01"
+            autoFocus
+            value={saldoValor}
+            onChange={(e) => setSaldoValor(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveSaldo();
+            }}
+            placeholder="Valor recarregado (R$)"
+            className="bg-surface-2 border-surface-3"
+          />
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={closeSaldoModal}
+              className="px-3.5 py-1.5 rounded-full text-sm border border-border text-foreground/85 hover:bg-surface-3"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={saveSaldo}
+              disabled={saldoSaving}
+              className="px-4 py-1.5 rounded-full text-sm bg-success hover:bg-success/90 text-success-foreground flex items-center gap-1.5"
+            >
+              {saldoSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Salvar
             </button>
           </div>

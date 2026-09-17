@@ -366,6 +366,11 @@ export type Database = {
           parcelas_detalhes: Json | null
           plano_personalizado: boolean | null
           responsavel_interno: string | null
+          saldo_atual: number | null
+          saldo_atualizado_em: string | null
+          saldo_tipo: string | null
+          saldo_ultima_recarga_data: string | null
+          saldo_ultima_recarga_valor: number | null
           segmento: string | null
           status: string
           status_cobranca: string | null
@@ -413,6 +418,11 @@ export type Database = {
           parcelas_detalhes?: Json | null
           plano_personalizado?: boolean | null
           responsavel_interno?: string | null
+          saldo_atual?: number | null
+          saldo_atualizado_em?: string | null
+          saldo_tipo?: string | null
+          saldo_ultima_recarga_data?: string | null
+          saldo_ultima_recarga_valor?: number | null
           segmento?: string | null
           status?: string
           status_cobranca?: string | null
@@ -460,6 +470,11 @@ export type Database = {
           parcelas_detalhes?: Json | null
           plano_personalizado?: boolean | null
           responsavel_interno?: string | null
+          saldo_atual?: number | null
+          saldo_atualizado_em?: string | null
+          saldo_tipo?: string | null
+          saldo_ultima_recarga_data?: string | null
+          saldo_ultima_recarga_valor?: number | null
           segmento?: string | null
           status?: string
           status_cobranca?: string | null
@@ -471,6 +486,51 @@ export type Database = {
           webhook_cadastro_disparado?: boolean | null
         }
         Relationships: []
+      }
+      gestao_clientes_recargas: {
+        Row: {
+          amount_spent_referencia: number
+          cliente_id: string
+          created_at: string
+          data_recarga: string
+          id: string
+          observacoes: string | null
+          valor: number
+        }
+        Insert: {
+          amount_spent_referencia: number
+          cliente_id: string
+          created_at?: string
+          data_recarga?: string
+          id?: string
+          observacoes?: string | null
+          valor: number
+        }
+        Update: {
+          amount_spent_referencia?: number
+          cliente_id?: string
+          created_at?: string
+          data_recarga?: string
+          id?: string
+          observacoes?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gestao_clientes_recargas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "gestao_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gestao_clientes_recargas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "linktree_publico"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       influenciador_agendamentos: {
         Row: {
