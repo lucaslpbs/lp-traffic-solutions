@@ -443,6 +443,24 @@ function CicloHBarChart({ data, color = D.blue }: { data: CicloAgente[]; color?:
 
 const FAIXA_CC = [D.green, D.cyan, D.amber, D.orange, D.red, '#B91C1C'];
 
+// Ordem e nomes de exibição da Análise Estática (Seção I) — reflete a sequência real do funil,
+// não a contagem de leads (que varia e embaralharia a ordem visualmente).
+const ETAPA_DISPLAY_ORDER: { match: string[]; label: string }[] = [
+  { match: ['atendimento'], label: 'Atendimento' },
+  { match: ['follow up', 'followup'], label: 'Follow up' },
+  { match: ['qualificado'], label: 'Qualificados' },
+  { match: ['vista agendada', 'visita agendada'], label: 'Visita agendada' },
+  { match: ['visita realizada'], label: 'Visita realizada' },
+  { match: ['analise de credito'], label: 'Análise de crédito' },
+  { match: ['negociacao'], label: 'Negociação' },
+];
+
+function etapaDisplay(etapa: string): { label: string; order: number } {
+  const n = norm(etapa);
+  const idx = ETAPA_DISPLAY_ORDER.findIndex(e => e.match.some(m => n.includes(m)));
+  return idx >= 0 ? { label: ETAPA_DISPLAY_ORDER[idx].label, order: idx } : { label: etapa, order: 999 };
+}
+
 // ── Hooks ──────────────────────────────────────────────────────────────────
 function useFunilSnapshot(tab: 'interna' | 'externa') {
   const [rows, setRows] = useState<EtapaRow[]>([]);
@@ -474,11 +492,15 @@ function useFunilSnapshot(tab: 'interna' | 'externa') {
           const e = (row.etapa_lead ?? '').trim();
           if (!e) continue;
           if (ETAPAS_TERMINAL.some(t => norm(e).includes(norm(t)))) continue;
-          map.set(e, (map.get(e) ?? 0) + 1);
+          const { label } = etapaDisplay(e);
+          map.set(label, (map.get(label) ?? 0) + 1);
         }
         setRows(Array.from(map.entries())
           .map(([etapa, quantidade]) => ({ etapa, quantidade }))
-          .sort((a, b) => b.quantidade - a.quantidade));
+          .sort((a, b) => {
+            const diff = etapaDisplay(a.etapa).order - etapaDisplay(b.etapa).order;
+            return diff !== 0 ? diff : b.quantidade - a.quantidade;
+          }));
       })
       .catch(err => setError(err instanceof Error ? err.message : 'Erro ao carregar dados do Supabase'))
       .finally(() => setLoading(false));
