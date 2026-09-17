@@ -772,7 +772,9 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
                 <td className="px-4 py-3 font-medium" style={{ color: D.text }}>{row.etapa}</td>
                 <td className="px-4 py-3 text-right font-bold" style={{ color: CC[i % CC.length] }}>{row.quantidade}</td>
                 <td className="px-4 py-3 text-right" style={{ color: D.textSec }}>
-                  {totalLeads > 0 ? fmtPct((row.quantidade / totalLeads) * 100) : '—'}
+                  {row.etapa === 'Contato inicial'
+                    ? fmtPct(100)
+                    : totalLeads > 0 ? fmtPct((row.quantidade / totalLeads) * 100) : '—'}
                 </td>
               </tr>
             ))}
