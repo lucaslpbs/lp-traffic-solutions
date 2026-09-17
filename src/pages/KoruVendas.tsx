@@ -20,7 +20,6 @@ const DEFAULT_TICKET = 245000;
 const PIPELINE_ID_INTERNA = 12157328;
 const PIPELINE_ID_EXTERNA = 13422447;
 const ETAPAS_GANHA = ['venda ganha', 'contratado'];
-const ETAPAS_PERDIDA = ['venda perdida', 'descartado'];
 const ETAPAS_TERMINAL = ['venda ganha', 'contratado', 'venda perdida', 'descartado', 'lead perdido', 'base de perdidos'];
 
 // ── Design Tokens ──────────────────────────────────────────────────────────
@@ -58,11 +57,6 @@ interface KoruApiResponse {
   trafego: LeadRecord[];
 }
 interface EtapaRow { etapa: string; quantidade: number }
-interface Metricas {
-  totalCriados: number; atendidos: number; corretorNomeado: number;
-  visitasRealizadas: number; analisesCredito: number; negociacoes: number;
-  descartados: number; vendasFechadas: number; pastaRecebida: number;
-}
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 const fmtBRL = (v: number) =>
@@ -80,49 +74,6 @@ function parseDateBR(s: string): number {
   const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
   if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:${m[6]}`).getTime();
   return new Date(s).getTime();
-}
-
-function computeMetricas(records: LeadRecord[]): Metricas {
-  // Agrupa por lead e usa apenas o último estado de cada um
-  const byLead = new Map<string, LeadRecord[]>();
-  for (const r of records) {
-    const id = String(r.lead_id);
-    if (!byLead.has(id)) byLead.set(id, []);
-    byLead.get(id)!.push(r);
-  }
-
-  let ganhaCount = 0, perdidaCount = 0;
-  let atendidos = 0, corretorNomeado = 0, visitasRealizadas = 0;
-  let analisesCredito = 0, negociacoes = 0, pastaRecebida = 0;
-
-  for (const events of byLead.values()) {
-    const last = events.reduce((a, b) =>
-      parseDateBR(a.data_hora_etapa ?? '') >= parseDateBR(b.data_hora_etapa ?? '') ? a : b
-    );
-    const e = norm(last.etapa_nome ?? '');
-    if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) ganhaCount++;
-    else if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) perdidaCount++;
-    else {
-      if (e.includes('atendimento')) atendidos++;
-      if (e.includes('corretor')) corretorNomeado++;
-      if (e.includes('visita realizada')) visitasRealizadas++;
-      if (e.includes('analise')) analisesCredito++;
-      if (e.includes('negociacao')) negociacoes++;
-      if (e.includes('pasta')) pastaRecebida++;
-    }
-  }
-
-  return {
-    totalCriados: byLead.size,
-    atendidos,
-    corretorNomeado,
-    visitasRealizadas,
-    analisesCredito,
-    negociacoes,
-    descartados: perdidaCount,
-    vendasFechadas: ganhaCount,
-    pastaRecebida,
-  };
 }
 
 // ── Ciclo de Vendas — types ────────────────────────────────────────────────
@@ -688,53 +639,57 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
   );
 }
 
+// Mesmo cálculo usado na Seção II (Análise Periódica) e na Seção III (Análise de
+// Investimento) — as duas precisam bater exatamente nas mesmas etapas e contagens.
+function computeFunilPeriodico(records: LeadRecord[]): { etapas: EtapaRow[]; totalLeads: number } {
+  const allIds = new Set<string>();
+  const stageLeads = new Map<string, Set<string>>();
+
+  for (const r of records) {
+    const id = String(r.lead_id);
+    allIds.add(id);
+
+    const etapaNome = r.etapa_nome?.trim() ?? '';
+    if (!etapaNome) continue;
+
+    if (!stageLeads.has(etapaNome)) stageLeads.set(etapaNome, new Set());
+    stageLeads.get(etapaNome)!.add(id);
+  }
+
+  const ganhaIds = new Set<string>();
+  const stageMap = new Map<string, number>();
+
+  for (const [etapa, ids] of stageLeads.entries()) {
+    const e = norm(etapa);
+    if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) {
+      ids.forEach(id => ganhaIds.add(id));
+    } else if (!ETAPAS_TERMINAL.some(t => e.includes(norm(t)))) {
+      const match = etapaPeriodicaMatch(etapa);
+      if (!match) continue; // Follow up / Visita agendada / Visita realizada / Negociação ficam de fora
+      stageMap.set(match.label, (stageMap.get(match.label) ?? 0) + ids.size);
+    }
+  }
+
+  // Etapas gerais sempre aparecem, mesmo zeradas
+  for (const { label } of ETAPA_PERIODICA_ORDER) {
+    if (!stageMap.has(label)) stageMap.set(label, 0);
+  }
+  stageMap.set('Venda Fechada', ganhaIds.size);
+
+  return {
+    etapas: Array.from(stageMap.entries())
+      .map(([etapa, quantidade]) => ({ etapa, quantidade }))
+      .sort((a, b) => {
+        const diff = periodicaOrder(a.etapa) - periodicaOrder(b.etapa);
+        return diff !== 0 ? diff : b.quantidade - a.quantidade;
+      }),
+    totalLeads: allIds.size,
+  };
+}
+
 // ── Section II ─────────────────────────────────────────────────────────────
 function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
-  const { etapas, totalLeads } = (() => {
-    const allIds = new Set<string>();
-    const stageLeads = new Map<string, Set<string>>();
-
-    for (const r of records) {
-      const id = String(r.lead_id);
-      allIds.add(id);
-
-      const etapaNome = r.etapa_nome?.trim() ?? '';
-      if (!etapaNome) continue;
-
-      if (!stageLeads.has(etapaNome)) stageLeads.set(etapaNome, new Set());
-      stageLeads.get(etapaNome)!.add(id);
-    }
-
-    const ganhaIds = new Set<string>();
-    const stageMap = new Map<string, number>();
-
-    for (const [etapa, ids] of stageLeads.entries()) {
-      const e = norm(etapa);
-      if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) {
-        ids.forEach(id => ganhaIds.add(id));
-      } else if (!ETAPAS_TERMINAL.some(t => e.includes(norm(t)))) {
-        const match = etapaPeriodicaMatch(etapa);
-        if (!match) continue; // Follow up / Visita agendada / Visita realizada / Negociação ficam de fora
-        stageMap.set(match.label, (stageMap.get(match.label) ?? 0) + ids.size);
-      }
-    }
-
-    // Etapas gerais sempre aparecem, mesmo zeradas
-    for (const { label } of ETAPA_PERIODICA_ORDER) {
-      if (!stageMap.has(label)) stageMap.set(label, 0);
-    }
-    stageMap.set('Venda Fechada', ganhaIds.size);
-
-    return {
-      etapas: Array.from(stageMap.entries())
-        .map(([etapa, quantidade]) => ({ etapa, quantidade }))
-        .sort((a, b) => {
-          const diff = periodicaOrder(a.etapa) - periodicaOrder(b.etapa);
-          return diff !== 0 ? diff : b.quantidade - a.quantidade;
-        }),
-      totalLeads: allIds.size,
-    };
-  })();
+  const { etapas, totalLeads } = computeFunilPeriodico(records);
 
   if (!records.length) {
     return <p className="text-center py-8" style={{ color: D.textMuted }}>Nenhum lead encontrado para o período.</p>;
@@ -813,29 +768,20 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
 }
 
 // ── Section III ────────────────────────────────────────────────────────────
-function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas; inv: number; ticket: number; tab: 'interna' | 'externa' }) {
-  const costRows = tab === 'externa' ? [
-    { label: 'Custo por Pasta Recebida',     qty: metricas.pastaRecebida },
-    { label: 'Custo por Análise de Crédito', qty: metricas.analisesCredito },
-    { label: 'Custo por Negociação',         qty: metricas.negociacoes },
-    { label: 'Custo por Venda Fechada',      qty: metricas.vendasFechadas },
-  ] : [
-    { label: 'Custo por Lead Criado',             qty: metricas.totalCriados },
-    { label: 'Custo por Lead Atendido',            qty: metricas.atendidos },
-    { label: 'Custo por Lead c/ Corretor Nomeado', qty: metricas.corretorNomeado },
-    { label: 'Custo por Visita Realizada',          qty: metricas.visitasRealizadas },
-    { label: 'Custo por Análise de Crédito',        qty: metricas.analisesCredito },
-    { label: 'Custo por Negociação',                qty: metricas.negociacoes },
-    { label: 'Custo por Venda Fechada',             qty: metricas.vendasFechadas },
-  ];
+// Usa exatamente as mesmas etapas e contagens da Seção II (Análise Periódica) —
+// veja computeFunilPeriodico — para que o custo por lead bata com o que é exibido lá.
+function SecaoInvestimento({ etapas, inv, ticket }: { etapas: EtapaRow[]; inv: number; ticket: number }) {
+  const costRows = etapas.map(e => ({ label: `Custo por ${e.etapa}`, qty: e.quantidade }));
 
   const chartData = costRows.filter(r => r.qty > 0).map(r => ({
-    name: r.label.replace('Custo por ', '').replace('Lead ', '').replace('Análise de ', ''),
+    name: r.label.replace('Custo por ', ''),
     value: inv / r.qty,
   }));
 
-  const roi = inv > 0 && metricas.vendasFechadas > 0
-    ? ((metricas.vendasFechadas * ticket - inv) / inv) * 100 : 0;
+  const vendasFechadas = etapas.find(e => e.etapa === 'Venda Fechada')?.quantidade ?? 0;
+
+  const roi = inv > 0 && vendasFechadas > 0
+    ? ((vendasFechadas * ticket - inv) / inv) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -848,7 +794,7 @@ function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas;
         <div className="rounded-xl px-5 py-4" style={{ background: `${roi >= 0 ? D.green : D.red}18`, border: `1px solid ${roi >= 0 ? D.green : D.red}44` }}>
           <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: roi >= 0 ? D.green : D.red }}>ROI Estimado</p>
           <p className="text-2xl font-black" style={{ color: roi >= 0 ? D.green : D.red }}>
-            {roi.toFixed(1)}% · {metricas.vendasFechadas} vendas × {fmtBRL(ticket)}
+            {roi.toFixed(1)}% · {vendasFechadas} vendas × {fmtBRL(ticket)}
           </p>
         </div>
       </div>
@@ -905,44 +851,6 @@ function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas;
           </ResponsiveContainer>
         </div>
       )}
-
-      {/* Period quantities breakdown */}
-      <div>
-        <p className="text-sm font-bold mb-3" style={{ color: D.textSec }}>Análise de Investimento — Quantidades por Período</p>
-        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${D.border}` }}>
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: D.cardHover }}>
-                <th className="text-left px-4 py-3 font-semibold" style={{ color: D.textSec }}>#</th>
-                <th className="text-left px-4 py-3 font-semibold" style={{ color: D.textSec }}>ETAPA | DESCRIÇÃO</th>
-                <th className="text-right px-4 py-3 font-semibold" style={{ color: D.textSec }}>QUANT. (POR PERÍODO)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(tab === 'externa' ? [
-                { n: 1, label: 'Total de Pastas Recebidas',    qty: metricas.pastaRecebida },
-                { n: 2, label: 'Total de Análises de Crédito', qty: metricas.analisesCredito },
-                { n: 3, label: 'Total de Negociações',          qty: metricas.negociacoes },
-                { n: 4, label: 'Total de Vendas Fechadas',      qty: metricas.vendasFechadas },
-              ] : [
-                { n: 1, label: 'Total de Leads Criados',             qty: metricas.totalCriados },
-                { n: 2, label: 'Total de Leads Atendidos',           qty: metricas.atendidos },
-                { n: 3, label: 'Total de Leads c/ Corretor Nomeado', qty: metricas.corretorNomeado },
-                { n: 4, label: 'Total de Visitas Realizadas',         qty: metricas.visitasRealizadas },
-                { n: 5, label: 'Total de Análises de Crédito',        qty: metricas.analisesCredito },
-                { n: 6, label: 'Total de Vendas Fechadas',            qty: metricas.vendasFechadas },
-                { n: 7, label: 'Total de Leads Descartados',          qty: metricas.descartados },
-              ]).map((row, i) => (
-                <tr key={row.n} style={{ background: i % 2 === 0 ? D.card : D.cardHover, borderTop: `1px solid ${D.border}` }}>
-                  <td className="px-4 py-3 font-bold" style={{ color: D.textMuted }}>{row.n}</td>
-                  <td className="px-4 py-3" style={{ color: D.text }}>{row.label}</td>
-                  <td className="px-4 py-3 text-right font-bold" style={{ color: D.blue }}>{row.qty.toLocaleString('pt-BR')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1007,15 +915,6 @@ export default function KoruVendas() {
     [apiResponse]
   );
 
-  const filteredInterna = useMemo(
-    () => byPipeline(apiResponse?.todos, PIPELINE_ID_INTERNA),
-    [apiResponse]
-  );
-  const filteredExterna = useMemo(
-    () => byPipeline(apiResponse?.todos, PIPELINE_ID_EXTERNA),
-    [apiResponse]
-  );
-
   // Seção II — alterna entre "todos" e "trafego"
   const periodicoInterna = useMemo(
     () => byPipeline(origemLeads === 'trafego' ? apiResponse?.trafego : apiResponse?.todos, PIPELINE_ID_INTERNA),
@@ -1026,18 +925,19 @@ export default function KoruVendas() {
     [apiResponse, origemLeads]
   );
 
-  const metricasInterna = useMemo(() => computeMetricas(filteredInterna), [filteredInterna]);
-  const metricasExterna = useMemo(() => computeMetricas(filteredExterna), [filteredExterna]);
-
   // Seção III — ROI/custo por lead só faz sentido contra quem de fato veio do tráfego pago
   // (o "Valor Investido" é o gasto de anúncio), então usa sempre o recorte "Tráfego (Facebook)",
-  // independente do toggle "Todos/Tráfego" da Seção II.
+  // independente do toggle "Todos/Tráfego" da Seção II. Usa o mesmo cálculo de etapas da
+  // Seção II (computeFunilPeriodico) para que as duas seções batam exatamente.
   const filteredRecordsTrafego = useMemo(() => {
     const pipelineId = activeTab === 'interna' ? PIPELINE_ID_INTERNA : PIPELINE_ID_EXTERNA;
     return byPipeline(apiResponse?.trafego, pipelineId);
   }, [activeTab, apiResponse]);
 
-  const metricas = useMemo(() => computeMetricas(filteredRecordsTrafego), [filteredRecordsTrafego]);
+  const funilInvestimento = useMemo(
+    () => computeFunilPeriodico(filteredRecordsTrafego),
+    [filteredRecordsTrafego]
+  );
 
   // Seção IV — usa TODOS os registros do pipeline (sem filtro de data) para ciclo de vendas
   const pipelineAllRecords = useMemo(() => {
@@ -1220,7 +1120,7 @@ export default function KoruVendas() {
           ) : apiResponse === null ? (
             <ErrBanner msg="Aguardando dados da API para calcular métricas." />
           ) : (
-            <SecaoInvestimento metricas={metricas} inv={inv} ticket={ticket} tab={activeTab} />
+            <SecaoInvestimento etapas={funilInvestimento.etapas} inv={inv} ticket={ticket} />
           )}
         </Card>
 
