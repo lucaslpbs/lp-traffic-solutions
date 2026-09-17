@@ -734,11 +734,6 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
       if (!stageMap.has(label)) stageMap.set(label, 0);
     }
 
-    // Contato inicial é, por definição, todo lead criado no período — alguns leads têm
-    // no log apenas o evento da etapa seguinte (sem um registro explícito de "Contato
-    // inicial"), o que faria essa linha ficar abaixo de 100% sem essa correção.
-    stageMap.set('Contato inicial', allIds.size);
-
     return {
       etapas: Array.from(stageMap.entries())
         .map(([etapa, quantidade]) => ({ etapa, quantidade }))
