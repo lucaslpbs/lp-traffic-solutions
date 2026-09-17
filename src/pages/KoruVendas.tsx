@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LabelList,
+  Cell, LabelList,
   LineChart, Line, ReferenceLine,
 } from 'recharts';
 import {
@@ -614,23 +614,11 @@ const TTip = ({ active, payload, label }: { active?: boolean; payload?: { name: 
   );
 };
 
-const PTip = ({ active, payload }: { active?: boolean; payload?: { name: string; value: number; fill: string; payload: { percent: number } }[] }) => {
-  if (!active || !payload?.length) return null;
-  const p = payload[0];
-  return (
-    <div className="rounded-xl px-4 py-3 shadow-xl" style={{ background: D.cardHover, border: `1px solid ${D.borderLight}`, color: D.text }}>
-      <p className="text-sm font-semibold">{p.name}</p>
-      <p className="text-sm" style={{ color: p.fill }}>{p.value} ({fmtPct(p.payload.percent * 100)})</p>
-    </div>
-  );
-};
-
 // ── Section I ──────────────────────────────────────────────────────────────
 function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
   const { rows, loading, error } = useFunilSnapshot(tab);
   const total = rows.reduce((s, r) => s + r.quantidade, 0);
-  const chartH = Math.max(rows.length * 52 + 20, 180);
-  const pieData = rows.filter(r => r.quantidade > 0);
+  const maxVal = rows[0]?.quantidade || 1;
 
   if (loading) return <Spinner />;
   if (error) return <ErrBanner msg={error} />;
@@ -668,33 +656,32 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Quantidade por Etapa</p>
-          <ResponsiveContainer width="100%" height={chartH}>
-            <BarChart data={rows} layout="vertical" margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={D.border} horizontal={false} />
-              <XAxis type="number" tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="etapa" width={160} tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<TTip />} />
-              <Bar dataKey="quantidade" radius={[0, 6, 6, 0]} name="Leads">
-                {rows.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
-                <LabelList dataKey="quantidade" position="right" style={{ fill: D.text, fontSize: 12, fontWeight: 700 }} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Distribuição %</p>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie data={pieData} dataKey="quantidade" nameKey="etapa" cx="50%" cy="50%" outerRadius={100} innerRadius={50}>
-                {pieData.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
-              </Pie>
-              <Tooltip content={<PTip />} />
-              <Legend formatter={v => <span style={{ color: D.textSec, fontSize: 11 }}>{v}</span>} wrapperStyle={{ paddingTop: 8 }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: D.textSec }}>Funil de Conversão</p>
+          <div className="space-y-3">
+            {rows.map((step, i) => {
+              const pct = (step.quantidade / maxVal) * 100;
+              const prev = rows[i - 1];
+              const conv = prev && prev.quantidade > 0
+                ? ((step.quantidade / prev.quantidade) * 100).toFixed(1) : null;
+              return (
+                <div key={step.etapa}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm" style={{ color: D.textSec }}>{step.etapa}</span>
+                    <div className="flex items-center gap-3">
+                      {conv && <span className="text-xs" style={{ color: D.textMuted }}>↓ {conv}%</span>}
+                      <span className="text-base font-bold" style={{ color: CC[i % CC.length] }}>{step.quantidade}</span>
+                    </div>
+                  </div>
+                  <div className="h-7 rounded-lg overflow-hidden" style={{ background: D.cardHover, border: `1px solid ${D.border}` }}>
+                    <div className="h-full rounded-lg transition-all duration-700"
+                      style={{ width: `${Math.max(pct, step.quantidade > 0 ? 2 : 0)}%`, background: CC[i % CC.length], opacity: 0.85 }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
