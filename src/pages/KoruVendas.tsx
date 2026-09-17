@@ -613,18 +613,16 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
           <div className="space-y-3">
             {rows.map((step, i) => {
               const pct = (step.quantidade / maxVal) * 100;
-              const prev = rows[i - 1];
-              // Só mostra conversão quando a etapa anterior tem mais leads — algumas
-              // etapas (Follow up, Visita agendada) são baldes paralelos com poucos leads
-              // e não representam de fato o funil anterior, o que gerava % acima de 100%.
-              const conv = prev && prev.quantidade > 0 && step.quantidade <= prev.quantidade
-                ? ((step.quantidade / prev.quantidade) * 100).toFixed(1) : null;
+              // Mesma % da coluna "%" da tabela acima (participação no total), não uma
+              // conversão etapa-a-etapa — o funil tem etapas paralelas (Follow up, Visita
+              // agendada) que quebrariam a leitura de "conversão" entre linhas adjacentes.
+              const share = total > 0 ? fmtPct((step.quantidade / total) * 100) : null;
               return (
                 <div key={step.etapa}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm" style={{ color: D.textSec }}>{step.etapa}</span>
                     <div className="flex items-center gap-3">
-                      {conv && <span className="text-xs" style={{ color: D.textMuted }}>↓ {conv}%</span>}
+                      {share && <span className="text-xs" style={{ color: D.textMuted }}>{share}</span>}
                       <span className="text-base font-bold" style={{ color: CC[i % CC.length] }}>{step.quantidade}</span>
                     </div>
                   </div>
@@ -743,15 +741,16 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
             <div className="space-y-3">
               {etapas.map((step, i) => {
                 const pct = (step.quantidade / maxVal) * 100;
-                const prev = etapas[i - 1];
-                const conv = prev && prev.quantidade > 0 && step.quantidade <= prev.quantidade
-                  ? ((step.quantidade / prev.quantidade) * 100).toFixed(1) : null;
+                // Mesma % da coluna "%" da tabela acima (participação no total).
+                const share = step.etapa === 'Contato inicial'
+                  ? fmtPct(100)
+                  : totalLeads > 0 ? fmtPct((step.quantidade / totalLeads) * 100) : null;
                 return (
                   <div key={step.etapa}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm" style={{ color: D.textSec }}>{step.etapa}</span>
                       <div className="flex items-center gap-3">
-                        {conv && <span className="text-xs" style={{ color: D.textMuted }}>↓ {conv}%</span>}
+                        {share && <span className="text-xs" style={{ color: D.textMuted }}>{share}</span>}
                         <span className="text-base font-bold" style={{ color: CC[i % CC.length] }}>{step.quantidade}</span>
                       </div>
                     </div>
