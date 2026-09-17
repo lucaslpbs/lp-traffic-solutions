@@ -715,13 +715,8 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
             </tr>
           </thead>
           <tbody>
-            <tr style={{ background: D.card }}>
-              <td className="px-4 py-3 font-medium" style={{ color: D.text }}>Total de Leads Criados</td>
-              <td className="px-4 py-3 text-right font-bold" style={{ color: D.blue }}>{totalLeads}</td>
-              <td className="px-4 py-3 text-right" style={{ color: D.textSec }}>100,00%</td>
-            </tr>
             {etapas.map((row, i) => (
-              <tr key={row.etapa} style={{ background: (i + 1) % 2 === 0 ? D.card : D.cardHover, borderTop: `1px solid ${D.border}` }}>
+              <tr key={row.etapa} style={{ background: i % 2 === 0 ? D.card : D.cardHover, borderTop: i === 0 ? 'none' : `1px solid ${D.border}` }}>
                 <td className="px-4 py-3 font-medium" style={{ color: D.text }}>{row.etapa}</td>
                 <td className="px-4 py-3 text-right font-bold" style={{ color: CC[i % CC.length] }}>{row.quantidade}</td>
                 <td className="px-4 py-3 text-right" style={{ color: D.textSec }}>
