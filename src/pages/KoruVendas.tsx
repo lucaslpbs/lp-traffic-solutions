@@ -446,6 +446,7 @@ const FAIXA_CC = [D.green, D.cyan, D.amber, D.orange, D.red, '#B91C1C'];
 // Ordem e nomes de exibição da Análise Estática (Seção I) — reflete a sequência real do funil,
 // não a contagem de leads (que varia e embaralharia a ordem visualmente).
 const ETAPA_DISPLAY_ORDER: { match: string[]; label: string }[] = [
+  { match: ['contato inicial'], label: 'Contato inicial' },
   { match: ['atendimento'], label: 'Atendimento' },
   { match: ['follow up', 'followup'], label: 'Follow up' },
   { match: ['qualificado'], label: 'Qualificados' },
