@@ -753,7 +753,6 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
     return <p className="text-center py-8" style={{ color: D.textMuted }}>Nenhum lead encontrado para o período.</p>;
   }
 
-  const chartH = Math.max(etapas.length * 52 + 20, 180);
   const maxVal = etapas[0]?.quantidade || 1;
 
   return (
@@ -792,24 +791,7 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
 
       {/* Charts */}
       {etapas.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Bar */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Performance por Etapa</p>
-            <ResponsiveContainer width="100%" height={chartH}>
-              <BarChart data={etapas} layout="vertical" margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={D.border} horizontal={false} />
-                <XAxis type="number" tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="etapa" width={160} tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<TTip />} />
-                <Bar dataKey="quantidade" radius={[0, 6, 6, 0]} name="Leads">
-                  {etapas.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
-                  <LabelList dataKey="quantidade" position="right" style={{ fill: D.text, fontSize: 12, fontWeight: 700 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
+        <div className="grid grid-cols-1 gap-6">
           {/* Funnel */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: D.textSec }}>Funil de Conversão</p>
