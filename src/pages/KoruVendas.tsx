@@ -462,12 +462,18 @@ function etapaDisplay(etapa: string): { label: string; order: number } {
   return idx >= 0 ? { label: ETAPA_DISPLAY_ORDER[idx].label, order: idx } : { label: etapa, order: 999 };
 }
 
-// Análise Periódica (Seção II) usa a mesma nomenclatura/ordem da Seção I, mas sem Follow up
-// e sem Visita agendada — essas duas ficam de fora da tabela em vez de aparecerem zeradas.
-const ETAPA_PERIODICA_HIDE = ['follow up', 'followup', 'vista agendada', 'visita agendada', 'incoming leads'];
-const ETAPA_PERIODICA_ORDER = ETAPA_DISPLAY_ORDER.filter(
-  e => e.label !== 'Follow up' && e.label !== 'Visita agendada'
+// Análise Periódica (Seção II) mostra só as etapas gerais do funil, na mesma nomenclatura
+// da Seção I: Contato inicial, Atendimento, Qualificados, Análise de crédito e — ao final —
+// Venda Fechada. Todo o resto (Follow up, Visita agendada, Visita realizada, Negociação,
+// Incoming leads) fica fora da tabela em vez de aparecer zerado.
+const ETAPA_PERIODICA_HIDE = [
+  'follow up', 'followup', 'vista agendada', 'visita agendada',
+  'incoming leads', 'visita realizada', 'negociacao',
+];
+const ETAPA_PERIODICA_ORDER = ETAPA_DISPLAY_ORDER.filter(e =>
+  ['Contato inicial', 'Atendimento', 'Qualificados', 'Análise de crédito'].includes(e.label)
 );
+const ETAPA_PERIODICA_LABELS = [...ETAPA_PERIODICA_ORDER.map(e => e.label), 'Venda Fechada'];
 
 // Etapas gerais sempre aparecem na tabela, mesmo com quantidade zero no período.
 function etapaPeriodicaMatch(etapa: string): { label: string; order: number } | null {
@@ -477,7 +483,7 @@ function etapaPeriodicaMatch(etapa: string): { label: string; order: number } | 
   return idx >= 0 ? { label: ETAPA_PERIODICA_ORDER[idx].label, order: idx } : { label: etapa, order: 999 };
 }
 function periodicaOrder(label: string): number {
-  const idx = ETAPA_PERIODICA_ORDER.findIndex(e => e.label === label);
+  const idx = ETAPA_PERIODICA_LABELS.indexOf(label);
   return idx >= 0 ? idx : 999;
 }
 
@@ -697,7 +703,7 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
 
 // ── Section II ─────────────────────────────────────────────────────────────
 function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
-  const { etapas, totalLeads, descartados, vendasFechadas } = (() => {
+  const { etapas, totalLeads } = (() => {
     const allIds = new Set<string>();
     const stageLeads = new Map<string, Set<string>>();
 
@@ -713,18 +719,15 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
     }
 
     const ganhaIds = new Set<string>();
-    const perdidaIds = new Set<string>();
     const stageMap = new Map<string, number>();
 
     for (const [etapa, ids] of stageLeads.entries()) {
       const e = norm(etapa);
       if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) {
         ids.forEach(id => ganhaIds.add(id));
-      } else if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) {
-        ids.forEach(id => perdidaIds.add(id));
       } else if (!ETAPAS_TERMINAL.some(t => e.includes(norm(t)))) {
         const match = etapaPeriodicaMatch(etapa);
-        if (!match) continue; // Follow up / Visita agendada ficam de fora
+        if (!match) continue; // Follow up / Visita agendada / Visita realizada / Negociação ficam de fora
         stageMap.set(match.label, (stageMap.get(match.label) ?? 0) + ids.size);
       }
     }
@@ -733,6 +736,7 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
     for (const { label } of ETAPA_PERIODICA_ORDER) {
       if (!stageMap.has(label)) stageMap.set(label, 0);
     }
+    stageMap.set('Venda Fechada', ganhaIds.size);
 
     return {
       etapas: Array.from(stageMap.entries())
@@ -742,8 +746,6 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
           return diff !== 0 ? diff : b.quantidade - a.quantidade;
         }),
       totalLeads: allIds.size,
-      descartados: perdidaIds.size,
-      vendasFechadas: ganhaIds.size,
     };
   })();
 
@@ -767,31 +769,23 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
             </tr>
           </thead>
           <tbody>
-            {etapas.map((row, i) => (
-              <tr key={row.etapa} style={{ background: i % 2 === 0 ? D.card : D.cardHover, borderTop: i === 0 ? 'none' : `1px solid ${D.border}` }}>
-                <td className="px-4 py-3 font-medium" style={{ color: D.text }}>{row.etapa}</td>
-                <td className="px-4 py-3 text-right font-bold" style={{ color: CC[i % CC.length] }}>{row.quantidade}</td>
-                <td className="px-4 py-3 text-right" style={{ color: D.textSec }}>
-                  {row.etapa === 'Contato inicial'
-                    ? fmtPct(100)
-                    : totalLeads > 0 ? fmtPct((row.quantidade / totalLeads) * 100) : '—'}
-                </td>
-              </tr>
-            ))}
-            <tr style={{ borderTop: `1px solid ${D.borderLight}`, background: `${D.red}10` }}>
-              <td className="px-4 py-3 font-medium" style={{ color: D.red }}>Descartados / Perdidos</td>
-              <td className="px-4 py-3 text-right font-bold" style={{ color: D.red }}>{descartados}</td>
-              <td className="px-4 py-3 text-right" style={{ color: D.red }}>
-                {totalLeads > 0 ? fmtPct((descartados / totalLeads) * 100) : '—'}
-              </td>
-            </tr>
-            <tr style={{ borderTop: `1px solid ${D.borderLight}`, background: `${D.green}10` }}>
-              <td className="px-4 py-3 font-medium" style={{ color: D.green }}>Vendas Fechadas</td>
-              <td className="px-4 py-3 text-right font-bold" style={{ color: D.green }}>{vendasFechadas}</td>
-              <td className="px-4 py-3 text-right" style={{ color: D.green }}>
-                {totalLeads > 0 ? fmtPct((vendasFechadas / totalLeads) * 100) : '—'}
-              </td>
-            </tr>
+            {etapas.map((row, i) => {
+              const isFechada = row.etapa === 'Venda Fechada';
+              return (
+                <tr key={row.etapa} style={{
+                  background: isFechada ? `${D.green}10` : i % 2 === 0 ? D.card : D.cardHover,
+                  borderTop: isFechada ? `1px solid ${D.borderLight}` : i === 0 ? 'none' : `1px solid ${D.border}`,
+                }}>
+                  <td className="px-4 py-3 font-medium" style={{ color: isFechada ? D.green : D.text }}>{row.etapa}</td>
+                  <td className="px-4 py-3 text-right font-bold" style={{ color: isFechada ? D.green : CC[i % CC.length] }}>{row.quantidade}</td>
+                  <td className="px-4 py-3 text-right" style={{ color: isFechada ? D.green : D.textSec }}>
+                    {row.etapa === 'Contato inicial'
+                      ? fmtPct(100)
+                      : totalLeads > 0 ? fmtPct((row.quantidade / totalLeads) * 100) : '—'}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -841,18 +835,6 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
                   </div>
                 );
               })}
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="flex items-center justify-between px-3 py-2 rounded-xl"
-                  style={{ background: `${D.red}18`, border: `1px solid ${D.red}44` }}>
-                  <span className="text-xs font-semibold" style={{ color: D.red }}>❌ Descartados</span>
-                  <span className="text-sm font-black" style={{ color: D.red }}>{descartados}</span>
-                </div>
-                <div className="flex items-center justify-between px-3 py-2 rounded-xl"
-                  style={{ background: `${D.green}18`, border: `1px solid ${D.green}44` }}>
-                  <span className="text-xs font-semibold" style={{ color: D.green }}>✅ Fechadas</span>
-                  <span className="text-sm font-black" style={{ color: D.green }}>{vendasFechadas}</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
