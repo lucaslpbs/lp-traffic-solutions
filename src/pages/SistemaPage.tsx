@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, ListChecks, Target, Workflow, FileText, BookOpen, Library, BarChart3, Image as ImageIcon, ChevronLeft, FolderKanban, Link2 } from "lucide-react";
+import { Users, ListChecks, ListTodo, Target, Workflow, FileText, BookOpen, Library, BarChart3, Image as ImageIcon, ChevronLeft, FolderKanban, Link2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Stagger, StaggerItem, Reveal } from "@/components/dashboard/Motion";
@@ -14,6 +14,7 @@ import {
 } from "@/components/dashboard/DashboardTabs";
 import { ClienteGallery } from "@/components/sistema/ClienteGallery";
 import { KanbanBoard } from "@/components/sistema/KanbanBoard";
+import { ChecklistBoard } from "@/components/sistema/ChecklistBoard";
 import { MetasBoard } from "@/components/sistema/MetasBoard";
 import { FluxosPage } from "@/components/sistema/FluxosPage";
 import { OtimizacaoForm } from "@/components/sistema/forms/OtimizacaoForm";
@@ -25,11 +26,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-type Tab = "clientes" | "demandas" | "metas" | "fluxos";
+type Tab = "clientes" | "demandas" | "checklist" | "metas" | "fluxos";
 
 const nav: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: "clientes", label: "Clientes", icon: Users },
   { id: "demandas", label: "Demandas", icon: ListChecks },
+  { id: "checklist", label: "Checklist", icon: ListTodo },
   { id: "metas", label: "Metas", icon: Target },
   { id: "fluxos", label: "Fluxos", icon: Workflow },
 ];
@@ -37,6 +39,7 @@ const nav: { id: Tab; label: string; icon: typeof Users }[] = [
 const titles: Record<Tab, string> = {
   clientes: "Clientes",
   demandas: "Demandas",
+  checklist: "Checklist por Cliente",
   metas: "Metas de Clientes",
   fluxos: "Fluxos de Trabalho",
 };
@@ -317,6 +320,7 @@ function AdminSistemaView() {
     switch (id) {
       case "clientes": return <ClienteGallery />;
       case "demandas": return <KanbanBoard />;
+      case "checklist": return <ChecklistBoard />;
       case "metas": return <MetasBoard />;
       case "fluxos": return <FluxosPage />;
     }

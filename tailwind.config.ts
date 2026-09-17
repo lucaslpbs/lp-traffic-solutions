@@ -21,6 +21,8 @@ export default {
 			fontFamily: {
 				sans: ['Plus Jakarta Sans', 'sans-serif'],
 				display: ['Syne', 'sans-serif'],
+				serif: ['Fraunces', 'serif'],
+				'mono-plex': ['IBM Plex Mono', 'monospace'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
