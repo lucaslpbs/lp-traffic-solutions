@@ -331,6 +331,8 @@ export type Database = {
       gestao_clientes: {
         Row: {
           cadastro_produtos_ativo: boolean
+          checklist_cor: string | null
+          checklist_cor_intensidade: number
           created_at: string | null
           data_fim: string | null
           data_inicio: string
@@ -376,6 +378,8 @@ export type Database = {
         }
         Insert: {
           cadastro_produtos_ativo?: boolean
+          checklist_cor?: string | null
+          checklist_cor_intensidade?: number
           created_at?: string | null
           data_fim?: string | null
           data_inicio?: string
@@ -421,6 +425,8 @@ export type Database = {
         }
         Update: {
           cadastro_produtos_ativo?: boolean
+          checklist_cor?: string | null
+          checklist_cor_intensidade?: number
           created_at?: string | null
           data_fim?: string | null
           data_inicio?: string
@@ -1776,6 +1782,8 @@ export type Database = {
       }
       sistema_checklist_itens: {
         Row: {
+          arquivado: boolean
+          arquivado_em: string | null
           client_id: string
           concluido: boolean
           created_at: string | null
@@ -1789,6 +1797,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          arquivado?: boolean
+          arquivado_em?: string | null
           client_id: string
           concluido?: boolean
           created_at?: string | null
@@ -1802,6 +1812,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          arquivado?: boolean
+          arquivado_em?: string | null
           client_id?: string
           concluido?: boolean
           created_at?: string | null
