@@ -614,7 +614,10 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
             {rows.map((step, i) => {
               const pct = (step.quantidade / maxVal) * 100;
               const prev = rows[i - 1];
-              const conv = prev && prev.quantidade > 0
+              // Só mostra conversão quando a etapa anterior tem mais leads — algumas
+              // etapas (Follow up, Visita agendada) são baldes paralelos com poucos leads
+              // e não representam de fato o funil anterior, o que gerava % acima de 100%.
+              const conv = prev && prev.quantidade > 0 && step.quantidade <= prev.quantidade
                 ? ((step.quantidade / prev.quantidade) * 100).toFixed(1) : null;
               return (
                 <div key={step.etapa}>
@@ -741,7 +744,7 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
               {etapas.map((step, i) => {
                 const pct = (step.quantidade / maxVal) * 100;
                 const prev = etapas[i - 1];
-                const conv = prev && prev.quantidade > 0
+                const conv = prev && prev.quantidade > 0 && step.quantidade <= prev.quantidade
                   ? ((step.quantidade / prev.quantidade) * 100).toFixed(1) : null;
                 return (
                   <div key={step.etapa}>
