@@ -12,7 +12,7 @@ import { ListSkeleton } from '@/components/dashboard/Skeletons';
 interface Conversa {
   telefone: string;
   nome: string | null;
-  status: string | null;
+  agente: string | null;
   interesse: string | null;
   ultima_mensagem: string | null;
   ultima_de: 'lead' | 'bot' | null;
@@ -46,7 +46,7 @@ async function sdrCrm<T>(action: string, telefone?: string): Promise<T> {
   return data as T;
 }
 
-const isPausado = (status: string | null) => (status ?? '').toLowerCase().includes('paus');
+const isPausado = (agente: string | null) => agente === 'off';
 
 // created_at do banco do SDR e UTC sem fuso.
 const parseTs = (ts: string) => new Date(/Z|[+-]\d\d:?\d\d$/.test(ts) ? ts : `${ts}Z`);
@@ -213,7 +213,7 @@ export default function SdrCrmPage() {
                     {c.no_vacuo && (
                       <span className="text-[11px] rounded-full bg-amber-500/15 text-amber-600 px-2 py-0.5">no vácuo</span>
                     )}
-                    {isPausado(c.status) && (
+                    {isPausado(c.agente) && (
                       <span className="text-[11px] rounded-full bg-destructive/15 text-destructive px-2 py-0.5">bot pausado</span>
                     )}
                   </div>
@@ -250,7 +250,7 @@ export default function SdrCrmPage() {
                     {reenviar.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                     Responder novamente
                   </Button>
-                  {isPausado(atual.status) ? (
+                  {isPausado(atual.agente) ? (
                     <Button
                       variant="default"
                       size="sm"

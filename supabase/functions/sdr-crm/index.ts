@@ -7,10 +7,8 @@
 //
 // Secrets (supabase secrets set ... --project-ref xhrcrusqzfckrjghjmgb):
 //   SDR_RETRY_WEBHOOK_URL   webhook do N8N que refaz a resposta do SDR
-//   SDR_PAUSED_STATUS       (opcional) valor de contatos_agente.status que o
-//                           N8N reconhece como bot pausado. Padrao: "bot pausado"
-//   SDR_ACTIVE_STATUS       (opcional) valor gravado ao reativar o bot.
-//                           Padrao: null (status vazio = bot ativo)
+// O SDR pausa/reativa pela coluna contatos_agente.agente ("off" = pausado,
+// "recepcionista" = ativo), igual aos nos OFF_AGENT/ON_AGENT do N8N.
 // SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY ja vem injetadas pelo Supabase.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -96,7 +94,7 @@ Deno.serve(async (req: Request) => {
         const [c, h] = await Promise.all([
           sdr
             .from("contatos_agente")
-            .select("user_number, user_name, status, interesse_duvida, created_at")
+            .select("user_number, user_name, agente, interesse_duvida, created_at")
             .order("created_at", { ascending: false })
             .limit(500),
           sdr
@@ -117,7 +115,7 @@ Deno.serve(async (req: Request) => {
         const agora = Date.now();
         const vistos = new Set<string>();
         const conversas: any[] = [];
-        const montar = (numero: string, nome: string | null, status: string | null, interesse: string | null, criado: string | null) => {
+        const montar = (numero: string, nome: string | null, agente: string | null, interesse: string | null, criado: string | null) => {
           const ult = ultimaPorNumero.get(soDigitos(numero));
           const quem = ult ? tipoDaMensagem(ult.message) : null;
           const quando: string | null = ult?.created_at ?? null;
@@ -125,7 +123,7 @@ Deno.serve(async (req: Request) => {
           conversas.push({
             telefone: numero,
             nome,
-            status,
+            agente,
             interesse,
             criado_em: criado,
             ultima_mensagem: ult ? textoDaMensagem(ult.message).slice(0, 140) : null,
@@ -136,7 +134,7 @@ Deno.serve(async (req: Request) => {
         };
         for (const ct of c.data ?? []) {
           vistos.add(soDigitos(ct.user_number));
-          montar(ct.user_number, ct.user_name, ct.status, ct.interesse_duvida, ct.created_at);
+          montar(ct.user_number, ct.user_name, ct.agente, ct.interesse_duvida, ct.created_at);
         }
         for (const [d, row] of ultimaPorNumero) {
           if (!vistos.has(d)) montar(d, null, null, null, row.created_at);
@@ -161,32 +159,32 @@ Deno.serve(async (req: Request) => {
 
       case "pause": {
         if (!body.telefone) return jsonResponse(400, { success: false, error: "telefone obrigatório" });
-        const status = Deno.env.get("SDR_PAUSED_STATUS") ?? "bot pausado";
+        const agente = "off";
         const { data, error } = await sdr
           .from("contatos_agente")
-          .update({ status })
+          .update({ agente })
           .eq("user_number", body.telefone)
           .select("user_number");
         if (error) throw error;
         if (!data?.length) {
           return jsonResponse(404, { success: false, error: "Contato não encontrado em contatos_agente" });
         }
-        return jsonResponse(200, { success: true, status });
+        return jsonResponse(200, { success: true, agente });
       }
 
       case "resume": {
         if (!body.telefone) return jsonResponse(400, { success: false, error: "telefone obrigatório" });
-        const status = Deno.env.get("SDR_ACTIVE_STATUS") ?? null;
+        const agente = "recepcionista";
         const { data, error } = await sdr
           .from("contatos_agente")
-          .update({ status })
+          .update({ agente })
           .eq("user_number", body.telefone)
           .select("user_number");
         if (error) throw error;
         if (!data?.length) {
           return jsonResponse(404, { success: false, error: "Contato não encontrado em contatos_agente" });
         }
-        return jsonResponse(200, { success: true, status });
+        return jsonResponse(200, { success: true, agente });
       }
 
       case "retry": {
