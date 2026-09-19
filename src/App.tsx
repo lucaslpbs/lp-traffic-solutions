@@ -57,6 +57,8 @@ import DashboardKommoSandelly from "./pages/DashboardKommoSandelly";
 import ClienteDetailPage from "./pages/ClienteDetailPage";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import ProdutosPage from "./pages/ProdutosPage";
+import SdrCrmPage from "./pages/SdrCrmPage";
+import { ProtectedSdrCrmRoute } from "@/components/dashboard/ProtectedSdrCrmRoute";
 import SistemaMarketingPage from "./pages/sistema";
 import OrcamentoEscolaCearenceOftalmologia from "./pages/OrcamentoEscolaCearenceOftalmologia";
 import OrcamentoSeteMares from "./pages/OrcamentoSeteMares";
@@ -229,6 +231,7 @@ const AppRoutes = () => {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="crm" element={<ProtectedSdrCrmRoute><SdrCrmPage /></ProtectedSdrCrmRoute>} />
           <Route path="guerra" element={<ProtectedSessionRoute session="guerra"><WarRoom /></ProtectedSessionRoute>} />
           <Route path="gestao-clientes" element={<ProtectedSessionRoute session="gestao_clientes"><GestaoClientes /></ProtectedSessionRoute>} />
           <Route path="usuarios" element={<ProtectedAdminRoute><GestaoUsuarios /></ProtectedAdminRoute>} />

@@ -19,12 +19,14 @@ import {
   UserCog,
   Sparkles,
   Package,
+  MessagesSquare,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Shimmer } from '@/components/dashboard/Skeletons';
 import { NivelBadge } from '@/components/dashboard/NivelBadge';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsSdrCrmUser } from '@/components/dashboard/ProtectedSdrCrmRoute';
 
 interface SidebarCliente {
   id: string;
@@ -115,6 +117,7 @@ export const DashboardSidebarContent = ({
   const temSessao = (sessao: string) => isAdmin || (isColaborador && colaboradorSessoes.includes(sessao as any));
   /** Sessoes que ja eram abertas pra qualquer logado (Sistema/Chamados/Ranking) — colaborador sem a sessao liberada nao ve o link, o resto (admin, cliente) continua vendo. */
   const sessaoAberta = (sessao: string) => !isColaborador || temSessao(sessao);
+  const verCrm = useIsSdrCrmUser();
   const verClientes = isAdmin || isColaborador;
 
   const { data: clients = [], isLoading: loading } = useQuery({
@@ -190,6 +193,18 @@ export const DashboardSidebarContent = ({
             onNavigate={onNavigate}
             instanceId={instanceId}
           />
+
+          {verCrm && (
+            <SidebarLink
+              to="/dashboard/crm"
+              label="CRM"
+              icon={MessagesSquare}
+              active={path === '/dashboard/crm'}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              instanceId={instanceId}
+            />
+          )}
 
           {temSessao('guerra') && (
             <SidebarLink
