@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LabelList,
+  Cell, LabelList,
   LineChart, Line, ReferenceLine,
 } from 'recharts';
 import {
@@ -20,7 +20,6 @@ const DEFAULT_TICKET = 245000;
 const PIPELINE_ID_INTERNA = 12157328;
 const PIPELINE_ID_EXTERNA = 13422447;
 const ETAPAS_GANHA = ['venda ganha', 'contratado'];
-const ETAPAS_PERDIDA = ['venda perdida', 'descartado'];
 const ETAPAS_TERMINAL = ['venda ganha', 'contratado', 'venda perdida', 'descartado', 'lead perdido', 'base de perdidos'];
 
 // ── Design Tokens ──────────────────────────────────────────────────────────
@@ -58,11 +57,6 @@ interface KoruApiResponse {
   trafego: LeadRecord[];
 }
 interface EtapaRow { etapa: string; quantidade: number }
-interface Metricas {
-  totalCriados: number; atendidos: number; corretorNomeado: number;
-  visitasRealizadas: number; analisesCredito: number; negociacoes: number;
-  descartados: number; vendasFechadas: number; pastaRecebida: number;
-}
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 const fmtBRL = (v: number) =>
@@ -80,49 +74,6 @@ function parseDateBR(s: string): number {
   const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
   if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:${m[6]}`).getTime();
   return new Date(s).getTime();
-}
-
-function computeMetricas(records: LeadRecord[]): Metricas {
-  // Agrupa por lead e usa apenas o último estado de cada um
-  const byLead = new Map<string, LeadRecord[]>();
-  for (const r of records) {
-    const id = String(r.lead_id);
-    if (!byLead.has(id)) byLead.set(id, []);
-    byLead.get(id)!.push(r);
-  }
-
-  let ganhaCount = 0, perdidaCount = 0;
-  let atendidos = 0, corretorNomeado = 0, visitasRealizadas = 0;
-  let analisesCredito = 0, negociacoes = 0, pastaRecebida = 0;
-
-  for (const events of byLead.values()) {
-    const last = events.reduce((a, b) =>
-      parseDateBR(a.data_hora_etapa ?? '') >= parseDateBR(b.data_hora_etapa ?? '') ? a : b
-    );
-    const e = norm(last.etapa_nome ?? '');
-    if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) ganhaCount++;
-    else if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) perdidaCount++;
-    else {
-      if (e.includes('atendimento')) atendidos++;
-      if (e.includes('corretor')) corretorNomeado++;
-      if (e.includes('visita realizada')) visitasRealizadas++;
-      if (e.includes('analise')) analisesCredito++;
-      if (e.includes('negociacao')) negociacoes++;
-      if (e.includes('pasta')) pastaRecebida++;
-    }
-  }
-
-  return {
-    totalCriados: byLead.size,
-    atendidos,
-    corretorNomeado,
-    visitasRealizadas,
-    analisesCredito,
-    negociacoes,
-    descartados: perdidaCount,
-    vendasFechadas: ganhaCount,
-    pastaRecebida,
-  };
 }
 
 // ── Ciclo de Vendas — types ────────────────────────────────────────────────
@@ -443,6 +394,50 @@ function CicloHBarChart({ data, color = D.blue }: { data: CicloAgente[]; color?:
 
 const FAIXA_CC = [D.green, D.cyan, D.amber, D.orange, D.red, '#B91C1C'];
 
+// Ordem e nomes de exibição da Análise Estática (Seção I) — reflete a sequência real do funil,
+// não a contagem de leads (que varia e embaralharia a ordem visualmente).
+const ETAPA_DISPLAY_ORDER: { match: string[]; label: string }[] = [
+  { match: ['contato inicial'], label: 'Contato inicial' },
+  { match: ['atendimento'], label: 'Atendimento' },
+  { match: ['follow up', 'followup'], label: 'Follow up' },
+  { match: ['qualificado'], label: 'Qualificados' },
+  { match: ['vista agendada', 'visita agendada'], label: 'Visita agendada' },
+  { match: ['visita realizada'], label: 'Visita realizada' },
+  { match: ['analise de credito'], label: 'Análise de crédito' },
+  { match: ['negociacao'], label: 'Negociação' },
+];
+
+function etapaDisplay(etapa: string): { label: string; order: number } {
+  const n = norm(etapa);
+  const idx = ETAPA_DISPLAY_ORDER.findIndex(e => e.match.some(m => n.includes(m)));
+  return idx >= 0 ? { label: ETAPA_DISPLAY_ORDER[idx].label, order: idx } : { label: etapa, order: 999 };
+}
+
+// Análise Periódica (Seção II) mostra só as etapas gerais do funil, na mesma nomenclatura
+// da Seção I: Contato inicial, Atendimento, Qualificados, Análise de crédito e — ao final —
+// Venda Fechada. Todo o resto (Follow up, Visita agendada, Visita realizada, Negociação,
+// Incoming leads) fica fora da tabela em vez de aparecer zerado.
+const ETAPA_PERIODICA_HIDE = [
+  'follow up', 'followup', 'vista agendada', 'visita agendada',
+  'incoming leads', 'visita realizada', 'negociacao',
+];
+const ETAPA_PERIODICA_ORDER = ETAPA_DISPLAY_ORDER.filter(e =>
+  ['Contato inicial', 'Atendimento', 'Qualificados', 'Análise de crédito'].includes(e.label)
+);
+const ETAPA_PERIODICA_LABELS = [...ETAPA_PERIODICA_ORDER.map(e => e.label), 'Venda Fechada'];
+
+// Etapas gerais sempre aparecem na tabela, mesmo com quantidade zero no período.
+function etapaPeriodicaMatch(etapa: string): { label: string; order: number } | null {
+  const n = norm(etapa);
+  if (ETAPA_PERIODICA_HIDE.some(h => n.includes(h))) return null;
+  const idx = ETAPA_PERIODICA_ORDER.findIndex(e => e.match.some(m => n.includes(m)));
+  return idx >= 0 ? { label: ETAPA_PERIODICA_ORDER[idx].label, order: idx } : { label: etapa, order: 999 };
+}
+function periodicaOrder(label: string): number {
+  const idx = ETAPA_PERIODICA_LABELS.indexOf(label);
+  return idx >= 0 ? idx : 999;
+}
+
 // ── Hooks ──────────────────────────────────────────────────────────────────
 function useFunilSnapshot(tab: 'interna' | 'externa') {
   const [rows, setRows] = useState<EtapaRow[]>([]);
@@ -474,11 +469,15 @@ function useFunilSnapshot(tab: 'interna' | 'externa') {
           const e = (row.etapa_lead ?? '').trim();
           if (!e) continue;
           if (ETAPAS_TERMINAL.some(t => norm(e).includes(norm(t)))) continue;
-          map.set(e, (map.get(e) ?? 0) + 1);
+          const { label } = etapaDisplay(e);
+          map.set(label, (map.get(label) ?? 0) + 1);
         }
         setRows(Array.from(map.entries())
           .map(([etapa, quantidade]) => ({ etapa, quantidade }))
-          .sort((a, b) => b.quantidade - a.quantidade));
+          .sort((a, b) => {
+            const diff = etapaDisplay(a.etapa).order - etapaDisplay(b.etapa).order;
+            return diff !== 0 ? diff : b.quantidade - a.quantidade;
+          }));
       })
       .catch(err => setError(err instanceof Error ? err.message : 'Erro ao carregar dados do Supabase'))
       .finally(() => setLoading(false));
@@ -566,23 +565,11 @@ const TTip = ({ active, payload, label }: { active?: boolean; payload?: { name: 
   );
 };
 
-const PTip = ({ active, payload }: { active?: boolean; payload?: { name: string; value: number; fill: string; payload: { percent: number } }[] }) => {
-  if (!active || !payload?.length) return null;
-  const p = payload[0];
-  return (
-    <div className="rounded-xl px-4 py-3 shadow-xl" style={{ background: D.cardHover, border: `1px solid ${D.borderLight}`, color: D.text }}>
-      <p className="text-sm font-semibold">{p.name}</p>
-      <p className="text-sm" style={{ color: p.fill }}>{p.value} ({fmtPct(p.payload.percent * 100)})</p>
-    </div>
-  );
-};
-
 // ── Section I ──────────────────────────────────────────────────────────────
 function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
   const { rows, loading, error } = useFunilSnapshot(tab);
   const total = rows.reduce((s, r) => s + r.quantidade, 0);
-  const chartH = Math.max(rows.length * 52 + 20, 180);
-  const pieData = rows.filter(r => r.quantidade > 0);
+  const maxVal = rows[0]?.quantidade || 1;
 
   if (loading) return <Spinner />;
   if (error) return <ErrBanner msg={error} />;
@@ -620,86 +607,95 @@ function SecaoEstatica({ tab }: { tab: 'interna' | 'externa' }) {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Quantidade por Etapa</p>
-          <ResponsiveContainer width="100%" height={chartH}>
-            <BarChart data={rows} layout="vertical" margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={D.border} horizontal={false} />
-              <XAxis type="number" tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="etapa" width={160} tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<TTip />} />
-              <Bar dataKey="quantidade" radius={[0, 6, 6, 0]} name="Leads">
-                {rows.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
-                <LabelList dataKey="quantidade" position="right" style={{ fill: D.text, fontSize: 12, fontWeight: 700 }} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Distribuição %</p>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie data={pieData} dataKey="quantidade" nameKey="etapa" cx="50%" cy="50%" outerRadius={100} innerRadius={50}>
-                {pieData.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
-              </Pie>
-              <Tooltip content={<PTip />} />
-              <Legend formatter={v => <span style={{ color: D.textSec, fontSize: 11 }}>{v}</span>} wrapperStyle={{ paddingTop: 8 }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: D.textSec }}>Funil de Conversão</p>
+          <div className="space-y-3">
+            {rows.map((step, i) => {
+              const pct = (step.quantidade / maxVal) * 100;
+              // Mesma % da coluna "%" da tabela acima (participação no total), não uma
+              // conversão etapa-a-etapa — o funil tem etapas paralelas (Follow up, Visita
+              // agendada) que quebrariam a leitura de "conversão" entre linhas adjacentes.
+              const share = total > 0 ? fmtPct((step.quantidade / total) * 100) : null;
+              return (
+                <div key={step.etapa}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm" style={{ color: D.textSec }}>{step.etapa}</span>
+                    <div className="flex items-center gap-3">
+                      {share && <span className="text-xs" style={{ color: D.textMuted }}>{share}</span>}
+                      <span className="text-base font-bold" style={{ color: CC[i % CC.length] }}>{step.quantidade}</span>
+                    </div>
+                  </div>
+                  <div className="h-7 rounded-lg overflow-hidden" style={{ background: D.cardHover, border: `1px solid ${D.border}` }}>
+                    <div className="h-full rounded-lg transition-all duration-700"
+                      style={{ width: `${Math.max(pct, step.quantidade > 0 ? 2 : 0)}%`, background: CC[i % CC.length], opacity: 0.85 }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
+// Mesmo cálculo usado na Seção II (Análise Periódica) e na Seção III (Análise de
+// Investimento) — as duas precisam bater exatamente nas mesmas etapas e contagens.
+function computeFunilPeriodico(records: LeadRecord[]): { etapas: EtapaRow[]; totalLeads: number } {
+  const allIds = new Set<string>();
+  const stageLeads = new Map<string, Set<string>>();
+
+  for (const r of records) {
+    const id = String(r.lead_id);
+    allIds.add(id);
+
+    const etapaNome = r.etapa_nome?.trim() ?? '';
+    if (!etapaNome) continue;
+
+    if (!stageLeads.has(etapaNome)) stageLeads.set(etapaNome, new Set());
+    stageLeads.get(etapaNome)!.add(id);
+  }
+
+  const ganhaIds = new Set<string>();
+  const stageMap = new Map<string, number>();
+
+  for (const [etapa, ids] of stageLeads.entries()) {
+    const e = norm(etapa);
+    if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) {
+      ids.forEach(id => ganhaIds.add(id));
+    } else if (!ETAPAS_TERMINAL.some(t => e.includes(norm(t)))) {
+      const match = etapaPeriodicaMatch(etapa);
+      if (!match) continue; // Follow up / Visita agendada / Visita realizada / Negociação ficam de fora
+      stageMap.set(match.label, (stageMap.get(match.label) ?? 0) + ids.size);
+    }
+  }
+
+  // Etapas gerais sempre aparecem, mesmo zeradas
+  for (const { label } of ETAPA_PERIODICA_ORDER) {
+    if (!stageMap.has(label)) stageMap.set(label, 0);
+  }
+  stageMap.set('Venda Fechada', ganhaIds.size);
+
+  return {
+    etapas: Array.from(stageMap.entries())
+      .map(([etapa, quantidade]) => ({ etapa, quantidade }))
+      .sort((a, b) => {
+        const diff = periodicaOrder(a.etapa) - periodicaOrder(b.etapa);
+        return diff !== 0 ? diff : b.quantidade - a.quantidade;
+      }),
+    totalLeads: allIds.size,
+  };
+}
+
 // ── Section II ─────────────────────────────────────────────────────────────
 function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
-  const { etapas, totalLeads, descartados, vendasFechadas } = (() => {
-    const allIds = new Set<string>();
-    const stageLeads = new Map<string, Set<string>>();
-
-    for (const r of records) {
-      const id = String(r.lead_id);
-      allIds.add(id);
-
-      const etapaNome = r.etapa_nome?.trim() ?? '';
-      if (!etapaNome) continue;
-
-      if (!stageLeads.has(etapaNome)) stageLeads.set(etapaNome, new Set());
-      stageLeads.get(etapaNome)!.add(id);
-    }
-
-    const ganhaIds = new Set<string>();
-    const perdidaIds = new Set<string>();
-    const stageMap = new Map<string, number>();
-
-    for (const [etapa, ids] of stageLeads.entries()) {
-      const e = norm(etapa);
-      if (ETAPAS_GANHA.some(x => e.includes(norm(x)))) {
-        ids.forEach(id => ganhaIds.add(id));
-      } else if (ETAPAS_PERDIDA.some(x => e.includes(norm(x)))) {
-        ids.forEach(id => perdidaIds.add(id));
-      } else if (!ETAPAS_TERMINAL.some(t => e.includes(norm(t)))) {
-        stageMap.set(etapa, ids.size);
-      }
-    }
-
-    return {
-      etapas: Array.from(stageMap.entries())
-        .map(([etapa, quantidade]) => ({ etapa, quantidade }))
-        .sort((a, b) => b.quantidade - a.quantidade),
-      totalLeads: allIds.size,
-      descartados: perdidaIds.size,
-      vendasFechadas: ganhaIds.size,
-    };
-  })();
+  const { etapas, totalLeads } = computeFunilPeriodico(records);
 
   if (!records.length) {
     return <p className="text-center py-8" style={{ color: D.textMuted }}>Nenhum lead encontrado para o período.</p>;
   }
 
-  const chartH = Math.max(etapas.length * 52 + 20, 180);
   const maxVal = etapas[0]?.quantidade || 1;
 
   return (
@@ -715,68 +711,46 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
             </tr>
           </thead>
           <tbody>
-            {etapas.map((row, i) => (
-              <tr key={row.etapa} style={{ background: i % 2 === 0 ? D.card : D.cardHover, borderTop: i === 0 ? 'none' : `1px solid ${D.border}` }}>
-                <td className="px-4 py-3 font-medium" style={{ color: D.text }}>{row.etapa}</td>
-                <td className="px-4 py-3 text-right font-bold" style={{ color: CC[i % CC.length] }}>{row.quantidade}</td>
-                <td className="px-4 py-3 text-right" style={{ color: D.textSec }}>
-                  {totalLeads > 0 ? fmtPct((row.quantidade / totalLeads) * 100) : '—'}
-                </td>
-              </tr>
-            ))}
-            <tr style={{ borderTop: `1px solid ${D.borderLight}`, background: `${D.red}10` }}>
-              <td className="px-4 py-3 font-medium" style={{ color: D.red }}>Descartados / Perdidos</td>
-              <td className="px-4 py-3 text-right font-bold" style={{ color: D.red }}>{descartados}</td>
-              <td className="px-4 py-3 text-right" style={{ color: D.red }}>
-                {totalLeads > 0 ? fmtPct((descartados / totalLeads) * 100) : '—'}
-              </td>
-            </tr>
-            <tr style={{ borderTop: `1px solid ${D.borderLight}`, background: `${D.green}10` }}>
-              <td className="px-4 py-3 font-medium" style={{ color: D.green }}>Vendas Fechadas</td>
-              <td className="px-4 py-3 text-right font-bold" style={{ color: D.green }}>{vendasFechadas}</td>
-              <td className="px-4 py-3 text-right" style={{ color: D.green }}>
-                {totalLeads > 0 ? fmtPct((vendasFechadas / totalLeads) * 100) : '—'}
-              </td>
-            </tr>
+            {etapas.map((row, i) => {
+              const isFechada = row.etapa === 'Venda Fechada';
+              return (
+                <tr key={row.etapa} style={{
+                  background: isFechada ? `${D.green}10` : i % 2 === 0 ? D.card : D.cardHover,
+                  borderTop: isFechada ? `1px solid ${D.borderLight}` : i === 0 ? 'none' : `1px solid ${D.border}`,
+                }}>
+                  <td className="px-4 py-3 font-medium" style={{ color: isFechada ? D.green : D.text }}>{row.etapa}</td>
+                  <td className="px-4 py-3 text-right font-bold" style={{ color: isFechada ? D.green : CC[i % CC.length] }}>{row.quantidade}</td>
+                  <td className="px-4 py-3 text-right" style={{ color: isFechada ? D.green : D.textSec }}>
+                    {row.etapa === 'Contato inicial'
+                      ? fmtPct(100)
+                      : totalLeads > 0 ? fmtPct((row.quantidade / totalLeads) * 100) : '—'}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       {/* Charts */}
       {etapas.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Bar */}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: D.textSec }}>Performance por Etapa</p>
-            <ResponsiveContainer width="100%" height={chartH}>
-              <BarChart data={etapas} layout="vertical" margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={D.border} horizontal={false} />
-                <XAxis type="number" tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="etapa" width={160} tick={{ fill: D.textSec, fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<TTip />} />
-                <Bar dataKey="quantidade" radius={[0, 6, 6, 0]} name="Leads">
-                  {etapas.map((_, i) => <Cell key={i} fill={CC[i % CC.length]} />)}
-                  <LabelList dataKey="quantidade" position="right" style={{ fill: D.text, fontSize: 12, fontWeight: 700 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
+        <div className="grid grid-cols-1 gap-6">
           {/* Funnel */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: D.textSec }}>Funil de Conversão</p>
             <div className="space-y-3">
               {etapas.map((step, i) => {
                 const pct = (step.quantidade / maxVal) * 100;
-                const prev = etapas[i - 1];
-                const conv = prev && prev.quantidade > 0
-                  ? ((step.quantidade / prev.quantidade) * 100).toFixed(1) : null;
+                // Mesma % da coluna "%" da tabela acima (participação no total).
+                const share = step.etapa === 'Contato inicial'
+                  ? fmtPct(100)
+                  : totalLeads > 0 ? fmtPct((step.quantidade / totalLeads) * 100) : null;
                 return (
                   <div key={step.etapa}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm" style={{ color: D.textSec }}>{step.etapa}</span>
                       <div className="flex items-center gap-3">
-                        {conv && <span className="text-xs" style={{ color: D.textMuted }}>↓ {conv}%</span>}
+                        {share && <span className="text-xs" style={{ color: D.textMuted }}>{share}</span>}
                         <span className="text-base font-bold" style={{ color: CC[i % CC.length] }}>{step.quantidade}</span>
                       </div>
                     </div>
@@ -787,18 +761,6 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
                   </div>
                 );
               })}
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="flex items-center justify-between px-3 py-2 rounded-xl"
-                  style={{ background: `${D.red}18`, border: `1px solid ${D.red}44` }}>
-                  <span className="text-xs font-semibold" style={{ color: D.red }}>❌ Descartados</span>
-                  <span className="text-sm font-black" style={{ color: D.red }}>{descartados}</span>
-                </div>
-                <div className="flex items-center justify-between px-3 py-2 rounded-xl"
-                  style={{ background: `${D.green}18`, border: `1px solid ${D.green}44` }}>
-                  <span className="text-xs font-semibold" style={{ color: D.green }}>✅ Fechadas</span>
-                  <span className="text-sm font-black" style={{ color: D.green }}>{vendasFechadas}</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -808,29 +770,20 @@ function SecaoPeriodica({ records }: { records: LeadRecord[] }) {
 }
 
 // ── Section III ────────────────────────────────────────────────────────────
-function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas; inv: number; ticket: number; tab: 'interna' | 'externa' }) {
-  const costRows = tab === 'externa' ? [
-    { label: 'Custo por Pasta Recebida',     qty: metricas.pastaRecebida },
-    { label: 'Custo por Análise de Crédito', qty: metricas.analisesCredito },
-    { label: 'Custo por Negociação',         qty: metricas.negociacoes },
-    { label: 'Custo por Venda Fechada',      qty: metricas.vendasFechadas },
-  ] : [
-    { label: 'Custo por Lead Criado',             qty: metricas.totalCriados },
-    { label: 'Custo por Lead Atendido',            qty: metricas.atendidos },
-    { label: 'Custo por Lead c/ Corretor Nomeado', qty: metricas.corretorNomeado },
-    { label: 'Custo por Visita Realizada',          qty: metricas.visitasRealizadas },
-    { label: 'Custo por Análise de Crédito',        qty: metricas.analisesCredito },
-    { label: 'Custo por Negociação',                qty: metricas.negociacoes },
-    { label: 'Custo por Venda Fechada',             qty: metricas.vendasFechadas },
-  ];
+// Usa exatamente as mesmas etapas e contagens da Seção II (Análise Periódica) —
+// veja computeFunilPeriodico — para que o custo por lead bata com o que é exibido lá.
+function SecaoInvestimento({ etapas, inv, ticket }: { etapas: EtapaRow[]; inv: number; ticket: number }) {
+  const costRows = etapas.map(e => ({ label: `Custo por ${e.etapa}`, qty: e.quantidade }));
 
   const chartData = costRows.filter(r => r.qty > 0).map(r => ({
-    name: r.label.replace('Custo por ', '').replace('Lead ', '').replace('Análise de ', ''),
+    name: r.label.replace('Custo por ', ''),
     value: inv / r.qty,
   }));
 
-  const roi = inv > 0 && metricas.vendasFechadas > 0
-    ? ((metricas.vendasFechadas * ticket - inv) / inv) * 100 : 0;
+  const vendasFechadas = etapas.find(e => e.etapa === 'Venda Fechada')?.quantidade ?? 0;
+
+  const roi = inv > 0 && vendasFechadas > 0
+    ? ((vendasFechadas * ticket - inv) / inv) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -843,7 +796,7 @@ function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas;
         <div className="rounded-xl px-5 py-4" style={{ background: `${roi >= 0 ? D.green : D.red}18`, border: `1px solid ${roi >= 0 ? D.green : D.red}44` }}>
           <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: roi >= 0 ? D.green : D.red }}>ROI Estimado</p>
           <p className="text-2xl font-black" style={{ color: roi >= 0 ? D.green : D.red }}>
-            {roi.toFixed(1)}% · {metricas.vendasFechadas} vendas × {fmtBRL(ticket)}
+            {roi.toFixed(1)}% · {vendasFechadas} vendas × {fmtBRL(ticket)}
           </p>
         </div>
       </div>
@@ -900,44 +853,6 @@ function SecaoInvestimento({ metricas, inv, ticket, tab }: { metricas: Metricas;
           </ResponsiveContainer>
         </div>
       )}
-
-      {/* Period quantities breakdown */}
-      <div>
-        <p className="text-sm font-bold mb-3" style={{ color: D.textSec }}>Análise de Investimento — Quantidades por Período</p>
-        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${D.border}` }}>
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: D.cardHover }}>
-                <th className="text-left px-4 py-3 font-semibold" style={{ color: D.textSec }}>#</th>
-                <th className="text-left px-4 py-3 font-semibold" style={{ color: D.textSec }}>ETAPA | DESCRIÇÃO</th>
-                <th className="text-right px-4 py-3 font-semibold" style={{ color: D.textSec }}>QUANT. (POR PERÍODO)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(tab === 'externa' ? [
-                { n: 1, label: 'Total de Pastas Recebidas',    qty: metricas.pastaRecebida },
-                { n: 2, label: 'Total de Análises de Crédito', qty: metricas.analisesCredito },
-                { n: 3, label: 'Total de Negociações',          qty: metricas.negociacoes },
-                { n: 4, label: 'Total de Vendas Fechadas',      qty: metricas.vendasFechadas },
-              ] : [
-                { n: 1, label: 'Total de Leads Criados',             qty: metricas.totalCriados },
-                { n: 2, label: 'Total de Leads Atendidos',           qty: metricas.atendidos },
-                { n: 3, label: 'Total de Leads c/ Corretor Nomeado', qty: metricas.corretorNomeado },
-                { n: 4, label: 'Total de Visitas Realizadas',         qty: metricas.visitasRealizadas },
-                { n: 5, label: 'Total de Análises de Crédito',        qty: metricas.analisesCredito },
-                { n: 6, label: 'Total de Vendas Fechadas',            qty: metricas.vendasFechadas },
-                { n: 7, label: 'Total de Leads Descartados',          qty: metricas.descartados },
-              ]).map((row, i) => (
-                <tr key={row.n} style={{ background: i % 2 === 0 ? D.card : D.cardHover, borderTop: `1px solid ${D.border}` }}>
-                  <td className="px-4 py-3 font-bold" style={{ color: D.textMuted }}>{row.n}</td>
-                  <td className="px-4 py-3" style={{ color: D.text }}>{row.label}</td>
-                  <td className="px-4 py-3 text-right font-bold" style={{ color: D.blue }}>{row.qty.toLocaleString('pt-BR')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1002,15 +917,6 @@ export default function KoruVendas() {
     [apiResponse]
   );
 
-  const filteredInterna = useMemo(
-    () => byPipeline(apiResponse?.todos, PIPELINE_ID_INTERNA),
-    [apiResponse]
-  );
-  const filteredExterna = useMemo(
-    () => byPipeline(apiResponse?.todos, PIPELINE_ID_EXTERNA),
-    [apiResponse]
-  );
-
   // Seção II — alterna entre "todos" e "trafego"
   const periodicoInterna = useMemo(
     () => byPipeline(origemLeads === 'trafego' ? apiResponse?.trafego : apiResponse?.todos, PIPELINE_ID_INTERNA),
@@ -1021,18 +927,19 @@ export default function KoruVendas() {
     [apiResponse, origemLeads]
   );
 
-  const metricasInterna = useMemo(() => computeMetricas(filteredInterna), [filteredInterna]);
-  const metricasExterna = useMemo(() => computeMetricas(filteredExterna), [filteredExterna]);
-
   // Seção III — ROI/custo por lead só faz sentido contra quem de fato veio do tráfego pago
   // (o "Valor Investido" é o gasto de anúncio), então usa sempre o recorte "Tráfego (Facebook)",
-  // independente do toggle "Todos/Tráfego" da Seção II.
+  // independente do toggle "Todos/Tráfego" da Seção II. Usa o mesmo cálculo de etapas da
+  // Seção II (computeFunilPeriodico) para que as duas seções batam exatamente.
   const filteredRecordsTrafego = useMemo(() => {
     const pipelineId = activeTab === 'interna' ? PIPELINE_ID_INTERNA : PIPELINE_ID_EXTERNA;
     return byPipeline(apiResponse?.trafego, pipelineId);
   }, [activeTab, apiResponse]);
 
-  const metricas = useMemo(() => computeMetricas(filteredRecordsTrafego), [filteredRecordsTrafego]);
+  const funilInvestimento = useMemo(
+    () => computeFunilPeriodico(filteredRecordsTrafego),
+    [filteredRecordsTrafego]
+  );
 
   // Seção IV — usa TODOS os registros do pipeline (sem filtro de data) para ciclo de vendas
   const pipelineAllRecords = useMemo(() => {
@@ -1215,7 +1122,7 @@ export default function KoruVendas() {
           ) : apiResponse === null ? (
             <ErrBanner msg="Aguardando dados da API para calcular métricas." />
           ) : (
-            <SecaoInvestimento metricas={metricas} inv={inv} ticket={ticket} tab={activeTab} />
+            <SecaoInvestimento etapas={funilInvestimento.etapas} inv={inv} ticket={ticket} />
           )}
         </Card>
 
