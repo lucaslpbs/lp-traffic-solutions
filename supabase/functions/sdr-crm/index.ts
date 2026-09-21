@@ -193,9 +193,11 @@ Deno.serve(async (req: Request) => {
         if (!webhook) return jsonResponse(500, { success: false, error: "SDR_RETRY_WEBHOOK_URL não configurada" });
 
         const hist = await buscarHistorico(body.telefone, 50);
-        const ultima = hist[hist.length - 1];
-        if (!ultima || tipoDaMensagem(ultima.message) !== "lead") {
-          return jsonResponse(409, { success: false, error: "A última mensagem já é do bot — nada a reenviar" });
+        // Reenvia a ultima mensagem DO LEAD, mesmo que o historico ja tenha uma resposta
+        // do bot depois dela (ex.: a resposta foi gravada mas nao chegou ao WhatsApp).
+        const ultima = [...hist].reverse().find((row: any) => tipoDaMensagem(row.message) === "lead");
+        if (!ultima) {
+          return jsonResponse(409, { success: false, error: "Este contato ainda não tem mensagem do lead no histórico" });
         }
         const res = await fetch(webhook, {
           method: "POST",
