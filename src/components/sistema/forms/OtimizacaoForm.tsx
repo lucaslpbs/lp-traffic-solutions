@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
+import { MarkdownEditor, CURSOR_MARKER as C, type MarkdownSnippet } from "@/components/sistema/MarkdownEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,53 @@ interface Props {
   clientId?: string;
   readOnly?: boolean;
 }
+
+const OTIMIZACAO_SNIPPETS: MarkdownSnippet[] = [
+  {
+    label: "Campanha",
+    description: "Título, nome e objetivo da campanha",
+    content: `# CAMPANHA — ${C}\n\n**Nome da campanha:** \`[OBJETIVO] - \`\n\n**Objetivo:** \n`,
+  },
+  {
+    label: "Conjunto de anúncios",
+    description: "Nome do conjunto + tabela de configuração",
+    content:
+      `## Conjunto de anúncios\n\n**Nome:** \`${C}\`\n\n` +
+      "| Configuração | Detalhe |\n|---|---|\n| **Destino** |  |\n| **Localização** |  |\n| **Idade** |  |\n| **Gênero** |  |\n| **Posicionamento** |  |\n| **Público** |  |\n",
+  },
+  {
+    label: "Público / interesses",
+    description: "Lista de interesses e comportamentos",
+    content:
+      `**Interesses e comportamentos:**\n\n- **Negócios:** ${C}\n` +
+      "- **Moda:** \n- **Compras:** \n- **Comportamento:** \n",
+  },
+  {
+    label: "Criativos",
+    description: "Tabela de anúncios, formato e descrição",
+    content: "## Criativos\n\n| Anúncio | Formato | Descrição |\n|---|---|---|\n|  |  |  |\n",
+  },
+  {
+    label: "Pontos de atenção",
+    description: "Lista numerada de sugestões e alertas",
+    content: `# Pontos de atenção e sugestões\n\n1. **${C}:** \n`,
+  },
+  {
+    label: "Resultados / métricas",
+    description: "Tabela de métricas antes × depois",
+    content:
+      "## Resultados\n\n| Métrica | Antes | Depois |\n|---|---|---|\n| **Investimento** |  |  |\n| **CPM** |  |  |\n| **CTR** |  |  |\n| **Custo por resultado** |  |  |\n",
+  },
+  {
+    label: "Próximos passos",
+    description: "Checklist de ações",
+    content: `## Próximos passos\n\n- [ ] ${C}\n`,
+  },
+  {
+    label: "Divisor entre campanhas",
+    content: "---\n",
+  },
+];
 
 const formatBR = (iso: string) => {
   if (!iso) return "";
@@ -112,6 +159,18 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
       toast.error("Erro ao apagar");
       console.error(error);
     }
+  };
+
+  const isDirty = !!editing && editingObs !== editing.observacoes;
+
+  const save = () => {
+    if (editing) upd(editing.id, { observacoes: editingObs });
+    setEditing(null);
+  };
+
+  const closeEditor = () => {
+    if (isDirty && !window.confirm("Descartar as alterações não salvas?")) return;
+    setEditing(null);
   };
 
   if (loading) {
@@ -238,32 +297,51 @@ export const OtimizacaoForm = ({ clientId, readOnly = false }: Props) => {
       </div>
 
       {!readOnly && (
-        <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-          <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-xl">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">Relatório de otimização · {editing && formatBR(editing.data)}</DialogTitle>
+        <Dialog open={!!editing} onOpenChange={(o) => !o && closeEditor()}>
+          <DialogContent
+            className="bg-surface-1 border-surface-3 text-foreground w-[96vw] max-w-[1400px] h-[92vh] flex flex-col gap-3 p-4 sm:p-5"
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+                e.preventDefault();
+                save();
+              }
+            }}
+          >
+            <DialogHeader className="flex-row items-center justify-between gap-3 space-y-0 pr-8">
+              <DialogTitle className="text-foreground">
+                Relatório de otimização · {editing && formatBR(editing.data)}
+              </DialogTitle>
+              <div className="flex items-center gap-2 shrink-0">
+                {isDirty && <span className="hidden sm:inline text-[11px] text-muted-foreground">Alterações não salvas</span>}
+                <Button type="button" variant="ghost" size="sm" onClick={closeEditor} className="h-8">
+                  Cancelar
+                </Button>
+                <Button type="button" size="sm" className="bg-primary hover:bg-primary/90 h-8" onClick={save} title="Salvar (Ctrl+S)">
+                  Salvar
+                </Button>
+              </div>
             </DialogHeader>
-            <MarkdownEditor
-              value={editingObs}
-              onChange={setEditingObs}
-              placeholder="Descreva as otimizações realizadas, hipóteses, resultados..."
-              minHeight="300px"
-            />
-            <div className="flex justify-end">
-              <Button type="button" className="bg-primary hover:bg-primary/90" onClick={() => { if (editing) upd(editing.id, { observacoes: editingObs }); setEditing(null); }}>
-                Salvar
-              </Button>
+            <div className="flex-1 min-h-0">
+              <MarkdownEditor
+                value={editingObs}
+                onChange={setEditingObs}
+                placeholder={"# Título da campanha\n\nDescreva as otimizações realizadas, hipóteses, resultados...\n\nDica: use o menu \"Blocos\" para inserir estruturas prontas."}
+                minHeight="100%"
+                preview
+                snippets={OTIMIZACAO_SNIPPETS}
+                autoFocus
+              />
             </div>
           </DialogContent>
         </Dialog>
       )}
 
       <Dialog open={!!viewingObs} onOpenChange={(o) => !o && setViewingObs(null)}>
-        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-xl">
+        <DialogContent className="bg-surface-1 border-surface-3 text-foreground w-[96vw] max-w-4xl">
           <DialogHeader>
             <DialogTitle className="text-foreground">Otimização · {viewingObs && formatBR(viewingObs.data)}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div className="max-h-[75vh] overflow-y-auto pr-1">
             <MarkdownEditor value={viewingObs?.observacoes || ""} readOnly />
           </div>
         </DialogContent>
