@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Loader2, Package, Plus, Upload, X, ImagePlus, ShieldCheck, XCircle, Trash2, Lock } from 'lucide-react';
+import { Loader2, Package, Plus, Upload, X, ImagePlus, ShieldCheck, XCircle, Trash2, Lock, Pencil, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { Stagger, StaggerItem, Reveal } from '@/components/dashboard/Motion';
@@ -18,7 +18,7 @@ import {
   DashTabsPanel,
 } from '@/components/dashboard/DashboardTabs';
 import { ProductCard } from '@/components/produtos/ProductCard';
-import type { ClientProduct, ProdutoStatus } from '@/components/produtos/types';
+import type { ClientProduct, ClientProductImage, ProdutoStatus } from '@/components/produtos/types';
 import { uploadProductImage, removeProductImages, validateProductImageFile } from '@/lib/clientProductsStorage';
 
 const labelCls = 'block text-sm font-medium text-foreground/85 mb-1.5';
@@ -31,6 +31,11 @@ function ClienteProdutosView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formOpen, setFormOpen] = useState(false);
+  // Produto em edicao (null = formulario de cadastro novo).
+  const [editando, setEditando] = useState<ClientProduct | null>(null);
+  // Fotos que ja estavam salvas e continuam no produto / fotos marcadas para remover ao salvar.
+  const [imagensSalvas, setImagensSalvas] = useState<ClientProductImage[]>([]);
+  const [imagensRemovidas, setImagensRemovidas] = useState<ClientProductImage[]>([]);
   const [nome, setNome] = useState('');
   const [categoria, setCategoria] = useState('');
   const [preco, setPreco] = useState('');
@@ -70,6 +75,9 @@ function ClienteProdutosView() {
   });
 
   const resetForm = () => {
+    setEditando(null);
+    setImagensSalvas([]);
+    setImagensRemovidas([]);
     setNome('');
     setCategoria('');
     setPreco('');
@@ -106,13 +114,122 @@ function ClienteProdutosView() {
     });
   };
 
+  const abrirNovo = () => {
+    resetForm();
+    setFormOpen(true);
+  };
+
+  const abrirEdicao = (produto: ClientProduct) => {
+    resetForm();
+    setEditando(produto);
+    setNome(produto.nome_produto);
+    setCategoria(produto.categoria ?? '');
+    setPreco(produto.preco != null ? String(produto.preco).replace('.', ',') : '');
+    setDescricao(produto.descricao);
+    setImagensSalvas([...(produto.client_product_images ?? [])].sort((a, b) => a.ordem - b.ordem));
+    setFormOpen(true);
+  };
+
+  const removerImagemSalva = (imagem: ClientProductImage) => {
+    setImagensSalvas((prev) => prev.filter((i) => i.id !== imagem.id));
+    setImagensRemovidas((prev) => [...prev, imagem]);
+  };
+
+  const camposDoProduto = () => ({
+    nome_produto: nome.trim(),
+    categoria: categoria.trim() || null,
+    preco: preco ? parseFloat(preco.replace(',', '.')) : null,
+    descricao: descricao.trim(),
+  });
+
+  const salvarEdicao = async (produto: ClientProduct) => {
+    if (!clienteVinculadoId) return;
+
+    setEnviando(true);
+    let arquivosEnviados: string[] = [];
+    try {
+      // 1. Atualiza os campos primeiro: se a permissao (RLS) barrar, o Supabase nao
+      // devolve erro, so zero linhas — falha aqui antes de mexer em qualquer foto.
+      // Toda edicao devolve o produto para 'pendente' (o admin revisa de novo).
+      const { data: atualizado, error } = await (supabase as any)
+        .from('client_products')
+        .update({
+          ...camposDoProduto(),
+          status: 'pendente',
+          motivo_rejeicao: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', produto.id)
+        .select('id');
+      if (error) throw error;
+      if (!atualizado?.length) throw new Error('Sem permissão para editar este produto.');
+
+      // 2. Fotos novas entram depois das que ficaram.
+      if (files.length > 0) {
+        const proximaOrdem = imagensSalvas.reduce((max, i) => Math.max(max, i.ordem), -1) + 1;
+        const uploads = await Promise.all(
+          files.map((file, i) =>
+            uploadProductImage(file, clienteVinculadoId, produto.id).then((r) => ({ ...r, ordem: proximaOrdem + i }))
+          )
+        );
+        arquivosEnviados = uploads.map((u) => u.storagePath);
+
+        const { error: imgError } = await (supabase as any).from('client_product_images').insert(
+          uploads.map((u) => ({
+            product_id: produto.id,
+            storage_path: u.storagePath,
+            original_url: u.publicUrl,
+            ordem: u.ordem,
+          }))
+        );
+        if (imgError) throw imgError;
+        arquivosEnviados = [];
+      }
+
+      // 3. Fotos removidas: apaga a linha e, depois, o arquivo no Storage.
+      if (imagensRemovidas.length > 0) {
+        const { data: apagadas, error: delError } = await (supabase as any)
+          .from('client_product_images')
+          .delete()
+          .in('id', imagensRemovidas.map((i) => i.id))
+          .select('id');
+        if (delError) throw delError;
+        if ((apagadas?.length ?? 0) !== imagensRemovidas.length) {
+          throw new Error('Sem permissão para remover as fotos.');
+        }
+        await removeProductImages(imagensRemovidas.map((i) => i.storage_path));
+      }
+
+      toast.success(
+        produto.status === 'pendente'
+          ? 'Produto atualizado.'
+          : 'Produto atualizado! Ele volta para aprovação do administrador.'
+      );
+      resetForm();
+      setFormOpen(false);
+    } catch (err) {
+      console.error(err);
+      // Se os arquivos subiram mas as linhas nao foram gravadas, limpa o Storage.
+      await removeProductImages(arquivosEnviados).catch(() => undefined);
+      toast.error('Erro ao salvar as alterações do produto.');
+    } finally {
+      // Recarrega mesmo em caso de falha parcial, para a tela refletir o que foi salvo.
+      qc.invalidateQueries({ queryKey: ['produtos-cliente'] });
+      setEnviando(false);
+    }
+  };
+
   const enviar = async () => {
     if (!clienteVinculadoId || !nome.trim() || !descricao.trim()) {
       toast.error('Preencha nome e descrição do produto.');
       return;
     }
-    if (files.length === 0) {
-      toast.error('Adicione ao menos uma imagem do produto.');
+    if (imagensSalvas.length + files.length === 0) {
+      toast.error('O produto precisa ter ao menos uma imagem.');
+      return;
+    }
+    if (editando) {
+      await salvarEdicao(editando);
       return;
     }
 
@@ -122,10 +239,7 @@ function ClienteProdutosView() {
         .from('client_products')
         .insert({
           client_id: clienteVinculadoId,
-          nome_produto: nome.trim(),
-          categoria: categoria.trim() || null,
-          preco: preco ? parseFloat(preco.replace(',', '.')) : null,
-          descricao: descricao.trim(),
+          ...camposDoProduto(),
         })
         .select()
         .single();
@@ -202,7 +316,7 @@ function ClienteProdutosView() {
           subtitle="Cadastre os produtos que a equipe vai usar no atendimento."
           icon={Package}
           actions={
-            <Button onClick={() => setFormOpen(true)} className="gap-2">
+            <Button onClick={abrirNovo} className="gap-2">
               <Plus className="h-4 w-4" /> Novo produto
             </Button>
           }
@@ -223,16 +337,23 @@ function ClienteProdutosView() {
               <ProductCard
                 product={p}
                 actions={
-                  p.status === 'pendente' ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => excluir(p)}
-                      className="border-destructive/50 text-destructive hover:bg-destructive/15 gap-1.5"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Excluir
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => abrirEdicao(p)} className="gap-1.5">
+                      <Pencil className="h-3.5 w-3.5" /> Editar
                     </Button>
-                  ) : null
+                    {/* Produto que ja passou pelo admin (aprovado/rejeitado, mesmo que editado depois) nao
+                        pode ser excluido — a copia no catalogo do SDR ficaria orfa. Bate com a RLS. */}
+                    {p.status === 'pendente' && !p.reviewed_at && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => excluir(p)}
+                        className="border-destructive/50 text-destructive hover:bg-destructive/15 gap-1.5"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Excluir
+                      </Button>
+                    )}
+                  </>
                 }
               />
             </StaggerItem>
@@ -249,9 +370,14 @@ function ClienteProdutosView() {
       >
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo produto</DialogTitle>
+            <DialogTitle>{editando ? 'Editar produto' : 'Novo produto'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {editando && editando.status !== 'pendente' && (
+              <p className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
+                Ao salvar, este produto volta para aprovação do administrador.
+              </p>
+            )}
             <div>
               <label className={labelCls}>Nome do produto</label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Tênis Runner Pro" />
@@ -278,6 +404,19 @@ function ClienteProdutosView() {
             <div>
               <label className={labelCls}>Imagens</label>
               <div className="flex flex-wrap gap-2">
+                {imagensSalvas.map((img) => (
+                  <div key={img.id} className="relative h-16 w-16">
+                    <img src={img.original_url} alt="" className="h-16 w-16 rounded-md object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removerImagemSalva(img)}
+                      aria-label="Remover imagem"
+                      className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
                 {previews.map((src, i) => (
                   <div key={src} className="relative h-16 w-16">
                     <img src={src} alt="" className="h-16 w-16 rounded-md object-cover" />
@@ -319,8 +458,14 @@ function ClienteProdutosView() {
               Cancelar
             </Button>
             <Button onClick={enviar} disabled={enviando} className="gap-2">
-              {enviando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {enviando ? 'Enviando...' : 'Cadastrar produto'}
+              {enviando ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : editando ? (
+                <Save className="h-4 w-4" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              {enviando ? (editando ? 'Salvando...' : 'Enviando...') : editando ? 'Salvar alterações' : 'Cadastrar produto'}
             </Button>
           </DialogFooter>
         </DialogContent>

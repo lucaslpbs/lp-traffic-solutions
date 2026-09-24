@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, MessagesSquare, PauseCircle, PlayCircle, RefreshCw, Search, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Loader2, MessagesSquare, PauseCircle, PlayCircle, RefreshCw, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { sdrCrm } from '@/lib/sdrCrmApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { ListSkeleton } from '@/components/dashboard/Skeletons';
+import { useSdrCrmAcesso } from '@/components/dashboard/ProtectedSdrCrmRoute';
 
 interface Conversa {
   telefone: string;
@@ -27,25 +28,6 @@ interface Mensagem {
   em: string;
 }
 
-// A funcao roda no Supabase do SDR (onde estao as tabelas), mas autentica com o
-// login do projeto principal.
-const SDR_CRM_URL = 'https://xhrcrusqzfckrjghjmgb.supabase.co/functions/v1/sdr-crm';
-
-async function sdrCrm<T>(action: string, telefone?: string): Promise<T> {
-  const { data: sessao } = await supabase.auth.getSession();
-  const token = sessao.session?.access_token;
-  if (!token) throw new Error('Sessão expirada, faça login novamente');
-
-  const res = await fetch(SDR_CRM_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ action, telefone }),
-  });
-  const data = await res.json().catch(() => null);
-  if (!res.ok || !data?.success) throw new Error(data?.error || `Erro ${res.status}`);
-  return data as T;
-}
-
 const isPausado = (agente: string | null) => agente === 'off';
 
 // created_at do banco do SDR e UTC sem fuso.
@@ -63,23 +45,33 @@ const formatarHora = (ts: string | null) => {
         d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 };
 
-export default function SdrCrmPage() {
+interface SdrCrmViewProps {
+  /** So o admin Lucas informa: abre o CRM desse cliente. Sem isso, e o CRM do proprio usuario. */
+  clienteId?: string;
+  nomeCliente?: string;
+  onVoltar?: () => void;
+}
+
+/** CRM de UM SDR. As chaves de cache levam o cliente, para nunca reaproveitar dados de outro. */
+export function SdrCrmView({ clienteId, nomeCliente, onVoltar }: SdrCrmViewProps) {
   const qc = useQueryClient();
+  const { ehLucas } = useSdrCrmAcesso();
+  const chave = clienteId ?? 'proprio';
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
   const [soVacuo, setSoVacuo] = useState(false);
   const fimRef = useRef<HTMLDivElement>(null);
 
   const { data: conversas = [], isLoading, isFetching, error: erroLista } = useQuery({
-    queryKey: ['sdr-crm-conversas'],
-    queryFn: async () => (await sdrCrm<{ conversas: Conversa[] }>('list')).conversas,
+    queryKey: ['sdr-crm-conversas', chave],
+    queryFn: async () => (await sdrCrm<{ conversas: Conversa[] }>('list', undefined, clienteId)).conversas,
     refetchInterval: 20000,
   });
 
   const { data: mensagens = [], isLoading: loadingMsgs } = useQuery({
-    queryKey: ['sdr-crm-mensagens', selecionado],
+    queryKey: ['sdr-crm-mensagens', chave, selecionado],
     enabled: !!selecionado,
-    queryFn: async () => (await sdrCrm<{ mensagens: Mensagem[] }>('messages', selecionado!)).mensagens,
+    queryFn: async () => (await sdrCrm<{ mensagens: Mensagem[] }>('messages', selecionado!, clienteId)).mensagens,
     refetchInterval: 10000,
   });
 
@@ -90,30 +82,30 @@ export default function SdrCrmPage() {
   const atual = conversas.find((c) => c.telefone === selecionado) ?? null;
 
   const pausar = useMutation({
-    mutationFn: (tel: string) => sdrCrm('pause', tel),
+    mutationFn: (tel: string) => sdrCrm('pause', tel, clienteId),
     onSuccess: () => {
       toast.success('Bot pausado para este lead');
-      qc.invalidateQueries({ queryKey: ['sdr-crm-conversas'] });
+      qc.invalidateQueries({ queryKey: ['sdr-crm-conversas', chave] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const reativar = useMutation({
-    mutationFn: (tel: string) => sdrCrm('resume', tel),
+    mutationFn: (tel: string) => sdrCrm('resume', tel, clienteId),
     onSuccess: () => {
       toast.success('Bot reativado para este lead');
-      qc.invalidateQueries({ queryKey: ['sdr-crm-conversas'] });
+      qc.invalidateQueries({ queryKey: ['sdr-crm-conversas', chave] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const reenviar = useMutation({
-    mutationFn: (tel: string) => sdrCrm('retry', tel),
+    mutationFn: (tel: string) => sdrCrm('retry', tel, clienteId),
     onSuccess: () => {
       toast.success('SDR acionado para responder novamente');
       setTimeout(() => {
-        qc.invalidateQueries({ queryKey: ['sdr-crm-mensagens', selecionado] });
-        qc.invalidateQueries({ queryKey: ['sdr-crm-conversas'] });
+        qc.invalidateQueries({ queryKey: ['sdr-crm-mensagens', chave, selecionado] });
+        qc.invalidateQueries({ queryKey: ['sdr-crm-conversas', chave] });
       }, 4000);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -133,21 +125,35 @@ export default function SdrCrmPage() {
   return (
     <div className="p-4 md:p-6 space-y-4">
       <PageHeader
-        title="CRM"
-        subtitle="Acompanhamento do SDR · +55 85 9608-7727 (somente leitura)"
+        title={nomeCliente ? `CRM · ${nomeCliente}` : 'CRM'}
+        subtitle={
+          clienteId
+            ? 'Conversas do SDR deste cliente.'
+            : ehLucas
+              ? 'Acompanhamento do SDR · +55 85 9608-7727'
+              : 'Acompanhe as conversas do seu SDR e assuma o atendimento quando precisar.'
+        }
         icon={MessagesSquare}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              qc.invalidateQueries({ queryKey: ['sdr-crm-conversas'] });
-              qc.invalidateQueries({ queryKey: ['sdr-crm-mensagens'] });
-            }}
-          >
-            <RefreshCw className={cn('h-4 w-4 mr-2', isFetching && 'animate-spin')} />
-            Atualizar
-          </Button>
+          <div className="flex gap-2">
+            {onVoltar && (
+              <Button variant="outline" size="sm" onClick={onVoltar}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Todos os clientes
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                qc.invalidateQueries({ queryKey: ['sdr-crm-conversas', chave] });
+                qc.invalidateQueries({ queryKey: ['sdr-crm-mensagens', chave] });
+              }}
+            >
+              <RefreshCw className={cn('h-4 w-4 mr-2', isFetching && 'animate-spin')} />
+              Atualizar
+            </Button>
+          </div>
         }
       />
 
@@ -304,4 +310,9 @@ export default function SdrCrmPage() {
       </div>
     </div>
   );
+}
+
+/** Rota /dashboard/crm: o CRM do proprio usuario (Lucas = SDR da Traffic, cliente = o dele). */
+export default function SdrCrmPage() {
+  return <SdrCrmView />;
 }

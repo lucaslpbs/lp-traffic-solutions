@@ -331,6 +331,7 @@ export type Database = {
       gestao_clientes: {
         Row: {
           cadastro_produtos_ativo: boolean
+          crm_ativo: boolean
           checklist_cor: string | null
           checklist_cor_intensidade: number
           created_at: string | null
@@ -383,6 +384,7 @@ export type Database = {
         }
         Insert: {
           cadastro_produtos_ativo?: boolean
+          crm_ativo?: boolean
           checklist_cor?: string | null
           checklist_cor_intensidade?: number
           created_at?: string | null
@@ -435,6 +437,7 @@ export type Database = {
         }
         Update: {
           cadastro_produtos_ativo?: boolean
+          crm_ativo?: boolean
           checklist_cor?: string | null
           checklist_cor_intensidade?: number
           created_at?: string | null

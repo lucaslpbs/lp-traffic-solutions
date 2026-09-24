@@ -53,6 +53,7 @@ import {
   Copy,
   ExternalLink,
   Package,
+  MessagesSquare,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -98,6 +99,7 @@ type FormData = {
   link_page_cor_fundo: string;
   link_page_links: LinkItem[];
   cadastro_produtos_ativo: boolean;
+  crm_ativo: boolean;
 };
 
 const EMPTY_PARCELA: Parcela = { parcelas: '', valor: '', inicio: new Date().toISOString().split('T')[0] };
@@ -134,6 +136,7 @@ const EMPTY_FORM: FormData = {
   link_page_cor_fundo: '',
   link_page_links: [],
   cadastro_produtos_ativo: false,
+  crm_ativo: false,
 };
 
 const N8N_WEBHOOK_CONTROLAR_FLUXO = 'https://n8n.trafficsolutions.cloud/webhook/controlar-fluxo-cliente';
@@ -443,6 +446,7 @@ export default function GestaoClientes() {
       link_page_cor_fundo: c.link_page_cor_fundo ?? '',
       link_page_links: Array.isArray(c.link_page_links) ? (c.link_page_links as unknown as LinkItem[]) : [],
       cadastro_produtos_ativo: c.cadastro_produtos_ativo ?? false,
+      crm_ativo: c.crm_ativo ?? false,
     });
     setModalOpen(true);
   };
@@ -563,6 +567,7 @@ export default function GestaoClientes() {
         link_page_cor_fundo: form.link_page_cor_fundo || null,
         link_page_links: form.link_page_links,
         cadastro_produtos_ativo: form.cadastro_produtos_ativo,
+        crm_ativo: form.crm_ativo,
       };
 
       if (editingId) {
@@ -1877,6 +1882,23 @@ export default function GestaoClientes() {
                   onCheckedChange={(checked) =>
                     setForm((prev) => ({ ...prev, cadastro_produtos_ativo: checked }))
                   }
+                  className="data-[state=checked]:bg-success"
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between p-3 rounded-lg border border-foreground/10 bg-foreground/[0.03]">
+                <div className="flex items-center gap-3">
+                  <MessagesSquare className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">CRM do SDR</p>
+                    <p className="text-xs text-muted-foreground">
+                      Libera a aba CRM para o cliente acompanhar as conversas do SDR dele. Só funciona depois
+                      de vincular o token do cliente (tabela crm_clientes no Supabase do SDR).
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={form.crm_ativo}
+                  onCheckedChange={(checked) => setForm((prev) => ({ ...prev, crm_ativo: checked }))}
                   className="data-[state=checked]:bg-success"
                 />
               </div>

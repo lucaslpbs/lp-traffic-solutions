@@ -58,6 +58,7 @@ import ClienteDetailPage from "./pages/ClienteDetailPage";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import ProdutosPage from "./pages/ProdutosPage";
 import SdrCrmPage from "./pages/SdrCrmPage";
+import SdrCrmClientesPage, { SdrCrmClienteDetalhePage } from "./pages/SdrCrmClientesPage";
 import { ProtectedSdrCrmRoute } from "@/components/dashboard/ProtectedSdrCrmRoute";
 import SistemaMarketingPage from "./pages/sistema";
 import OrcamentoEscolaCearenceOftalmologia from "./pages/OrcamentoEscolaCearenceOftalmologia";
@@ -232,6 +233,8 @@ const AppRoutes = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="crm" element={<ProtectedSdrCrmRoute><SdrCrmPage /></ProtectedSdrCrmRoute>} />
+          <Route path="crm-clientes" element={<ProtectedSdrCrmRoute somenteLucas><SdrCrmClientesPage /></ProtectedSdrCrmRoute>} />
+          <Route path="crm-clientes/:crmClientId" element={<ProtectedSdrCrmRoute somenteLucas><SdrCrmClienteDetalhePage /></ProtectedSdrCrmRoute>} />
           <Route path="guerra" element={<ProtectedSessionRoute session="guerra"><WarRoom /></ProtectedSessionRoute>} />
           <Route path="gestao-clientes" element={<ProtectedSessionRoute session="gestao_clientes"><GestaoClientes /></ProtectedSessionRoute>} />
           <Route path="usuarios" element={<ProtectedAdminRoute><GestaoUsuarios /></ProtectedAdminRoute>} />
