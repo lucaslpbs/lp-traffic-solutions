@@ -17,8 +17,8 @@ interface StatusResponse {
 }
 
 const WHATSAPP_GREEN = "#25D366";
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_GESTAO_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_GESTAO_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_GESTAO_URL ?? "https://twclltazkfvtufbsehsv.supabase.co";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_GESTAO_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Y2xsdGF6a2Z2dHVmYnNlaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDAzNDEsImV4cCI6MjA5NDg3NjM0MX0.9tlBCuOcBNYYR0GZYztMRMLQH0uZdbuKhUX4s6mQHO0";
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 const SUPABASE_AUTH_HEADERS = {
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
