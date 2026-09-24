@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
+import { OTIMIZACAO_SNIPPETS } from "@/components/sistema/otimizacaoSnippets";
 import { Reveal, Stagger, StaggerItem } from "@/components/dashboard/Motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -1017,45 +1018,61 @@ export const ChecklistBoard = () => {
       )}
 
       <Dialog open={!!otimItem} onOpenChange={(o) => { if (!o) closeOtimModal(); }}>
-        <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-accent" />
-              Registrar otimização
-              {otimItem && (
-                <span className="text-muted-foreground font-normal text-sm">
-                  · {clientes.find((c) => c.id === otimItem.client_id)?.nome}
-                </span>
-              )}
-            </DialogTitle>
+        <DialogContent
+          className="bg-surface-1 border-surface-3 text-foreground w-[96vw] max-w-[1400px] h-[92vh] flex flex-col gap-3 p-4 sm:p-5"
+          onKeyDown={(e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+              e.preventDefault();
+              if (!otimSaving) saveOtim();
+            }
+          }}
+        >
+          <DialogHeader className="flex-row items-start justify-between gap-3 space-y-0 pr-8">
+            <div className="min-w-0 space-y-1">
+              <DialogTitle className="text-foreground flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-accent shrink-0" />
+                Registrar otimização
+                {otimItem && (
+                  <span className="text-muted-foreground font-normal text-sm truncate">
+                    · {clientes.find((c) => c.id === otimItem.client_id)?.nome}
+                  </span>
+                )}
+              </DialogTitle>
+              <p className="hidden sm:block text-xs text-muted-foreground">
+                Este item do checklist está marcado como otimização. Ao salvar, ele vira um registro na aba
+                Otimização do cliente.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={closeOtimModal}
+                className="px-3.5 py-1.5 rounded-full text-sm border border-border text-foreground/85 hover:bg-surface-3"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={saveOtim}
+                disabled={otimSaving}
+                title="Salvar (Ctrl+S)"
+                className="px-4 py-1.5 rounded-full text-sm bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-1.5"
+              >
+                {otimSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Salvar
+              </button>
+            </div>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground -mt-2">
-            Este item do checklist está marcado como otimização. Ao concluir, ele vira um registro na aba
-            Otimização do cliente.
-          </p>
-          <MarkdownEditor
-            value={otimTexto}
-            onChange={setOtimTexto}
-            placeholder="Descreva as otimizações realizadas, hipóteses, resultados..."
-            minHeight="220px"
-          />
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={closeOtimModal}
-              className="px-3.5 py-1.5 rounded-full text-sm border border-border text-foreground/85 hover:bg-surface-3"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={saveOtim}
-              disabled={otimSaving}
-              className="px-4 py-1.5 rounded-full text-sm bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-1.5"
-            >
-              {otimSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Salvar
-            </button>
+          <div className="flex-1 min-h-0">
+            <MarkdownEditor
+              value={otimTexto}
+              onChange={setOtimTexto}
+              placeholder={"# Título da campanha\n\nDescreva as otimizações realizadas, hipóteses, resultados...\n\nDica: use o menu \"Blocos\" para inserir estruturas prontas."}
+              minHeight="100%"
+              preview
+              snippets={OTIMIZACAO_SNIPPETS}
+              autoFocus
+            />
           </div>
         </DialogContent>
       </Dialog>
