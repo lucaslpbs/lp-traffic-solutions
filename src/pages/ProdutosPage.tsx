@@ -19,7 +19,12 @@ import {
 } from '@/components/dashboard/DashboardTabs';
 import { ProductCard } from '@/components/produtos/ProductCard';
 import type { ClientProduct, ClientProductImage, ProdutoStatus } from '@/components/produtos/types';
-import { uploadProductImage, removeProductImages, validateProductImageFile } from '@/lib/clientProductsStorage';
+import {
+  uploadProductImage,
+  removeProductImages,
+  removeProductFolder,
+  validateProductImageFile,
+} from '@/lib/clientProductsStorage';
 
 const labelCls = 'block text-sm font-medium text-foreground/85 mb-1.5';
 
@@ -491,6 +496,7 @@ function AdminProdutosView() {
   const [filter, setFilter] = useState<FilterTab>('pendente');
   const [rejeitando, setRejeitando] = useState<ClientProduct | null>(null);
   const [motivo, setMotivo] = useState('');
+  const [excluindo, setExcluindo] = useState<ClientProduct | null>(null);
   const [processando, setProcessando] = useState(false);
 
   const { data: produtos = [], isLoading: loading } = useQuery({
@@ -575,31 +581,79 @@ function AdminProdutosView() {
     setProcessando(false);
   };
 
-  const acoesDe = (p: ClientProduct) => {
-    if (p.status !== 'pendente') return null;
-    return (
-      <>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => aprovar(p)}
-          disabled={processando}
-          className="border-success/50 text-success hover:bg-success/15 hover:text-success gap-1.5"
-        >
-          <ShieldCheck className="h-3.5 w-3.5" /> Aprovar
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => abrirRejeicao(p)}
-          disabled={processando}
-          className="border-destructive/50 text-destructive hover:bg-destructive/15 gap-1.5"
-        >
-          <XCircle className="h-3.5 w-3.5" /> Rejeitar
-        </Button>
-      </>
-    );
+  const confirmarExclusao = async () => {
+    if (!excluindo) return;
+    setProcessando(true);
+    try {
+      // client_product_images sai junto (on delete cascade). O .select() e necessario porque
+      // a RLS que barra um delete nao devolve erro, so zero linhas.
+      const { data: apagados, error } = await (supabase as any)
+        .from('client_products')
+        .delete()
+        .eq('id', excluindo.id)
+        .select('id');
+      if (error) throw error;
+      if (!apagados?.length) throw new Error('Sem permissão para excluir este produto.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao excluir produto.');
+      setProcessando(false);
+      return;
+    }
+
+    // Linha ja foi apagada: se o Storage falhar, o produto some da tela mas sobra arquivo no bucket.
+    try {
+      await removeProductFolder(
+        excluindo.client_id,
+        excluindo.id,
+        (excluindo.client_product_images ?? []).map((i) => i.storage_path)
+      );
+      toast.success('Produto excluído definitivamente.');
+    } catch (err) {
+      console.error(err);
+      toast.warning('Produto excluído, mas não foi possível apagar todas as imagens do Storage.');
+    }
+
+    setExcluindo(null);
+    invalidate();
+    setProcessando(false);
   };
+
+  const acoesDe = (p: ClientProduct) => (
+    <>
+      {p.status === 'pendente' && (
+        <>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => aprovar(p)}
+            disabled={processando}
+            className="border-success/50 text-success hover:bg-success/15 hover:text-success gap-1.5"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" /> Aprovar
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => abrirRejeicao(p)}
+            disabled={processando}
+            className="border-destructive/50 text-destructive hover:bg-destructive/15 gap-1.5"
+          >
+            <XCircle className="h-3.5 w-3.5" /> Rejeitar
+          </Button>
+        </>
+      )}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => setExcluindo(p)}
+        disabled={processando}
+        className="border-destructive/50 text-destructive hover:bg-destructive/15 gap-1.5"
+      >
+        <Trash2 className="h-3.5 w-3.5" /> Excluir
+      </Button>
+    </>
+  );
 
   return (
     <div className="p-5 sm:p-8 lg:p-10 max-w-5xl mx-auto space-y-8">
@@ -667,6 +721,37 @@ function AdminProdutosView() {
             </Button>
             <Button onClick={confirmarRejeicao} disabled={processando} variant="destructive">
               {processando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmar rejeição'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!excluindo} onOpenChange={(open) => !open && !processando && setExcluindo(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir produto</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm text-foreground/85">
+            <p>
+              <span className="font-semibold text-foreground">{excluindo?.nome_produto}</span>
+              {excluindo?.nome_cliente ? ` (${excluindo.nome_cliente})` : ''} será apagado definitivamente do banco de
+              dados, junto com as {excluindo?.client_product_images?.length ?? 0} imagem(ns) no Storage. Essa ação não
+              pode ser desfeita.
+            </p>
+            {excluindo?.status === 'aprovado' && (
+              <p className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-warning">
+                Este produto já foi aprovado: a cópia no catálogo do SDR (outro Supabase) não é removida
+                automaticamente.
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExcluindo(null)} disabled={processando}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmarExclusao} disabled={processando} variant="destructive" className="gap-2">
+              {processando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              Excluir definitivamente
             </Button>
           </DialogFooter>
         </DialogContent>

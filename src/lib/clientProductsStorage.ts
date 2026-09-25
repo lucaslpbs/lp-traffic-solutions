@@ -58,3 +58,27 @@ export async function removeProductImages(storagePaths: string[]): Promise<void>
   if (storagePaths.length === 0) return;
   await (supabase as any).storage.from(BUCKET).remove(storagePaths);
 }
+
+/**
+ * Exclusao total de um produto: apaga os caminhos gravados no banco e tambem
+ * qualquer sobra na pasta {clientId}/{productId}/ (upload que falhou no meio
+ * de uma edicao, por exemplo). Ao contrario de removeProductImages, propaga o
+ * erro para o chamador poder avisar que ficou lixo no bucket.
+ */
+export async function removeProductFolder(
+  clientId: string,
+  productId: string,
+  knownPaths: string[] = []
+): Promise<void> {
+  const folder = `${clientId}/${productId}`;
+  // Se a listagem falhar, ainda apagamos os caminhos que ja conhecemos.
+  const { data: listed } = await (supabase as any).storage.from(BUCKET).list(folder, { limit: 1000 });
+  const paths = new Set<string>([
+    ...knownPaths,
+    ...((listed ?? []) as { name: string }[]).map((f) => `${folder}/${f.name}`),
+  ]);
+  if (paths.size === 0) return;
+
+  const { error } = await (supabase as any).storage.from(BUCKET).remove([...paths]);
+  if (error) throw error;
+}
