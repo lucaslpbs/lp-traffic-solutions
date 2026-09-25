@@ -36,11 +36,13 @@ interface StaggerItemProps {
   children: ReactNode;
   className?: string;
   variants?: Variants;
+  /** Anima a troca de posicao quando a ordem da lista muda (ex.: card que sobe por alerta). */
+  layout?: boolean | 'position';
 }
 
 /** Filho direto de <Stagger>. Sobe 12px com fade. */
-export const StaggerItem = ({ children, className, variants = fadeUp }: StaggerItemProps) => (
-  <motion.div variants={variants} className={className}>
+export const StaggerItem = ({ children, className, variants = fadeUp, layout }: StaggerItemProps) => (
+  <motion.div variants={variants} className={className} layout={layout}>
     {children}
   </motion.div>
 );

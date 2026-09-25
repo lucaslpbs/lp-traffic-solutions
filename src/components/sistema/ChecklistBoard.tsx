@@ -1,12 +1,45 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Plus, Loader2, Trash2, Search, Sparkles, Archive, ArchiveRestore, ChevronRight, Wallet } from "lucide-react";
+import {
+  Plus,
+  Loader2,
+  Trash2,
+  Search,
+  Sparkles,
+  Archive,
+  ArchiveRestore,
+  ChevronRight,
+  Wallet,
+  BellRing,
+  CalendarClock,
+  Repeat,
+  Users,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
 import { OTIMIZACAO_SNIPPETS } from "@/components/sistema/otimizacaoSnippets";
+import { DemandasFixasPanel, type DemandaForm } from "@/components/sistema/DemandasFixasPanel";
+import {
+  alertaDoCliente,
+  compararAlertas,
+  dateKey,
+  demandaEmAlerta,
+  formatHorario,
+  ocorrenciaAnterior,
+  parseKey,
+  prazoEmAlerta,
+  statusDemanda,
+  statusPrazo,
+  type AlertaCliente,
+  type DemandaFixa,
+  type EstadoPrazo,
+  type StatusDemanda,
+  type StatusPrazo,
+} from "@/components/sistema/checklistAlertas";
 import { Reveal, Stagger, StaggerItem } from "@/components/dashboard/Motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +56,32 @@ interface ChecklistItem {
   eh_otimizacao: boolean;
   arquivado: boolean;
   arquivado_em: string | null;
+  data_limite: string | null;
 }
+
+const ITEM_COLUMNS =
+  "id, client_id, titulo, responsavel, observacao, concluido, ordem, eh_otimizacao, arquivado, arquivado_em, data_limite";
+
+const DEMANDA_COLUMNS =
+  "id, client_id, titulo, responsavel, recorrencia, dias_semana, dia_mes, data_unica, horario, ativo, ultima_conclusao, created_at";
+
+const normalizarDemanda = (row: any): DemandaFixa => ({
+  ...row,
+  dias_semana: row.dias_semana || [],
+  horario: formatHorario(row.horario || "09:00"),
+});
+
+const OCULTOS_STORAGE_KEY = "checklist:clientes-ocultos";
+
+const lerOcultos = (): string[] => {
+  try {
+    const raw = window.localStorage.getItem(OCULTOS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+};
 
 interface ClienteOption {
   id: string;
@@ -80,7 +138,14 @@ const tomLabel: Record<Tom, string> = {
   vazio: "Sem itens",
 };
 
-const emptyDraft = { titulo: "", responsavel: "", otimizacao: false };
+const emptyDraft = { titulo: "", responsavel: "", otimizacao: false, dataLimite: "" };
+
+const chipPrazo: Record<EstadoPrazo, string> = {
+  atrasado: "bg-warning text-warning-foreground border-warning",
+  hoje: "bg-warning text-warning-foreground border-warning",
+  amanha: "text-warning border-warning/50",
+  futuro: "text-muted-foreground border-border",
+};
 
 const formatBRL = (valor: number) =>
   valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -239,6 +304,215 @@ const ColorSwatchPicker = ({
   </Popover>
 );
 
+const proximaSegunda = (agora: Date): string => {
+  const d = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  d.setDate(d.getDate() + (((1 - d.getDay() + 7) % 7) || 7));
+  return dateKey(d);
+};
+
+const dataCompleta = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && Number(v.slice(0, 4)) >= 2000;
+
+const PrazoPicker = ({
+  value,
+  status,
+  agora,
+  variant,
+  onChange,
+}: {
+  value: string | null;
+  status?: StatusPrazo | null;
+  agora: Date;
+  variant: "item" | "draft";
+  onChange: (valor: string | null) => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const escolher = (v: string | null) => {
+    onChange(v);
+    setOpen(false);
+  };
+  const atalhos = [
+    { label: "Hoje", valor: dateKey(agora) },
+    { label: "Amanhã", valor: dateKey(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1)) },
+    { label: "Segunda", valor: proximaSegunda(agora) },
+  ];
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        {variant === "draft" ? (
+          <button
+            type="button"
+            className={`h-8 shrink-0 px-2.5 rounded-full border flex items-center gap-1 text-[10px] font-mono-plex uppercase tracking-wider transition-colors ${
+              value
+                ? "bg-warning/15 border-warning/50 text-warning"
+                : "bg-surface-2 border-surface-3 text-muted-foreground hover:border-warning/40"
+            }`}
+            title="Data limite (opcional)"
+          >
+            <CalendarClock className="h-3 w-3" />
+            {value ? parseKey(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "Prazo"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={`shrink-0 flex items-center gap-1 transition-opacity ${
+              status
+                ? `rounded-full border px-1.5 py-px font-mono-plex text-[9px] uppercase tracking-wider ${chipPrazo[status.estado]}`
+                : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-warning"
+            }`}
+            title={value ? "Alterar data limite" : "Definir data limite"}
+          >
+            <CalendarClock className="h-3.5 w-3.5" />
+            {status && status.rotulo}
+          </button>
+        )}
+      </PopoverTrigger>
+      <PopoverContent className="w-60 p-3 bg-surface-1 border-surface-3" align="end">
+        <p className="font-mono-plex text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+          Data limite
+        </p>
+        <Input
+          type="date"
+          value={value || ""}
+          onChange={(e) => {
+            if (dataCompleta(e.target.value)) onChange(e.target.value);
+          }}
+          className="bg-surface-2 border-surface-3 h-9"
+        />
+        <div className="flex flex-wrap gap-1.5 mt-2.5">
+          {atalhos.map((a) => (
+            <button
+              key={a.label}
+              type="button"
+              onClick={() => escolher(a.valor)}
+              className="font-mono-plex px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider border border-border text-muted-foreground hover:border-warning/60 hover:text-warning transition-colors"
+            >
+              {a.label}
+            </button>
+          ))}
+          {value && (
+            <button
+              type="button"
+              onClick={() => escolher(null)}
+              className="ml-auto text-[11px] text-muted-foreground hover:text-destructive"
+            >
+              Remover
+            </button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+const ClienteFilter = ({
+  clientes,
+  ocultos,
+  alertaPorCliente,
+  alertasOcultos,
+  onToggle,
+  onMostrarTodos,
+  onOcultarTodos,
+}: {
+  clientes: ClienteOption[];
+  ocultos: Set<string>;
+  alertaPorCliente: Record<string, AlertaCliente | null>;
+  alertasOcultos: number;
+  onToggle: (id: string) => void;
+  onMostrarTodos: () => void;
+  onOcultarTodos: () => void;
+}) => {
+  const [termo, setTermo] = useState("");
+  const total = clientes.length;
+  const ocultosNaVisao = clientes.filter((c) => ocultos.has(c.id)).length;
+  const filtrando = ocultosNaVisao > 0;
+  const lista = clientes.filter((c) => !termo.trim() || c.nome.toLowerCase().includes(termo.trim().toLowerCase()));
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          title="Escolher quais clientes aparecem no quadro"
+          className={`relative font-mono-plex px-3.5 py-1.5 rounded-full text-[11px] uppercase tracking-wider border transition-colors flex items-center gap-1.5 ${
+            filtrando
+              ? "bg-primary border-primary text-primary-foreground"
+              : "bg-card border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+          }`}
+        >
+          <Users className="h-3 w-3" />
+          Clientes
+          {filtrando && (
+            <span className="rounded-full bg-primary-foreground/20 px-1.5 text-[9px]">
+              {total - ocultosNaVisao}/{total}
+            </span>
+          )}
+          {alertasOcultos > 0 && (
+            <span
+              className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[hsl(var(--alert-red))] px-1 text-[9px] text-white"
+              title={`${alertasOcultos} cliente${alertasOcultos !== 1 ? "s" : ""} com alerta oculto${alertasOcultos !== 1 ? "s" : ""} pelo filtro`}
+            >
+              {alertasOcultos}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 p-3 bg-surface-1 border-surface-3">
+        <div className="flex items-center justify-between mb-2">
+          <p className="font-mono-plex text-[10px] uppercase tracking-wider text-muted-foreground">
+            Clientes no quadro
+          </p>
+          <span className="font-mono-plex text-[10px] text-muted-foreground">
+            {total - ocultosNaVisao}/{total}
+          </span>
+        </div>
+        <Input
+          value={termo}
+          onChange={(e) => setTermo(e.target.value)}
+          placeholder="Buscar..."
+          className="bg-surface-2 border-surface-3 h-8 text-sm"
+        />
+        <div className="flex items-center gap-3 mt-2 text-[11px]">
+          <button type="button" onClick={onMostrarTodos} className="text-muted-foreground hover:text-primary">
+            Marcar todos
+          </button>
+          <button type="button" onClick={onOcultarTodos} className="text-muted-foreground hover:text-primary">
+            Desmarcar todos
+          </button>
+        </div>
+        <div className="mt-2 max-h-64 overflow-y-auto -mx-1 px-1 space-y-0.5">
+          {lista.map((c) => {
+            const alerta = alertaPorCliente[c.id];
+            return (
+              <label
+                key={c.id}
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground cursor-pointer hover:bg-surface-2"
+              >
+                <Checkbox checked={!ocultos.has(c.id)} onCheckedChange={() => onToggle(c.id)} />
+                <span className="flex-1 truncate">{c.nome}</span>
+                {alerta && (
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${
+                      alerta.tipo === "fixa" ? "bg-[hsl(var(--alert-red))]" : "bg-warning"
+                    }`}
+                    title={alerta.tipo === "fixa" ? "Demanda fixa em alerta" : "Item com data limite chegando"}
+                  />
+                )}
+              </label>
+            );
+          })}
+          {lista.length === 0 && <p className="text-xs text-muted-foreground py-3 text-center">Nenhum cliente.</p>}
+        </div>
+        {alertasOcultos > 0 && (
+          <p className="mt-2 pt-2 border-t border-dashed border-border text-[11px] text-destructive">
+            {alertasOcultos} cliente{alertasOcultos !== 1 ? "s" : ""} com alerta fora do quadro.
+          </p>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 const formatDiaLabel = (diaKey: string) => {
   if (!diaKey || diaKey === "sem-data") return "Sem data";
   const d = new Date(`${diaKey}T00:00:00`);
@@ -269,12 +543,87 @@ const CheckMark = ({ done, onClick }: { done: boolean; onClick: () => void }) =>
   </button>
 );
 
+/**
+ * Linha de demanda fixa no topo do card.
+ *  - em alerta (dia/atrasada): faixa vinho com a pilula vermelha do horario;
+ *  - proxima (ainda nao e o dia): linha normal, sem cor, que da para concluir antes;
+ *  - feita: faixa verde.
+ */
+const DemandaFixaLinha = ({ status, onToggle }: { status: StatusDemanda; onToggle: () => void }) => {
+  const feita = status.estado === "feita";
+  const responsavel = status.demanda.responsavel;
+
+  if (!feita && !demandaEmAlerta(status)) {
+    return (
+      <div className="flex items-start gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-lg hover:bg-surface-2">
+        <CheckMark done={false} onClick={onToggle} />
+        <div className="flex-1 min-w-0">
+          <p className="text-[13.5px] font-medium text-foreground">{status.demanda.titulo}</p>
+          <p className="mt-0.5 flex items-center gap-1 font-mono-plex text-[10px] uppercase tracking-wider text-muted-foreground">
+            <Repeat className="h-3 w-3 shrink-0" />
+            {status.rotulo}
+            {responsavel && <> · {responsavel}</>}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 ${
+        feita ? "border border-success/40 bg-success/15" : "alert-surface border text-white"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={feita ? "Desfazer: marcar demanda fixa como pendente" : "Marcar demanda fixa como feita"}
+        title={feita ? "Desfazer" : "Marcar como feita"}
+        className={`h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
+          feita ? "bg-success border-success" : "border-[hsl(0_72%_55%)] hover:bg-[hsl(var(--alert-red)/0.4)]"
+        }`}
+      >
+        {feita && (
+          <svg viewBox="0 0 12 12" className="h-2.5 w-2.5">
+            <path
+              d="M2.3 6.3l2.6 2.6 4.8-5.4"
+              stroke="white"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className={`text-[13px] font-semibold leading-tight ${feita ? "text-muted-foreground line-through" : ""}`}>
+          {status.demanda.titulo}
+        </p>
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono-plex text-[10px] uppercase tracking-wider">
+          {feita ? (
+            <span className="text-success">{status.rotulo}</span>
+          ) : (
+            <span className="rounded-full bg-[hsl(var(--alert-red))] px-2.5 py-0.5 text-white">{status.rotulo}</span>
+          )}
+          {responsavel && <span className={feita ? "text-muted-foreground" : "text-white/70"}>{responsavel}</span>}
+        </p>
+      </div>
+      {!feita && <BellRing className="h-4 w-4 shrink-0 text-[hsl(0_72%_55%)]" />}
+    </div>
+  );
+};
+
 export const ChecklistBoard = () => {
   const { user, isAdmin } = useAuth();
   const [clientes, setClientes] = useState<ClienteOption[]>([]);
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"quadro" | "concluidas">("quadro");
+  const [demandas, setDemandas] = useState<DemandaFixa[]>([]);
+  const [agora, setAgora] = useState(() => new Date());
+  const [ocultos, setOcultos] = useState<string[]>(lerOcultos);
+  const [viewMode, setViewMode] = useState<"quadro" | "concluidas" | "fixas">("quadro");
   const [visao, setVisao] = useState<"ativos" | "inativos">("ativos");
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [busca, setBusca] = useState("");
@@ -296,9 +645,13 @@ export const ChecklistBoard = () => {
         .order("nome_cliente"),
       (supabase as any)
         .from("sistema_checklist_itens")
-        .select("id, client_id, titulo, responsavel, observacao, concluido, ordem, eh_otimizacao, arquivado, arquivado_em")
+        .select(ITEM_COLUMNS)
         .order("ordem", { ascending: true }),
-    ]).then(([cliRes, itemRes]: any[]) => {
+      (supabase as any)
+        .from("sistema_checklist_demandas_fixas")
+        .select(DEMANDA_COLUMNS)
+        .order("created_at", { ascending: true }),
+    ]).then(([cliRes, itemRes, demRes]: any[]) => {
       if (!cliRes.error && cliRes.data)
         setClientes(
           cliRes.data.map((c: any) => ({
@@ -315,11 +668,32 @@ export const ChecklistBoard = () => {
           }))
         );
       if (!itemRes.error && itemRes.data) setItems(itemRes.data);
+      if (!demRes.error && demRes.data) setDemandas(demRes.data.map(normalizarDemanda));
+      else if (demRes.error) console.error(demRes.error);
       setLoading(false);
     });
   }, []);
 
-  if (!isAdmin) return null;
+  // Reavalia alertas (horario da demanda fixa, virada do dia) sem recarregar a
+  // tela. So troca o estado quando o minuto muda, para nao re-renderizar o
+  // quadro inteiro a cada tick.
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setAgora((prev) => {
+        const now = new Date();
+        return now.getMinutes() === prev.getMinutes() && dateKey(now) === dateKey(prev) ? prev : now;
+      });
+    }, 15_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(OCULTOS_STORAGE_KEY, JSON.stringify(ocultos));
+    } catch {
+      // localStorage indisponivel (aba anonima etc.): o filtro so nao persiste.
+    }
+  }, [ocultos]);
 
   const itemsByClient = useMemo(() => {
     const map: Record<string, ChecklistItem[]> = {};
@@ -381,14 +755,67 @@ export const ChecklistBoard = () => {
     return "progress";
   };
 
-  const visibleClientes = clientesNaVisao.filter((c) => {
-    if (busca.trim() && !c.nome.toLowerCase().includes(busca.trim().toLowerCase())) return false;
-    const clientItems = itemsByClient[c.id] || [];
-    if (filtro === "pendentes") return clientItems.some((it) => !it.concluido);
-    if (filtro === "lucas" || filtro === "lane")
-      return clientItems.some((it) => (it.responsavel || "").toLowerCase().includes(filtro));
-    return true;
-  });
+  // Demandas fixas do dia/atrasadas por cliente (ja avaliadas contra "agora").
+  const demandasPorCliente = useMemo(() => {
+    const map: Record<string, StatusDemanda[]> = {};
+    for (const d of demandas) {
+      const status = statusDemanda(d, agora);
+      if (!status) continue;
+      if (!map[d.client_id]) map[d.client_id] = [];
+      map[d.client_id].push(status);
+    }
+    const peso = (st: StatusDemanda) => (demandaEmAlerta(st) ? 0 : st.estado === "proxima" ? 1 : 2);
+    for (const lista of Object.values(map)) lista.sort((a, b) => peso(a) - peso(b) || a.quando - b.quando);
+    return map;
+  }, [demandas, agora]);
+
+  const alertaPorCliente = useMemo(() => {
+    const map: Record<string, AlertaCliente | null> = {};
+    for (const c of clientes) {
+      const prazos = (itemsByClient[c.id] || []).map((it) => statusPrazo(it, agora));
+      map[c.id] = alertaDoCliente(demandasPorCliente[c.id] || [], prazos);
+    }
+    return map;
+  }, [clientes, itemsByClient, demandasPorCliente, agora]);
+
+  const totalFixasAtivas = useMemo(() => demandas.filter((d) => d.ativo).length, [demandas]);
+
+  const totalFixasEmAlerta = useMemo(
+    () => Object.values(demandasPorCliente).reduce((n, lista) => n + lista.filter(demandaEmAlerta).length, 0),
+    [demandasPorCliente]
+  );
+
+  const ocultosSet = useMemo(() => new Set(ocultos), [ocultos]);
+
+  const toggleOculto = (id: string) =>
+    setOcultos((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  // Marcar/desmarcar todos afeta so os clientes da visao atual (ativos/inativos),
+  // preservando o que o usuario ocultou na outra visao.
+  const mostrarTodos = () => {
+    const ids = new Set(clientesNaVisao.map((c) => c.id));
+    setOcultos((prev) => prev.filter((id) => !ids.has(id)));
+  };
+
+  const ocultarTodos = () =>
+    setOcultos((prev) => [...new Set([...prev, ...clientesNaVisao.map((c) => c.id)])]);
+
+  const ocultosNaVisao = clientesNaVisao.filter((c) => ocultosSet.has(c.id)).length;
+  const alertasOcultos = clientesNaVisao.filter((c) => ocultosSet.has(c.id) && alertaPorCliente[c.id]).length;
+
+  // Cliente em alerta sobe para o topo (vermelho antes de ambar, o mais antigo primeiro);
+  // os demais mantem a ordem alfabetica.
+  const visibleClientes = clientesNaVisao
+    .filter((c) => {
+      if (ocultosSet.has(c.id)) return false;
+      if (busca.trim() && !c.nome.toLowerCase().includes(busca.trim().toLowerCase())) return false;
+      const clientItems = itemsByClient[c.id] || [];
+      if (filtro === "pendentes") return clientItems.some((it) => !it.concluido);
+      if (filtro === "lucas" || filtro === "lane")
+        return clientItems.some((it) => (it.responsavel || "").toLowerCase().includes(filtro));
+      return true;
+    })
+    .sort((a, b) => compararAlertas(alertaPorCliente[a.id], alertaPorCliente[b.id]));
 
   const addItem = async (clientId: string) => {
     const draft = getDraft(clientId);
@@ -402,12 +829,13 @@ export const ChecklistBoard = () => {
       concluido: false,
       ordem,
       eh_otimizacao: draft.otimizacao,
+      data_limite: draft.dataLimite || null,
       created_by: user.id,
     };
     const { data, error } = await (supabase as any)
       .from("sistema_checklist_itens")
       .insert(payload)
-      .select("id, client_id, titulo, responsavel, observacao, concluido, ordem, eh_otimizacao, arquivado, arquivado_em")
+      .select(ITEM_COLUMNS)
       .single();
     if (error) {
       toast.error("Erro ao adicionar item");
@@ -492,6 +920,97 @@ export const ChecklistBoard = () => {
       .eq("id", item.id);
     if (error) {
       toast.error("Erro ao salvar alteração");
+      console.error(error);
+    }
+  };
+
+  const setPrazo = async (item: ChecklistItem, valor: string | null) => {
+    if (valor === item.data_limite) return;
+    setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, data_limite: valor } : it)));
+    const { error } = await (supabase as any)
+      .from("sistema_checklist_itens")
+      .update({ data_limite: valor, updated_at: new Date().toISOString() })
+      .eq("id", item.id);
+    if (error) {
+      setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, data_limite: item.data_limite } : it)));
+      toast.error("Erro ao salvar data limite");
+      console.error(error);
+    }
+  };
+
+  const salvarDemanda = async (valores: DemandaForm, id: string | null): Promise<boolean> => {
+    if (!user) return false;
+    const campos = {
+      client_id: valores.client_id,
+      titulo: valores.titulo.trim(),
+      responsavel: valores.responsavel.trim() || null,
+      recorrencia: valores.recorrencia,
+      dias_semana: valores.recorrencia === "semanal" ? [...valores.dias_semana].sort((a, b) => a - b) : [],
+      dia_mes: valores.recorrencia === "mensal" ? Number(valores.dia_mes) : null,
+      data_unica: valores.recorrencia === "unica" ? valores.data_unica : null,
+      horario: valores.horario,
+    };
+    const query = (supabase as any).from("sistema_checklist_demandas_fixas");
+    const { data, error } = id
+      ? await query
+          .update({ ...campos, updated_at: new Date().toISOString() })
+          .eq("id", id)
+          .select(DEMANDA_COLUMNS)
+          .single()
+      : await query
+          .insert({ ...campos, created_by: user.id })
+          .select(DEMANDA_COLUMNS)
+          .single();
+    if (error) {
+      toast.error("Erro ao salvar demanda fixa");
+      console.error(error);
+      return false;
+    }
+    const salva = normalizarDemanda(data);
+    setDemandas((prev) => (id ? prev.map((d) => (d.id === id ? salva : d)) : [...prev, salva]));
+    toast.success(id ? "Demanda fixa atualizada" : "Demanda fixa cadastrada");
+    return true;
+  };
+
+  const patchDemanda = async (demanda: DemandaFixa, patch: Partial<DemandaFixa>, erroMsg: string) => {
+    setDemandas((prev) => prev.map((d) => (d.id === demanda.id ? { ...d, ...patch } : d)));
+    const { error } = await (supabase as any)
+      .from("sistema_checklist_demandas_fixas")
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq("id", demanda.id);
+    if (error) {
+      setDemandas((prev) => prev.map((d) => (d.id === demanda.id ? demanda : d)));
+      toast.error(erroMsg);
+      console.error(error);
+    }
+  };
+
+  const alternarDemandaAtiva = (demanda: DemandaFixa) =>
+    patchDemanda(demanda, { ativo: !demanda.ativo }, "Erro ao atualizar demanda fixa");
+
+  // Marca a ocorrencia como feita (em alerta ou antecipada); numa ocorrencia ja feita, desfaz.
+  // Desfazer volta para a ocorrencia anterior em vez de limpar, senao uma ocorrencia antiga,
+  // ja resolvida, reapareceria como atrasada.
+  const marcarDemandaFeita = (status: StatusDemanda) =>
+    patchDemanda(
+      status.demanda,
+      {
+        ultima_conclusao:
+          status.estado === "feita" ? ocorrenciaAnterior(status.demanda, status.ocorrencia) : status.ocorrencia,
+      },
+      "Erro ao atualizar demanda fixa"
+    );
+
+  const excluirDemanda = async (demanda: DemandaFixa) => {
+    if (!window.confirm(`Excluir a demanda fixa "${demanda.titulo}"?`)) return;
+    setDemandas((prev) => prev.filter((d) => d.id !== demanda.id));
+    const { error } = await (supabase as any)
+      .from("sistema_checklist_demandas_fixas")
+      .delete()
+      .eq("id", demanda.id);
+    if (error) {
+      setDemandas((prev) => [...prev, demanda]);
+      toast.error("Erro ao excluir demanda fixa");
       console.error(error);
     }
   };
@@ -629,6 +1148,8 @@ export const ChecklistBoard = () => {
 
   const inputCls = "bg-surface-2 border-surface-3 text-foreground";
 
+  if (!isAdmin) return null;
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -698,6 +1219,35 @@ export const ChecklistBoard = () => {
           )}
         </button>
 
+        <button
+          onClick={() => setViewMode("fixas")}
+          className={`relative font-mono-plex px-3.5 py-1.5 rounded-full text-[11px] uppercase tracking-wider border transition-colors flex items-center gap-1.5 ${
+            viewMode === "fixas"
+              ? "bg-primary border-primary text-primary-foreground"
+              : "bg-card border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+          }`}
+        >
+          <Repeat className="h-3 w-3" />
+          Demandas fixas
+          {totalFixasAtivas > 0 && (
+            <span
+              className={`rounded-full px-1.5 text-[9px] ${
+                viewMode === "fixas" ? "bg-primary-foreground/20" : "bg-surface-3"
+              }`}
+            >
+              {totalFixasAtivas}
+            </span>
+          )}
+          {totalFixasEmAlerta > 0 && (
+            <span
+              className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[hsl(var(--alert-red))] px-1 text-[9px] text-white"
+              title={`${totalFixasEmAlerta} demanda${totalFixasEmAlerta !== 1 ? "s" : ""} fixa${totalFixasEmAlerta !== 1 ? "s" : ""} em alerta`}
+            >
+              {totalFixasEmAlerta}
+            </span>
+          )}
+        </button>
+
         {viewMode === "quadro" && (
           <>
             <div className="w-px h-6 bg-border mx-1" />
@@ -728,6 +1278,16 @@ export const ChecklistBoard = () => {
                 {f.label}
               </button>
             ))}
+            <div className="w-px h-6 bg-border mx-1" />
+            <ClienteFilter
+              clientes={clientesNaVisao}
+              ocultos={ocultosSet}
+              alertaPorCliente={alertaPorCliente}
+              alertasOcultos={alertasOcultos}
+              onToggle={toggleOculto}
+              onMostrarTodos={mostrarTodos}
+              onOcultarTodos={ocultarTodos}
+            />
           </>
         )}
         <div className="flex-1" />
@@ -748,7 +1308,18 @@ export const ChecklistBoard = () => {
         <option value="Lucas e Lane" />
       </datalist>
 
-      {viewMode === "concluidas" ? (
+      {viewMode === "fixas" ? (
+        <DemandasFixasPanel
+          clientes={clientes}
+          demandas={demandas}
+          agora={agora}
+          busca={busca}
+          onSalvar={salvarDemanda}
+          onAlternarAtiva={alternarDemandaAtiva}
+          onExcluir={excluirDemanda}
+          onMarcarFeita={marcarDemandaFeita}
+        />
+      ) : viewMode === "concluidas" ? (
         <div className="space-y-2">
           {clientesComArquivados.map((c) => {
               const arqs = arquivadosPorCliente[c.id] || [];
@@ -831,14 +1402,26 @@ export const ChecklistBoard = () => {
           const tom = getTom(c, clientItems);
 
           const cardStyle = clienteCardStyle(c.cor, c.intensidade);
+          const fixas = demandasPorCliente[c.id] || [];
+          const alerta = alertaPorCliente[c.id];
+
+          // Em alerta: borda com uma luz que percorre o contorno (ver .checklist-alert no index.css).
+          // Vermelho = demanda fixa; ambar = data limite de item.
+          const moldura = alerta
+            ? `border-2 ${
+                alerta.tipo === "fixa"
+                  ? "checklist-alert"
+                  : "checklist-alert checklist-alert-prazo"
+              } ${cardStyle ? "" : "bg-card/50"}`
+            : `border border-border hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 ${
+                cardStyle ? "" : `${tomBorda[tom]} border-l-4 bg-card/50`
+              }`;
 
           return (
-            <StaggerItem key={c.id}>
+            <StaggerItem key={c.id} layout="position">
               <div
                 style={cardStyle}
-                className={`h-full rounded-xl border border-border ${
-                  cardStyle ? "" : `${tomBorda[tom]} border-l-4 bg-card/50`
-                } p-5 space-y-3.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30`}
+                className={`h-full rounded-xl ${moldura} p-5 space-y-3.5 transition-all duration-300 hover:-translate-y-1`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <h4 className="font-serif text-lg font-semibold tracking-tight text-foreground truncate">
@@ -870,6 +1453,14 @@ export const ChecklistBoard = () => {
                   </div>
                 </div>
 
+                {fixas.length > 0 && (
+                  <div className="space-y-1.5">
+                    {fixas.map((st) => (
+                      <DemandaFixaLinha key={st.demanda.id} status={st} onToggle={() => marcarDemandaFeita(st)} />
+                    ))}
+                  </div>
+                )}
+
                 {c.saldoUltimaRecargaValor != null && (
                   <div className="flex items-center justify-between gap-2 -mt-1.5 px-0.5 font-mono-plex text-[10px] uppercase tracking-wider">
                     <span className="text-muted-foreground">
@@ -894,13 +1485,19 @@ export const ChecklistBoard = () => {
                 )}
 
                 <div className="space-y-0.5">
-                  {clientItems.length === 0 && (
+                  {clientItems.length === 0 && fixas.length === 0 && (
                     <p className="text-xs text-muted-foreground py-1">Nenhum item ainda.</p>
                   )}
-                  {clientItems.map((it) => (
+                  {clientItems.map((it) => {
+                    const prazo = statusPrazo(it, agora);
+                    return (
                     <div
                       key={it.id}
-                      className="group flex items-start gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-lg hover:bg-surface-2"
+                      className={`group flex items-start gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-lg ${
+                        prazoEmAlerta(prazo)
+                          ? "bg-warning/15 ring-1 ring-warning/50"
+                          : "hover:bg-surface-2"
+                      }`}
                     >
                       <CheckMark done={it.concluido} onClick={() => toggleItem(it)} />
                       <div className="flex-1 min-w-0 space-y-0.5">
@@ -912,13 +1509,22 @@ export const ChecklistBoard = () => {
                             it.concluido ? "text-muted-foreground line-through" : "text-foreground"
                           }`}
                         />
-                        <input
-                          key={`obs-${it.id}`}
-                          defaultValue={it.observacao || ""}
-                          onBlur={(e) => commitField(it, "observacao", e.target.value)}
-                          placeholder="Observação (opcional)"
-                          className="w-full bg-transparent text-[11px] italic text-warning/90 outline-none focus:underline decoration-dashed placeholder:text-muted-foreground/50 placeholder:not-italic"
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            key={`obs-${it.id}`}
+                            defaultValue={it.observacao || ""}
+                            onBlur={(e) => commitField(it, "observacao", e.target.value)}
+                            placeholder="Observação (opcional)"
+                            className="min-w-0 flex-1 bg-transparent text-[11px] italic text-warning/90 outline-none focus:underline decoration-dashed placeholder:text-muted-foreground/50 placeholder:not-italic"
+                          />
+                          <PrazoPicker
+                            variant="item"
+                            value={it.data_limite}
+                            status={prazo}
+                            agora={agora}
+                            onChange={(valor) => setPrazo(it, valor)}
+                          />
+                        </div>
                       </div>
                       <input
                         key={`resp-${it.id}`}
@@ -961,10 +1567,11 @@ export const ChecklistBoard = () => {
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-dashed border-border">
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-dashed border-border">
                   <Input
                     value={draft.titulo}
                     onChange={(e) => setDraft(c.id, { titulo: e.target.value })}
@@ -972,7 +1579,7 @@ export const ChecklistBoard = () => {
                       if (e.key === "Enter") addItem(c.id);
                     }}
                     placeholder="Adicionar item ao checklist..."
-                    className={`${inputCls} h-8 text-sm flex-1 rounded-full px-3.5`}
+                    className={`${inputCls} h-8 text-sm flex-1 basis-40 rounded-full px-3.5`}
                   />
                   <Input
                     value={draft.responsavel}
@@ -997,6 +1604,12 @@ export const ChecklistBoard = () => {
                     <Sparkles className="h-3 w-3" />
                     Otim.
                   </button>
+                  <PrazoPicker
+                    variant="draft"
+                    value={draft.dataLimite || null}
+                    agora={agora}
+                    onChange={(valor) => setDraft(c.id, { dataLimite: valor || "" })}
+                  />
                   <button
                     onClick={() => addItem(c.id)}
                     className="h-8 w-8 shrink-0 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center text-primary-foreground transition-transform hover:scale-105"
@@ -1010,9 +1623,18 @@ export const ChecklistBoard = () => {
           );
         })}
         {visibleClientes.length === 0 && (
-          <p className="text-sm text-muted-foreground py-8 text-center md:col-span-2">
-            Nenhum cliente encontrado para este filtro.
-          </p>
+          <div className="text-sm text-muted-foreground py-8 text-center md:col-span-2 space-y-2">
+            <p>
+              {ocultosNaVisao > 0 && ocultosNaVisao === clientesNaVisao.length
+                ? "Todos os clientes estão fora do quadro pelo filtro de clientes."
+                : "Nenhum cliente encontrado para este filtro."}
+            </p>
+            {ocultosNaVisao > 0 && (
+              <button type="button" onClick={mostrarTodos} className="text-primary hover:underline">
+                Mostrar todos os clientes
+              </button>
+            )}
+          </div>
         )}
       </Stagger>
       )}

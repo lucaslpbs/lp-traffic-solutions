@@ -279,3 +279,72 @@ All colors MUST be HSL.
     @apply outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 }
+
+/*
+  Card do Checklist em alerta.
+
+  Vermelho = demanda fixa do dia (ou atrasada); ambar = data limite de um item
+  chegou/passou. A cor vem de --alert (H S% L%), entao o mesmo CSS serve aos
+  dois. Sem piscar: a borda fica fixa e uma luz percorre o contorno do card
+  (conic-gradient girando, recortado so na area da borda). Onde @property nao
+  existe o angulo nao anima e sobra a borda com o arco parado.
+*/
+:root {
+  --alert-red: 0 74% 42%;
+}
+
+@property --alert-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@layer components {
+  /* Superficie do aviso vermelho (linha da aba Demandas fixas e faixa dentro do card):
+     vinho escuro com contorno vermelho, opaca para ficar igual sobre qualquer cor de card. */
+  .alert-surface {
+    background: linear-gradient(hsl(var(--alert-red) / 0.12), hsl(var(--alert-red) / 0.12)), hsl(var(--background));
+    border-color: hsl(var(--alert-red) / 0.6);
+  }
+
+  .checklist-alert {
+    --alert: var(--alert-red);
+    --alert-arc: 0 80% 50%;
+    position: relative;
+    border-color: hsl(var(--alert) / 0.45);
+    box-shadow: 0 0 18px -6px hsl(var(--alert) / 0.5);
+  }
+
+  .checklist-alert-prazo {
+    --alert: 38 92% 50%;
+    --alert-arc: 42 96% 56%;
+  }
+
+  .checklist-alert::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--alert-angle),
+      transparent 0%,
+      transparent 60%,
+      hsl(var(--alert-arc) / 0.35) 80%,
+      hsl(var(--alert-arc)) 98%,
+      transparent 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: checklist-alert-orbit 4s linear infinite;
+  }
+}
+
+@keyframes checklist-alert-orbit {
+  to {
+    --alert-angle: 360deg;
+  }
+}

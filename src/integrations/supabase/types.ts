@@ -1851,6 +1851,7 @@ export type Database = {
           concluido: boolean
           created_at: string | null
           created_by: string | null
+          data_limite: string | null
           eh_otimizacao: boolean
           id: string
           observacao: string | null
@@ -1866,6 +1867,7 @@ export type Database = {
           concluido?: boolean
           created_at?: string | null
           created_by?: string | null
+          data_limite?: string | null
           eh_otimizacao?: boolean
           id?: string
           observacao?: string | null
@@ -1881,6 +1883,7 @@ export type Database = {
           concluido?: boolean
           created_at?: string | null
           created_by?: string | null
+          data_limite?: string | null
           eh_otimizacao?: boolean
           id?: string
           observacao?: string | null
@@ -1899,6 +1902,72 @@ export type Database = {
           },
           {
             foreignKeyName: "sistema_checklist_itens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "linktree_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sistema_checklist_demandas_fixas: {
+        Row: {
+          ativo: boolean
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          data_unica: string | null
+          dia_mes: number | null
+          dias_semana: number[]
+          horario: string
+          id: string
+          recorrencia: string
+          responsavel: string | null
+          titulo: string
+          ultima_conclusao: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          data_unica?: string | null
+          dia_mes?: number | null
+          dias_semana?: number[]
+          horario?: string
+          id?: string
+          recorrencia?: string
+          responsavel?: string | null
+          titulo: string
+          ultima_conclusao?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          data_unica?: string | null
+          dia_mes?: number | null
+          dias_semana?: number[]
+          horario?: string
+          id?: string
+          recorrencia?: string
+          responsavel?: string | null
+          titulo?: string
+          ultima_conclusao?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sistema_checklist_demandas_fixas_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "gestao_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sistema_checklist_demandas_fixas_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "linktree_publico"
