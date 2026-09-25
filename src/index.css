@@ -291,6 +291,8 @@ All colors MUST be HSL.
 */
 :root {
   --alert-red: 0 74% 42%;
+  --wait-blue: 221 60% 40%;
+  --wait-blue-light: 217 91% 65%;
 }
 
 @property --alert-angle {
@@ -305,6 +307,12 @@ All colors MUST be HSL.
   .alert-surface {
     background: linear-gradient(hsl(var(--alert-red) / 0.12), hsl(var(--alert-red) / 0.12)), hsl(var(--background));
     border-color: hsl(var(--alert-red) / 0.6);
+  }
+
+  /* Idem para "pendente cliente" (azul): feito o que dependia de mim, falta o cliente. */
+  .wait-surface {
+    background: linear-gradient(hsl(var(--wait-blue) / 0.14), hsl(var(--wait-blue) / 0.14)), hsl(var(--background));
+    border-color: hsl(var(--wait-blue) / 0.65);
   }
 
   .checklist-alert {

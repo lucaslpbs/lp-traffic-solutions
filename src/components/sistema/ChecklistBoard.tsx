@@ -13,6 +13,8 @@ import {
   CalendarClock,
   Repeat,
   Users,
+  Hourglass,
+  Undo2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,11 +25,13 @@ import { Slider } from "@/components/ui/slider";
 import { MarkdownEditor } from "@/components/sistema/MarkdownEditor";
 import { OTIMIZACAO_SNIPPETS } from "@/components/sistema/otimizacaoSnippets";
 import { DemandasFixasPanel, type DemandaForm } from "@/components/sistema/DemandasFixasPanel";
+import { MudarDiaDemandaDialog } from "@/components/sistema/MudarDiaDemandaDialog";
 import {
   alertaDoCliente,
   compararAlertas,
   dateKey,
   demandaEmAlerta,
+  diffDias,
   formatHorario,
   ocorrenciaAnterior,
   parseKey,
@@ -57,13 +61,14 @@ interface ChecklistItem {
   arquivado: boolean;
   arquivado_em: string | null;
   data_limite: string | null;
+  aguardando_cliente: boolean;
 }
 
 const ITEM_COLUMNS =
-  "id, client_id, titulo, responsavel, observacao, concluido, ordem, eh_otimizacao, arquivado, arquivado_em, data_limite";
+  "id, client_id, titulo, responsavel, observacao, concluido, ordem, eh_otimizacao, arquivado, arquivado_em, data_limite, aguardando_cliente";
 
 const DEMANDA_COLUMNS =
-  "id, client_id, titulo, responsavel, recorrencia, dias_semana, dia_mes, data_unica, horario, ativo, ultima_conclusao, created_at";
+  "id, client_id, titulo, responsavel, recorrencia, dias_semana, dia_mes, data_unica, horario, ativo, ultima_conclusao, aguardando_ocorrencia, observacao, observacao_ocorrencia, created_at";
 
 const normalizarDemanda = (row: any): DemandaFixa => ({
   ...row,
@@ -546,42 +551,89 @@ const CheckMark = ({ done, onClick }: { done: boolean; onClick: () => void }) =>
 /**
  * Linha de demanda fixa no topo do card.
  *  - em alerta (dia/atrasada): faixa vinho com a pilula vermelha do horario;
+ *  - pendente cliente: faixa azul (fiz a minha parte, falta o cliente);
  *  - proxima (ainda nao e o dia): linha normal, sem cor, que da para concluir antes;
  *  - feita: faixa verde.
+ * A observacao aparece em todos os estados e vale so para a ocorrencia atual.
  */
-const DemandaFixaLinha = ({ status, onToggle }: { status: StatusDemanda; onToggle: () => void }) => {
+const DemandaFixaLinha = ({
+  status,
+  onToggle,
+  onPendente,
+  onObservacao,
+}: {
+  status: StatusDemanda;
+  onToggle: () => void;
+  onPendente: () => void;
+  onObservacao: (texto: string) => void;
+}) => {
+  const { demanda } = status;
   const feita = status.estado === "feita";
-  const responsavel = status.demanda.responsavel;
+  const aguardando = status.estado === "aguardando";
+  const alerta = demandaEmAlerta(status);
+  const responsavel = demanda.responsavel;
 
-  if (!feita && !demandaEmAlerta(status)) {
+  const observacao = (className: string) => (
+    <input
+      key={`dobs-${demanda.id}-${status.ocorrencia}`}
+      defaultValue={status.observacao}
+      onBlur={(e) => onObservacao(e.target.value)}
+      placeholder="Observação (opcional)"
+      className={className}
+    />
+  );
+
+  if (!alerta && !aguardando && !feita) {
     return (
-      <div className="flex items-start gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-lg hover:bg-surface-2">
+      <div className="group flex items-start gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-lg hover:bg-surface-2">
         <CheckMark done={false} onClick={onToggle} />
         <div className="flex-1 min-w-0">
-          <p className="text-[13.5px] font-medium text-foreground">{status.demanda.titulo}</p>
+          <p className="text-[13.5px] font-medium text-foreground">{demanda.titulo}</p>
           <p className="mt-0.5 flex items-center gap-1 font-mono-plex text-[10px] uppercase tracking-wider text-muted-foreground">
             <Repeat className="h-3 w-3 shrink-0" />
             {status.rotulo}
             {responsavel && <> · {responsavel}</>}
           </p>
+          {observacao("mt-0.5 w-full bg-transparent text-[11px] italic text-warning/90 outline-none focus:underline decoration-dashed placeholder:text-muted-foreground/50 placeholder:not-italic")}
         </div>
+        <button
+          type="button"
+          onClick={onPendente}
+          title="Já enviei, pendente do cliente"
+          aria-label="Marcar como pendente do cliente"
+          className="mt-1 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:text-[hsl(var(--wait-blue-light))]"
+        >
+          <Hourglass className="h-3.5 w-3.5" />
+        </button>
       </div>
     );
   }
 
+  const superficie = feita
+    ? "border border-success/40 bg-success/15"
+    : aguardando
+      ? "wait-surface border text-white"
+      : "alert-surface border text-white";
+
   return (
-    <div
-      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 ${
-        feita ? "border border-success/40 bg-success/15" : "alert-surface border text-white"
-      }`}
-    >
+    <div className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 ${superficie}`}>
       <button
         type="button"
         onClick={onToggle}
-        aria-label={feita ? "Desfazer: marcar demanda fixa como pendente" : "Marcar demanda fixa como feita"}
-        title={feita ? "Desfazer" : "Marcar como feita"}
-        className={`h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
-          feita ? "bg-success border-success" : "border-[hsl(0_72%_55%)] hover:bg-[hsl(var(--alert-red)/0.4)]"
+        aria-label={
+          feita
+            ? "Desfazer: marcar demanda fixa como pendente"
+            : aguardando
+              ? "Cliente respondeu: concluir demanda fixa"
+              : "Marcar demanda fixa como feita"
+        }
+        title={feita ? "Desfazer" : aguardando ? "Cliente respondeu: concluir" : "Marcar como feita"}
+        className={`mt-px h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
+          feita
+            ? "bg-success border-success"
+            : aguardando
+              ? "border-[hsl(var(--wait-blue-light))] hover:bg-[hsl(var(--wait-blue)/0.5)]"
+              : "border-[hsl(0_72%_55%)] hover:bg-[hsl(var(--alert-red)/0.4)]"
         }`}
       >
         {feita && (
@@ -596,21 +648,44 @@ const DemandaFixaLinha = ({ status, onToggle }: { status: StatusDemanda; onToggl
             />
           </svg>
         )}
+        {aguardando && <Hourglass className="h-2.5 w-2.5 text-[hsl(var(--wait-blue-light))]" />}
       </button>
       <div className="flex-1 min-w-0">
-        <p className={`text-[13px] font-semibold leading-tight ${feita ? "text-muted-foreground line-through" : ""}`}>
-          {status.demanda.titulo}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className={`text-[13px] font-semibold leading-tight ${feita ? "text-muted-foreground line-through" : ""}`}>
+            {demanda.titulo}
+          </p>
+          {!feita && !aguardando && <BellRing className="h-4 w-4 shrink-0 text-[hsl(0_72%_55%)]" />}
+        </div>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono-plex text-[10px] uppercase tracking-wider">
           {feita ? (
             <span className="text-success">{status.rotulo}</span>
+          ) : aguardando ? (
+            <span className="rounded-full bg-[hsl(var(--wait-blue))] px-2.5 py-0.5 text-white">{status.rotulo}</span>
           ) : (
             <span className="rounded-full bg-[hsl(var(--alert-red))] px-2.5 py-0.5 text-white">{status.rotulo}</span>
           )}
           {responsavel && <span className={feita ? "text-muted-foreground" : "text-white/70"}>{responsavel}</span>}
+          {!feita && (
+            <button
+              type="button"
+              onClick={onPendente}
+              title={aguardando ? "Voltar ao alerta" : "Já enviei, pendente do cliente"}
+              className="ml-auto flex items-center gap-1 rounded-full border border-white/30 px-2 py-0.5 text-[9px] text-white/85 transition-colors hover:bg-white/10"
+            >
+              {aguardando ? <Undo2 className="h-3 w-3" /> : <Hourglass className="h-3 w-3" />}
+              {aguardando ? "Reabrir" : "Pendente cliente"}
+            </button>
+          )}
         </p>
+        {observacao(
+          `mt-1.5 w-full bg-transparent text-[11px] italic outline-none focus:underline decoration-dashed placeholder:not-italic ${
+            feita
+              ? "text-muted-foreground placeholder:text-muted-foreground/50"
+              : "text-white/80 placeholder:text-white/40"
+          }`
+        )}
       </div>
-      {!feita && <BellRing className="h-4 w-4 shrink-0 text-[hsl(0_72%_55%)]" />}
     </div>
   );
 };
@@ -621,6 +696,7 @@ export const ChecklistBoard = () => {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [demandas, setDemandas] = useState<DemandaFixa[]>([]);
+  const [mudarDia, setMudarDia] = useState<{ demanda: DemandaFixa; ocorrencia: string } | null>(null);
   const [agora, setAgora] = useState(() => new Date());
   const [ocultos, setOcultos] = useState<string[]>(lerOcultos);
   const [viewMode, setViewMode] = useState<"quadro" | "concluidas" | "fixas">("quadro");
@@ -764,7 +840,8 @@ export const ChecklistBoard = () => {
       if (!map[d.client_id]) map[d.client_id] = [];
       map[d.client_id].push(status);
     }
-    const peso = (st: StatusDemanda) => (demandaEmAlerta(st) ? 0 : st.estado === "proxima" ? 1 : 2);
+    const peso = (st: StatusDemanda) =>
+      demandaEmAlerta(st) ? 0 : st.estado === "aguardando" ? 1 : st.estado === "proxima" ? 2 : 3;
     for (const lista of Object.values(map)) lista.sort((a, b) => peso(a) - peso(b) || a.quando - b.quando);
     return map;
   }, [demandas, agora]);
@@ -848,13 +925,21 @@ export const ChecklistBoard = () => {
 
   const toggleItem = async (item: ChecklistItem) => {
     const novo = !item.concluido;
-    setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, concluido: novo } : it)));
+    setItems((prev) =>
+      prev.map((it) =>
+        it.id === item.id ? { ...it, concluido: novo, ...(novo ? { aguardando_cliente: false } : {}) } : it
+      )
+    );
     const { error } = await (supabase as any)
       .from("sistema_checklist_itens")
-      .update({ concluido: novo, updated_at: new Date().toISOString() })
+      .update({ concluido: novo, ...(novo ? { aguardando_cliente: false } : {}), updated_at: new Date().toISOString() })
       .eq("id", item.id);
     if (error) {
-      setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, concluido: item.concluido } : it)));
+      setItems((prev) =>
+        prev.map((it) =>
+          it.id === item.id ? { ...it, concluido: item.concluido, aguardando_cliente: item.aguardando_cliente } : it
+        )
+      );
       toast.error("Erro ao atualizar item");
       console.error(error);
       return;
@@ -862,6 +947,24 @@ export const ChecklistBoard = () => {
     if (novo && item.eh_otimizacao) {
       setOtimItem(item);
       setOtimTexto(item.titulo + (item.observacao ? `\n\n${item.observacao}` : ""));
+    }
+  };
+
+  // "Pendente cliente": fiz a minha parte, falta o cliente. O item segue aberto e destacado em
+  // azul; se tiver data limite, ela continua avisando quando chegar (e o dia de cobrar).
+  const toggleAguardandoCliente = async (item: ChecklistItem) => {
+    const novo = !item.aguardando_cliente;
+    setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, aguardando_cliente: novo } : it)));
+    const { error } = await (supabase as any)
+      .from("sistema_checklist_itens")
+      .update({ aguardando_cliente: novo, updated_at: new Date().toISOString() })
+      .eq("id", item.id);
+    if (error) {
+      setItems((prev) =>
+        prev.map((it) => (it.id === item.id ? { ...it, aguardando_cliente: item.aguardando_cliente } : it))
+      );
+      toast.error("Erro ao atualizar item");
+      console.error(error);
     }
   };
 
@@ -982,7 +1085,9 @@ export const ChecklistBoard = () => {
       setDemandas((prev) => prev.map((d) => (d.id === demanda.id ? demanda : d)));
       toast.error(erroMsg);
       console.error(error);
+      return false;
     }
+    return true;
   };
 
   const alternarDemandaAtiva = (demanda: DemandaFixa) =>
@@ -991,15 +1096,63 @@ export const ChecklistBoard = () => {
   // Marca a ocorrencia como feita (em alerta ou antecipada); numa ocorrencia ja feita, desfaz.
   // Desfazer volta para a ocorrencia anterior em vez de limpar, senao uma ocorrencia antiga,
   // ja resolvida, reapareceria como atrasada.
-  const marcarDemandaFeita = (status: StatusDemanda) =>
-    patchDemanda(
+  const marcarDemandaFeita = async (status: StatusDemanda) => {
+    const desfazendo = status.estado === "feita";
+    const ok = await patchDemanda(
       status.demanda,
       {
-        ultima_conclusao:
-          status.estado === "feita" ? ocorrenciaAnterior(status.demanda, status.ocorrencia) : status.ocorrencia,
+        ultima_conclusao: desfazendo ? ocorrenciaAnterior(status.demanda, status.ocorrencia) : status.ocorrencia,
+        ...(desfazendo ? {} : { aguardando_ocorrencia: null }),
       },
       "Erro ao atualizar demanda fixa"
     );
+    // Estava pendente do cliente e ele so resolveu depois de mais de um dia: oferece mudar o dia
+    // fixo (ex.: de sexta para segunda) ou manter como esta.
+    if (
+      ok &&
+      status.estado === "aguardando" &&
+      status.demanda.recorrencia !== "unica" &&
+      diffDias(dateKey(agora), status.ocorrencia) > 1
+    ) {
+      setMudarDia({ demanda: status.demanda, ocorrencia: status.ocorrencia });
+    }
+  };
+
+  // Salva o novo dia e ja marca hoje como resolvido: sem isso, mudar sexta -> segunda no proprio
+  // dia de segunda faria a demanda de hoje aparecer como pendente logo depois de concluida.
+  const salvarNovoDia = async (patch: Partial<DemandaFixa>) => {
+    if (!mudarDia) return;
+    const atual = demandas.find((d) => d.id === mudarDia.demanda.id) ?? mudarDia.demanda;
+    const ok = await patchDemanda(
+      atual,
+      { ...patch, ultima_conclusao: dateKey(agora) },
+      "Erro ao mudar o dia da demanda fixa"
+    );
+    if (ok) {
+      toast.success("Dia da demanda fixa atualizado");
+      setMudarDia(null);
+    }
+  };
+
+  // "Pendente cliente": fiz a minha parte, falta o cliente. Tira o alerta mas mantem a demanda
+  // aberta no card; clicar de novo (Reabrir) volta ao alerta.
+  const alternarPendenteCliente = (status: StatusDemanda) =>
+    patchDemanda(
+      status.demanda,
+      { aguardando_ocorrencia: status.estado === "aguardando" ? null : status.ocorrencia },
+      "Erro ao atualizar demanda fixa"
+    );
+
+  // A observacao vale so para a ocorrencia atual (some quando a proxima passa a valer).
+  const salvarObservacaoDemanda = (status: StatusDemanda, texto: string) => {
+    const valor = texto.trim();
+    if (valor === status.observacao) return;
+    patchDemanda(
+      status.demanda,
+      { observacao: valor || null, observacao_ocorrencia: valor ? status.ocorrencia : null },
+      "Erro ao salvar observação"
+    );
+  };
 
   const excluirDemanda = async (demanda: DemandaFixa) => {
     if (!window.confirm(`Excluir a demanda fixa "${demanda.titulo}"?`)) return;
@@ -1456,7 +1609,13 @@ export const ChecklistBoard = () => {
                 {fixas.length > 0 && (
                   <div className="space-y-1.5">
                     {fixas.map((st) => (
-                      <DemandaFixaLinha key={st.demanda.id} status={st} onToggle={() => marcarDemandaFeita(st)} />
+                      <DemandaFixaLinha
+                        key={st.demanda.id}
+                        status={st}
+                        onToggle={() => marcarDemandaFeita(st)}
+                        onPendente={() => alternarPendenteCliente(st)}
+                        onObservacao={(texto) => salvarObservacaoDemanda(st, texto)}
+                      />
                     ))}
                   </div>
                 )}
@@ -1496,7 +1655,9 @@ export const ChecklistBoard = () => {
                       className={`group flex items-start gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-lg ${
                         prazoEmAlerta(prazo)
                           ? "bg-warning/15 ring-1 ring-warning/50"
-                          : "hover:bg-surface-2"
+                          : it.aguardando_cliente && !it.concluido
+                            ? "bg-[hsl(var(--wait-blue)/0.2)] ring-1 ring-[hsl(var(--wait-blue)/0.6)]"
+                            : "hover:bg-surface-2"
                       }`}
                     >
                       <CheckMark done={it.concluido} onClick={() => toggleItem(it)} />
@@ -1517,6 +1678,11 @@ export const ChecklistBoard = () => {
                             placeholder="Observação (opcional)"
                             className="min-w-0 flex-1 bg-transparent text-[11px] italic text-warning/90 outline-none focus:underline decoration-dashed placeholder:text-muted-foreground/50 placeholder:not-italic"
                           />
+                          {it.aguardando_cliente && !it.concluido && (
+                            <span className="shrink-0 rounded-full bg-[hsl(var(--wait-blue))] px-1.5 py-px font-mono-plex text-[9px] uppercase tracking-wider text-white">
+                              Pendente cliente
+                            </span>
+                          )}
                           <PrazoPicker
                             variant="item"
                             value={it.data_limite}
@@ -1535,6 +1701,23 @@ export const ChecklistBoard = () => {
                         title={it.responsavel || ""}
                         className="font-mono-plex w-[4.5rem] shrink-0 bg-transparent text-[10px] uppercase tracking-wider text-muted-foreground outline-none focus:underline decoration-dashed text-right mt-1.5 text-ellipsis"
                       />
+                      {!it.concluido && (
+                        <button
+                          onClick={() => toggleAguardandoCliente(it)}
+                          className={`shrink-0 mt-1 transition-opacity ${
+                            it.aguardando_cliente
+                              ? "text-[hsl(var(--wait-blue-light))] opacity-100"
+                              : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[hsl(var(--wait-blue-light))]"
+                          }`}
+                          title={
+                            it.aguardando_cliente
+                              ? "Pendente do cliente — clique para reabrir"
+                              : "Já enviei, pendente do cliente"
+                          }
+                        >
+                          <Hourglass className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                       <button
                         onClick={() => toggleOtimizacaoFlag(it)}
                         className={`shrink-0 mt-1 transition-opacity ${
@@ -1638,6 +1821,14 @@ export const ChecklistBoard = () => {
         )}
       </Stagger>
       )}
+
+      <MudarDiaDemandaDialog
+        demanda={mudarDia ? (demandas.find((d) => d.id === mudarDia.demanda.id) ?? mudarDia.demanda) : null}
+        ocorrencia={mudarDia?.ocorrencia ?? null}
+        agora={agora}
+        onFechar={() => setMudarDia(null)}
+        onSalvar={salvarNovoDia}
+      />
 
       <Dialog open={!!otimItem} onOpenChange={(o) => { if (!o) closeOtimModal(); }}>
         <DialogContent

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { BellRing, Check, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { BellRing, Check, Hourglass, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -183,7 +183,8 @@ export const DemandasFixasPanel = ({
             <p className="text-xs text-muted-foreground max-w-xl">
               Antes do dia ela aparece como um item normal no card do cliente e dá para concluir antes. No dia
               marcado, o card sobe para o topo do quadro em alerta vermelho, mostrando o horário, até você marcar
-              como feita.
+              como feita. Se você já enviou e falta o cliente, use "Pendente cliente" no card: o alerta sai, mas a
+              demanda continua aberta até você concluir.
             </p>
           </div>
           {editandoId && (
@@ -344,6 +345,9 @@ export const DemandasFixasPanel = ({
                         {descreverRecorrencia(d)}
                         {d.responsavel && <> · {d.responsavel}</>}
                       </p>
+                      {status?.observacao && (
+                        <p className="mt-0.5 text-[11px] italic text-warning/90">{status.observacao}</p>
+                      )}
                     </div>
 
                     {!d.ativo ? (
@@ -359,6 +363,16 @@ export const DemandasFixasPanel = ({
                       >
                         <Check className="h-3 w-3" />
                         {status!.rotulo}
+                      </button>
+                    ) : status?.estado === "aguardando" ? (
+                      <button
+                        type="button"
+                        onClick={() => onMarcarFeita(status)}
+                        title="Cliente respondeu: concluir"
+                        className="font-mono-plex flex items-center gap-1.5 rounded-full bg-[hsl(var(--wait-blue))] px-2.5 py-1 text-[10px] uppercase tracking-wider text-white hover:brightness-125"
+                      >
+                        <Hourglass className="h-3 w-3" />
+                        {status.rotulo}
                       </button>
                     ) : status?.estado === "feita" ? (
                       <button

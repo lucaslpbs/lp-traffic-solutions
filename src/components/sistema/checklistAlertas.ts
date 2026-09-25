@@ -24,6 +24,11 @@ export interface DemandaFixa {
   ativo: boolean;
   /** Data (chave) da ultima ocorrencia marcada como feita. */
   ultima_conclusao: string | null;
+  /** Ocorrencia (chave) marcada como "pendente cliente": enviado, falta o cliente responder. */
+  aguardando_ocorrencia: string | null;
+  /** Observacao, valida so para a ocorrencia em observacao_ocorrencia — some quando a proxima chega. */
+  observacao: string | null;
+  observacao_ocorrencia: string | null;
   created_at: string | null;
 }
 
@@ -130,11 +135,12 @@ export const ocorrenciaAnterior = (demanda: DemandaFixa, ocorrencia: string): st
  *   hoje     — e o dia, ainda antes do horario (ja alerta desde a manha)
  *   vencida  — e o dia e o horario passou
  *   atrasada — a ocorrencia foi em um dia anterior e nao foi marcada como feita
- * Sem alerta (linha normal no card):
- *   proxima  — ainda nao e o dia; da para concluir antes
- *   feita    — a ocorrencia de hoje (ou a proxima, se concluida antes) esta feita
+ * Sem alerta:
+ *   aguardando — feito o que dependia de mim, falta o cliente ("pendente cliente")
+ *   proxima    — ainda nao e o dia; da para concluir antes
+ *   feita      — a ocorrencia de hoje (ou a proxima, se concluida antes) esta feita
  */
-export type EstadoDemanda = "hoje" | "vencida" | "atrasada" | "proxima" | "feita";
+export type EstadoDemanda = "hoje" | "vencida" | "atrasada" | "aguardando" | "proxima" | "feita";
 
 export interface StatusDemanda {
   demanda: DemandaFixa;
@@ -144,6 +150,8 @@ export interface StatusDemanda {
   quando: number;
   /** Texto curto para o selo do card. */
   rotulo: string;
+  /** Observacao desta ocorrencia ("" quando nao ha). */
+  observacao: string;
 }
 
 const rotuloDuracao = (minutos: number): string => {
@@ -156,8 +164,9 @@ const rotuloDuracao = (minutos: number): string => {
 
 /**
  * Situacao da demanda fixa agora. Toda demanda ativa aparece no card: no dia
- * (ou atrasada) como alerta; fora do dia como linha normal ("proxima") que pode
- * ser concluida antes; concluida, fica "feita" ate a ocorrencia seguinte.
+ * (ou atrasada) como alerta; "pendente cliente" quando ja fiz a minha parte;
+ * fora do dia como linha normal ("proxima") que pode ser concluida antes;
+ * concluida, fica "feita" ate a ocorrencia seguinte.
  */
 export const statusDemanda = (demanda: DemandaFixa, agora: Date): StatusDemanda | null => {
   if (!demanda.ativo) return null;
@@ -167,6 +176,8 @@ export const statusDemanda = (demanda: DemandaFixa, agora: Date): StatusDemanda 
   const horario = formatHorario(demanda.horario);
   const conclusao = demanda.ultima_conclusao;
   const feitaPara = (ocorrencia: string) => !!conclusao && conclusao >= ocorrencia;
+  const aguardandoPara = (ocorrencia: string) =>
+    !!demanda.aguardando_ocorrencia && demanda.aguardando_ocorrencia >= ocorrencia;
   const momento = (ocorrencia: string) => {
     const d = parseKey(ocorrencia);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, horarioMin).getTime();
@@ -177,11 +188,16 @@ export const statusDemanda = (demanda: DemandaFixa, agora: Date): StatusDemanda 
     estado,
     quando: momento(ocorrencia),
     rotulo,
+    observacao: demanda.observacao_ocorrencia === ocorrencia ? demanda.observacao ?? "" : "",
   });
+  const pendenteCliente = (ocorrencia: string) =>
+    montar(ocorrencia, "aguardando", `Pendente cliente · ${formatDiaCurto(ocorrencia)}`);
 
-  // 1) Ocorrencia de hoje ou de um dia anterior ainda sem conclusao: alerta.
+  // 1) Ocorrencia de hoje ou de um dia anterior ainda sem conclusao: alerta —
+  //    a menos que eu ja tenha feito a minha parte e falte o cliente.
   const passada = ultimaOcorrencia(demanda, agora);
   if (passada && !feitaPara(passada)) {
+    if (aguardandoPara(passada)) return pendenteCliente(passada);
     if (passada < hoje) {
       return montar(passada, "atrasada", `Atrasada · ${formatDiaCurto(passada)} ${horario}`);
     }
@@ -199,6 +215,7 @@ export const statusDemanda = (demanda: DemandaFixa, agora: Date): StatusDemanda 
   const proxima = proximaOcorrencia(demanda, agora);
   if (!proxima) return null;
   if (feitaPara(proxima)) return montar(proxima, "feita", `Feita · ${formatDiaCurto(proxima)} ${horario}`);
+  if (aguardandoPara(proxima)) return pendenteCliente(proxima);
   return montar(proxima, "proxima", `Próxima · ${formatDiaCurto(proxima)} ${horario}`);
 };
 

@@ -1845,6 +1845,7 @@ export type Database = {
       }
       sistema_checklist_itens: {
         Row: {
+          aguardando_cliente: boolean
           arquivado: boolean
           arquivado_em: string | null
           client_id: string
@@ -1861,6 +1862,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          aguardando_cliente?: boolean
           arquivado?: boolean
           arquivado_em?: string | null
           client_id: string
@@ -1877,6 +1879,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          aguardando_cliente?: boolean
           arquivado?: boolean
           arquivado_em?: string | null
           client_id?: string
@@ -1911,6 +1914,7 @@ export type Database = {
       }
       sistema_checklist_demandas_fixas: {
         Row: {
+          aguardando_ocorrencia: string | null
           ativo: boolean
           client_id: string
           created_at: string | null
@@ -1920,6 +1924,8 @@ export type Database = {
           dias_semana: number[]
           horario: string
           id: string
+          observacao: string | null
+          observacao_ocorrencia: string | null
           recorrencia: string
           responsavel: string | null
           titulo: string
@@ -1927,6 +1933,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          aguardando_ocorrencia?: string | null
           ativo?: boolean
           client_id: string
           created_at?: string | null
@@ -1936,6 +1943,8 @@ export type Database = {
           dias_semana?: number[]
           horario?: string
           id?: string
+          observacao?: string | null
+          observacao_ocorrencia?: string | null
           recorrencia?: string
           responsavel?: string | null
           titulo: string
@@ -1943,6 +1952,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          aguardando_ocorrencia?: string | null
           ativo?: boolean
           client_id?: string
           created_at?: string | null
@@ -1952,6 +1962,8 @@ export type Database = {
           dias_semana?: number[]
           horario?: string
           id?: string
+          observacao?: string | null
+          observacao_ocorrencia?: string | null
           recorrencia?: string
           responsavel?: string | null
           titulo?: string
