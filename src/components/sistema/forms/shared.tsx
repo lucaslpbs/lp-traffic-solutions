@@ -1,11 +1,44 @@
-import { useState, ReactNode } from "react";
+import { useState, useLayoutEffect, useRef, ReactNode } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export const inputCls =
   "bg-surface-2 border-surface-3 text-foreground rounded-md placeholder:text-muted-foreground/80";
+
+/** Textarea que cresce conforme o conteudo (campos curtos parecem um input). */
+export const AutoTextarea = ({
+  className,
+  value,
+  ...props
+}: React.ComponentProps<typeof Textarea>) => {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const fit = () => {
+      const el = ref.current;
+      if (!el) return;
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight + 2}px`;
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [value]);
+
+  return (
+    <Textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      className={cn("min-h-[38px] resize-none overflow-hidden", className)}
+      {...props}
+    />
+  );
+};
 
 export const SectionTitle = ({ children }: { children: ReactNode }) => (
   <h4 className="text-sm font-semibold text-primary uppercase tracking-wide border-b border-surface-3 pb-2">
@@ -19,11 +52,27 @@ export const FieldLabel = ({ children }: { children: ReactNode }) => (
   </Label>
 );
 
-export const SaveButton = ({ saved }: { saved?: boolean }) => (
+export const SaveButton = ({
+  saved,
+  saving,
+  dirty,
+}: {
+  saved?: boolean;
+  saving?: boolean;
+  dirty?: boolean;
+}) => (
   <div className="flex items-center justify-end gap-3">
-    {saved && <span className="text-xs text-success">Salvo</span>}
-    <Button type="submit" className="bg-primary hover:bg-primary/90 text-foreground h-9">
-      Salvar
+    {saved ? (
+      <span className="text-xs text-success">Salvo</span>
+    ) : (
+      dirty && !saving && <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+    )}
+    <Button
+      type="submit"
+      disabled={saving}
+      className="bg-primary hover:bg-primary/90 text-foreground h-9"
+    >
+      {saving ? "Salvando..." : "Salvar"}
     </Button>
   </div>
 );
@@ -45,6 +94,7 @@ interface BulletListProps {
   placeholders?: string[];
   minItems?: number;
   asLink?: boolean;
+  readOnly?: boolean;
 }
 
 export const BulletList = ({
@@ -54,7 +104,23 @@ export const BulletList = ({
   placeholders,
   minItems = 0,
   asLink = false,
+  readOnly = false,
 }: BulletListProps) => {
+  if (readOnly) {
+    const preenchidos = items.filter((it) => it.trim() !== "");
+    if (preenchidos.length === 0) return <p className="text-sm text-muted-foreground pl-5">—</p>;
+    return (
+      <ul className="space-y-1.5">
+        {preenchidos.map((it, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+            <span className="text-primary text-lg leading-none select-none">•</span>
+            <span className="whitespace-pre-wrap break-words">{it}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   const update = (i: number, v: string) => {
     const next = [...items];
     next[i] = v;

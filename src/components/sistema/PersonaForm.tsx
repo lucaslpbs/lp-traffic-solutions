@@ -1,8 +1,61 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { AutoTextarea, SaveButton } from "./forms/shared";
+import { useClienteSecao, useSecaoEditor } from "./forms/useClienteSecao";
+
+const SECAO = "persona";
+
+const PERSONA_SECOES = [
+  {
+    titulo: "Identificação",
+    campos: [
+      { id: "nome", label: "Nome" },
+      { id: "idade", label: "Idade" },
+      { id: "genero", label: "Gênero" },
+      { id: "onde_mora", label: "Onde mora" },
+      { id: "status_relacionamento", label: "Status de relacionamento" },
+      { id: "interesses", label: "Interesses" },
+    ],
+  },
+  {
+    titulo: "Objetivos e motivações",
+    campos: [
+      { id: "desejos", label: "Desejos", placeholder: "• item" },
+      { id: "o_que_querem", label: "O que querem" },
+      { id: "o_que_fazem", label: "O que fazem" },
+      { id: "o_que_falam", label: "O que falam" },
+      { id: "o_que_pensam", label: "O que pensam" },
+    ],
+  },
+  {
+    titulo: "Desafios",
+    campos: [
+      { id: "frustracoes", label: "Maiores frustrações" },
+      { id: "necessidades", label: "Maiores necessidades" },
+      { id: "dores", label: "Maiores dores" },
+    ],
+  },
+  {
+    titulo: "Trabalho",
+    campos: [
+      { id: "escolaridade", label: "Grau de escolaridade" },
+      { id: "onde_trabalha", label: "Onde trabalha" },
+      { id: "setor", label: "Setor que atua" },
+      { id: "tamanho_empresa", label: "Tamanho da empresa" },
+      { id: "cargo", label: "Cargo / Profissão" },
+      { id: "habilidades", label: "Habilidades boas e ruins" },
+      { id: "como_medido", label: "Como o trabalho é medido" },
+      { id: "reporta_a", label: "A quem se reporta" },
+      { id: "responsabilidades", label: "Responsabilidades" },
+      { id: "ferramentas", label: "Ferramentas que usa" },
+      { id: "midias_sociais", label: "Mídias sociais que usa" },
+    ],
+  },
+];
+
+type PersonaDados = Record<string, string>;
+
+const inputCls = "bg-background border-border text-foreground";
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-1.5">
@@ -18,67 +71,68 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
   </div>
 );
 
-export const PersonaForm = () => {
-  const [saved, setSaved] = useState(false);
-  const inputCls = "bg-background border-border text-foreground";
+interface EditorProps {
+  initial: Partial<PersonaDados>;
+  onSave: (dados: PersonaDados) => Promise<void>;
+  readOnly: boolean;
+}
+
+const PersonaEditor = ({ initial, onSave, readOnly }: EditorProps) => {
+  const { values, setValues, dirty, saving, saved, onSubmit } = useSecaoEditor<PersonaDados>(
+    { ...initial } as PersonaDados,
+    onSave
+  );
+
+  const fieldProps = (id: string, placeholder?: string) => ({
+    value: values[id] ?? "",
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+      setValues((prev) => ({ ...prev, [id]: e.target.value })),
+    readOnly,
+    placeholder: readOnly ? "—" : placeholder,
+    className: inputCls,
+  });
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
-      }}
-      className="space-y-4"
-    >
-      <div className="flex items-center justify-end gap-3">
-        {saved && <span className="text-xs text-success">Salvo</span>}
-        <Button type="submit" className="bg-primary hover:bg-primary/90 h-9">Salvar</Button>
-      </div>
+    <form onSubmit={onSubmit} className="space-y-4">
+      {!readOnly && <SaveButton saved={saved} saving={saving} dirty={dirty} />}
 
-      <Section title="Identificação">
-        <Field label="Nome"><Input className={inputCls} /></Field>
-        <Field label="Idade"><Input className={inputCls} /></Field>
-        <Field label="Gênero"><Input className={inputCls} /></Field>
-        <Field label="Onde mora"><Input className={inputCls} /></Field>
-        <Field label="Status de relacionamento"><Input className={inputCls} /></Field>
-        <Field label="Interesses"><Textarea className={inputCls} /></Field>
-      </Section>
-
-      <Section title="Objetivos e motivações">
-        <Field label="Desejos"><Textarea className={inputCls} placeholder="• item" /></Field>
-        <Field label="O que querem"><Textarea className={inputCls} /></Field>
-        <Field label="O que fazem"><Textarea className={inputCls} /></Field>
-        <Field label="O que falam"><Textarea className={inputCls} /></Field>
-        <Field label="O que pensam"><Textarea className={inputCls} /></Field>
-      </Section>
-
-      <Section title="Desafios">
-        <Field label="Maiores frustrações"><Textarea className={inputCls} /></Field>
-        <Field label="Maiores necessidades"><Textarea className={inputCls} /></Field>
-        <Field label="Maiores dores"><Textarea className={inputCls} /></Field>
-      </Section>
-
-      <Section title="Trabalho">
-        <Field label="Grau de escolaridade"><Input className={inputCls} /></Field>
-        <Field label="Onde trabalha"><Input className={inputCls} /></Field>
-        <Field label="Setor que atua"><Input className={inputCls} /></Field>
-        <Field label="Tamanho da empresa"><Input className={inputCls} /></Field>
-        <Field label="Cargo / Profissão"><Input className={inputCls} /></Field>
-        <Field label="Habilidades boas e ruins"><Textarea className={inputCls} /></Field>
-        <Field label="Como o trabalho é medido"><Textarea className={inputCls} /></Field>
-        <Field label="A quem se reporta"><Input className={inputCls} /></Field>
-        <Field label="Responsabilidades"><Textarea className={inputCls} /></Field>
-        <Field label="Ferramentas que usa"><Textarea className={inputCls} /></Field>
-        <Field label="Mídias sociais que usa"><Textarea className={inputCls} /></Field>
-      </Section>
+      {PERSONA_SECOES.map((secao) => (
+        <Section key={secao.titulo} title={secao.titulo}>
+          {secao.campos.map((c) => (
+            <Field key={c.id} label={c.label}>
+              <AutoTextarea {...fieldProps(c.id, "placeholder" in c ? c.placeholder : undefined)} />
+            </Field>
+          ))}
+        </Section>
+      ))}
 
       <Section title="Razões para usar o produto/serviço">
         <div className="md:col-span-2">
-          <Textarea className={inputCls} rows={4} placeholder="Foque em benefícios" />
+          <AutoTextarea {...fieldProps("razoes", "Foque em benefícios")} className={`${inputCls} min-h-[100px]`} />
         </div>
       </Section>
-
     </form>
   );
+};
+
+interface PersonaFormProps {
+  clientId?: string;
+  readOnly?: boolean;
+}
+
+export const PersonaForm = ({ clientId, readOnly = false }: PersonaFormProps) => {
+  const { data, isLoading, isError, save } = useClienteSecao<PersonaDados>(clientId, SECAO);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (isError) {
+    return <p className="text-sm text-destructive">Erro ao carregar a persona. Recarregue a página.</p>;
+  }
+
+  return <PersonaEditor key={clientId} initial={data ?? {}} onSave={save} readOnly={readOnly} />;
 };

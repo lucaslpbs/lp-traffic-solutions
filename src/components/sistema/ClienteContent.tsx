@@ -26,8 +26,8 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
 
   const renderSubArea = () => {
     switch (subArea) {
-      case "Persona": return <PersonaForm />;
-      case "ICP": return <ICPForm />;
+      case "Persona": return <PersonaForm clientId={clientId} />;
+      case "ICP": return <ICPForm clientId={clientId} />;
       case "Escopo do trabalho": return <EscopoForm />;
       case "Diretório de histórias do especialista": return <HistoriasForm />;
       case "Biblioteca de estudos e referências": return <BibliotecaForm />;
