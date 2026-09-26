@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronRight, Plus, Trash2, Bold, Italic, List, Heading2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { inputCls } from "./shared";
+import { sanitizeHtml } from "@/lib/sanitizeHtml";
+import { inputCls, novoId } from "./shared";
+import { SecaoLoader } from "./SecaoLoader";
 
 interface Entrada {
   id: string;
@@ -14,47 +17,124 @@ interface Bucket {
   key: string;
   entradas: Entrada[];
 }
+interface DiarioDados {
+  buckets: Bucket[];
+}
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-export const DiarioBordoForm = () => {
+const chaveAtual = () => {
   const now = new Date();
-  const initialKey = `${MESES[now.getMonth()]}/${now.getFullYear()}`;
-  const [buckets, setBuckets] = useState<Bucket[]>([{ key: initialKey, entradas: [] }]);
-  const [open, setOpen] = useState<Record<string, boolean>>({ [initialKey]: true });
+  return `${MESES[now.getMonth()]}/${now.getFullYear()}`;
+};
+
+// "Setembro/2026" -> numero para ordenar (mais recente primeiro)
+const ordemChave = (key: string) => {
+  const [mes, ano] = key.split("/");
+  return Number(ano) * 12 + MESES.indexOf(mes);
+};
+
+/** Sempre mostra o mes atual (mesmo vazio), do mais recente para o mais antigo. */
+const paraTela = (buckets: Bucket[]): Bucket[] => {
+  const atual = chaveAtual();
+  const lista = buckets.some((b) => b.key === atual) ? buckets : [...buckets, { key: atual, entradas: [] }];
+  return [...lista].sort((a, b) => ordemChave(b.key) - ordemChave(a.key));
+};
+
+/** Meses sem nenhuma entrada nao precisam ir para o banco. */
+const paraBanco = (buckets: Bucket[]): Bucket[] => buckets.filter((b) => b.entradas.length > 0);
+
+const adicionarEntrada = (lista: Bucket[], key: string, nova: Entrada): Bucket[] =>
+  lista.some((b) => b.key === key)
+    ? lista.map((b) => (b.key === key ? { ...b, entradas: [nova, ...b.entradas] } : b))
+    : [...lista, { key, entradas: [nova] }];
+
+interface EditorProps {
+  initial: Partial<DiarioDados>;
+  update: (mudar: (atual: Partial<DiarioDados>) => DiarioDados) => Promise<DiarioDados>;
+}
+
+const DiarioEditor = ({ initial, update }: EditorProps) => {
+  const [buckets, setBuckets] = useState<Bucket[]>(paraTela(initial.buckets ?? []));
+  const [open, setOpen] = useState<Record<string, boolean>>({ [chaveAtual()]: true });
   const [editing, setEditing] = useState<{ bucketKey: string; entrada: Entrada } | null>(null);
   const [askDate, setAskDate] = useState<string | null>(null);
   const [novaData, setNovaData] = useState("");
+  const [saving, setSaving] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const toggle = (k: string) => setOpen({ ...open, [k]: !open[k] });
+
+  /** Aplica a mudanca sobre a versao mais recente do banco e atualiza a tela. */
+  const aplicar = async (op: (lista: Bucket[]) => Bucket[]): Promise<boolean> => {
+    setSaving(true);
+    try {
+      const novo = await update((atual) => ({ buckets: paraBanco(op(atual.buckets ?? [])) }));
+      setBuckets(paraTela(novo.buckets));
+      return true;
+    } catch (err) {
+      console.error("Erro ao salvar diario de bordo:", err);
+      toast.error("Erro ao salvar. Tente novamente.");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const startNew = (bucketKey: string) => {
     setNovaData("");
     setAskDate(bucketKey);
   };
 
-  const confirmNew = () => {
+  const confirmNew = async () => {
     if (!askDate || !novaData.trim()) return;
-    const nova: Entrada = { id: String(Date.now()), data: novaData, conteudo: "" };
-    setBuckets(buckets.map((b) => b.key === askDate ? { ...b, entradas: [nova, ...b.entradas] } : b));
-    setEditing({ bucketKey: askDate, entrada: nova });
-    setAskDate(null);
+    const nova: Entrada = { id: novoId(), data: novaData.trim(), conteudo: "" };
+    const bucketKey = askDate;
+    const ok = await aplicar((lista) => adicionarEntrada(lista, bucketKey, nova));
+    if (ok) {
+      setAskDate(null);
+      setEditing({ bucketKey, entrada: nova });
+    }
   };
 
-  const updateEntrada = (bucketKey: string, id: string, conteudo: string) =>
-    setBuckets(buckets.map((b) =>
-      b.key === bucketKey
-        ? { ...b, entradas: b.entradas.map((e) => e.id === id ? { ...e, conteudo } : e) }
-        : b
-    ));
+  const deleteEntrada = async (bucketKey: string, id: string) => {
+    if (!window.confirm("Excluir esta entrada do diário?")) return;
+    await aplicar((lista) =>
+      lista.map((b) =>
+        b.key === bucketKey ? { ...b, entradas: b.entradas.filter((e) => e.id !== id) } : b
+      )
+    );
+  };
 
-  const deleteEntrada = (bucketKey: string, id: string) =>
-    setBuckets(buckets.map((b) =>
-      b.key === bucketKey ? { ...b, entradas: b.entradas.filter((e) => e.id !== id) } : b
-    ));
+  const htmlDoEditor = () => sanitizeHtml(editorRef.current?.innerHTML ?? "");
+
+  const fecharEditor = () => {
+    if (
+      editing &&
+      htmlDoEditor() !== sanitizeHtml(editing.entrada.conteudo) &&
+      !window.confirm("Descartar as alterações não salvas?")
+    ) {
+      return;
+    }
+    setEditing(null);
+  };
+
+  const salvarEditor = async () => {
+    if (!editing) return;
+    const { bucketKey, entrada } = editing;
+    const html = htmlDoEditor();
+    const ok = await aplicar((lista) =>
+      lista.map((b) =>
+        b.key === bucketKey
+          ? { ...b, entradas: b.entradas.map((e) => (e.id === entrada.id ? { ...e, conteudo: html } : e)) }
+          : b
+      )
+    );
+    if (ok) setEditing(null);
+  };
 
   const applyFormat = (cmd: string) => {
     document.execCommand(cmd, false);
@@ -88,6 +168,7 @@ export const DiarioBordoForm = () => {
                       type="button"
                       onClick={(ev) => { ev.stopPropagation(); deleteEntrada(b.key, e.id); }}
                       className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
+                      aria-label="Excluir entrada"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -106,24 +187,27 @@ export const DiarioBordoForm = () => {
         );
       })}
 
-      <Dialog open={!!askDate} onOpenChange={(o) => !o && setAskDate(null)}>
+      <Dialog open={!!askDate} onOpenChange={(o) => !o && !saving && setAskDate(null)}>
         <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-sm">
           <DialogHeader><DialogTitle className="text-foreground">Nova entrada</DialogTitle></DialogHeader>
           <Input
             placeholder="Ex: 10/06/2025 ou 10 a 12/06/2025"
             value={novaData}
             onChange={(e) => setNovaData(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && confirmNew()}
             className={inputCls}
             autoFocus
           />
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setAskDate(null)}>Cancelar</Button>
-            <Button type="button" className="bg-primary hover:bg-primary/90" onClick={confirmNew}>Criar</Button>
+            <Button type="button" variant="ghost" disabled={saving} onClick={() => setAskDate(null)}>Cancelar</Button>
+            <Button type="button" disabled={saving} className="bg-primary hover:bg-primary/90" onClick={confirmNew}>
+              {saving ? "Criando..." : "Criar"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog open={!!editing} onOpenChange={(o) => !o && !saving && fecharEditor()}>
         <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-foreground">{editing?.entrada.data}</DialogTitle>
@@ -146,18 +230,26 @@ export const DiarioBordoForm = () => {
             ))}
           </div>
           <div
+            ref={editorRef}
             contentEditable
             suppressContentEditableWarning
             className="min-h-[300px] max-h-[50vh] overflow-y-auto bg-surface-2 border border-surface-3 rounded-md p-3 text-foreground text-sm focus:outline-none focus:border-primary/60"
-            dangerouslySetInnerHTML={{ __html: editing?.entrada.conteudo ?? "" }}
-            onBlur={(e) => editing && updateEntrada(editing.bucketKey, editing.entrada.id, e.currentTarget.innerHTML)}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(editing?.entrada.conteudo ?? "") }}
           />
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setEditing(null)}>Fechar</Button>
-            <Button type="button" className="bg-primary hover:bg-primary/90" onClick={() => setEditing(null)}>Salvar</Button>
+            <Button type="button" variant="ghost" disabled={saving} onClick={fecharEditor}>Fechar</Button>
+            <Button type="button" disabled={saving} className="bg-primary hover:bg-primary/90" onClick={salvarEditor}>
+              {saving ? "Salvando..." : "Salvar"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 };
+
+export const DiarioBordoForm = ({ clientId }: { clientId?: string }) => (
+  <SecaoLoader<DiarioDados> clientId={clientId} secao="diario" rotulo="o diário de bordo">
+    {({ initial, update }) => <DiarioEditor initial={initial} update={update} />}
+  </SecaoLoader>
+);

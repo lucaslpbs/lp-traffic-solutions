@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FileText, Workflow } from "lucide-react";
 import { subAreasModal } from "@/lib/sistemaMockData";
-import { Textarea } from "@/components/ui/textarea";
 import { PersonaForm } from "./PersonaForm";
 import { ICPForm } from "./forms/ICPForm";
 import { EscopoForm } from "./forms/EscopoForm";
@@ -13,6 +12,7 @@ import { CalendarioEditorialForm } from "./forms/CalendarioEditorialForm";
 import { RelatoriosForm } from "./forms/RelatoriosForm";
 import { OtimizacaoForm } from "./forms/OtimizacaoForm";
 import { DiarioBordoForm } from "./forms/DiarioBordoForm";
+import { TextoLivreForm } from "./forms/TextoLivreForm";
 import { CriativosGallery } from "./CriativosGallery";
 
 interface ClienteContentProps {
@@ -28,23 +28,26 @@ export const ClienteContent = ({ clientId }: ClienteContentProps) => {
     switch (subArea) {
       case "Persona": return <PersonaForm clientId={clientId} />;
       case "ICP": return <ICPForm clientId={clientId} />;
-      case "Escopo do trabalho": return <EscopoForm />;
-      case "Diretório de histórias do especialista": return <HistoriasForm />;
-      case "Biblioteca de estudos e referências": return <BibliotecaForm />;
-      case "Canais de comunicação": return <CanaisForm />;
-      case "Linhas editoriais": return <LinhasEditoriaisForm />;
-      case "Calendário editorial": return <CalendarioEditorialForm />;
-      case "Relatórios": return <RelatoriosForm />;
-      case "Otimização": return <OtimizacaoForm clientId={clientId} />;
-      case "Criativos": return <CriativosGallery clientId={clientId} />;
-      case "Diário de Bordo": return <DiarioBordoForm />;
-      default:
+      case "Escopo do trabalho": return <EscopoForm clientId={clientId} />;
+      case "Diretório de histórias do especialista": return <HistoriasForm clientId={clientId} />;
+      case "Biblioteca de estudos e referências": return <BibliotecaForm clientId={clientId} />;
+      case "Lista de mineração":
         return (
-          <Textarea
-            className="min-h-[400px] bg-surface-2 border-surface-3 text-foreground"
-            placeholder={`Descreva ${subArea?.toLowerCase()}...`}
+          <TextoLivreForm
+            clientId={clientId}
+            secao="mineracao"
+            rotulo="a lista de mineração"
+            placeholder="Descreva a lista de mineração..."
           />
         );
+      case "Canais de comunicação": return <CanaisForm clientId={clientId} />;
+      case "Linhas editoriais": return <LinhasEditoriaisForm clientId={clientId} />;
+      case "Calendário editorial": return <CalendarioEditorialForm clientId={clientId} />;
+      case "Relatórios": return <RelatoriosForm clientId={clientId} />;
+      case "Otimização": return <OtimizacaoForm clientId={clientId} />;
+      case "Criativos": return <CriativosGallery clientId={clientId} />;
+      case "Diário de Bordo": return <DiarioBordoForm clientId={clientId} />;
+      default: return null;
     }
   };
 

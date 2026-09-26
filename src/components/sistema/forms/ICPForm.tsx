@@ -1,6 +1,6 @@
-import { Loader2 } from "lucide-react";
-import { BulletList, FormShell, SaveButton, SectionTitle } from "./shared";
-import { useClienteSecao, useSecaoEditor } from "./useClienteSecao";
+import { BulletList, FormShell, SaveButton, SectionTitle, completar } from "./shared";
+import { SecaoLoader } from "./SecaoLoader";
+import { useSecaoEditor } from "./useClienteSecao";
 
 const SECAO = "icp";
 const MIN_ITENS = 3;
@@ -21,13 +21,7 @@ type ICPDados = Record<string, string[]>;
 
 /** Garante todas as secoes, cada uma com ao menos MIN_ITENS linhas para preencher. */
 const normalizar = (salvo: Partial<ICPDados>): ICPDados =>
-  Object.fromEntries(
-    SECOES.map(({ id }) => {
-      const itens = [...(salvo[id] ?? [])];
-      while (itens.length < MIN_ITENS) itens.push("");
-      return [id, itens];
-    })
-  );
+  Object.fromEntries(SECOES.map(({ id }) => [id, completar(salvo[id], MIN_ITENS)]));
 
 interface EditorProps {
   initial: Partial<ICPDados>;
@@ -64,19 +58,8 @@ interface ICPFormProps {
   readOnly?: boolean;
 }
 
-export const ICPForm = ({ clientId, readOnly = false }: ICPFormProps) => {
-  const { data, isLoading, isError, save } = useClienteSecao<ICPDados>(clientId, SECAO);
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-  if (isError) {
-    return <p className="text-sm text-destructive">Erro ao carregar o ICP. Recarregue a página.</p>;
-  }
-
-  return <ICPEditor key={clientId} initial={data ?? {}} onSave={save} readOnly={readOnly} />;
-};
+export const ICPForm = ({ clientId, readOnly = false }: ICPFormProps) => (
+  <SecaoLoader<ICPDados> clientId={clientId} secao={SECAO} rotulo="o ICP">
+    {({ initial, save }) => <ICPEditor initial={initial} onSave={save} readOnly={readOnly} />}
+  </SecaoLoader>
+);

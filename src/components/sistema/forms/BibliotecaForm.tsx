@@ -1,18 +1,17 @@
-import { Textarea } from "@/components/ui/textarea";
-import { FormShell, SaveButton, SectionTitle, inputCls, useSaved } from "./shared";
+import { TextoLivreForm } from "./TextoLivreForm";
 
-export const BibliotecaForm = () => {
-  const { saved, onSubmit } = useSaved();
-  return (
-    <FormShell onSubmit={onSubmit}>
-      <SaveButton saved={saved} />
-      <section className="space-y-3">
-        <SectionTitle>Referências e materiais de estudo do cliente</SectionTitle>
-        <Textarea
-          className={`${inputCls} min-h-[400px]`}
-          placeholder="Cole links, anote insights, livros, podcasts, vídeos..."
-        />
-      </section>
-    </FormShell>
-  );
-};
+interface BibliotecaFormProps {
+  clientId?: string;
+  readOnly?: boolean;
+}
+
+export const BibliotecaForm = ({ clientId, readOnly = false }: BibliotecaFormProps) => (
+  <TextoLivreForm
+    clientId={clientId}
+    secao="biblioteca"
+    rotulo="a biblioteca de referências"
+    titulo="Referências e materiais de estudo do cliente"
+    placeholder="Cole links, anote insights, livros, podcasts, vídeos..."
+    readOnly={readOnly}
+  />
+);

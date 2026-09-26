@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { inputCls } from "./shared";
+import { inputCls, novoId } from "./shared";
+import { SecaoLoader } from "./SecaoLoader";
 
 type Status = "publicado" | "rascunho" | "agendado" | "todo";
 interface Entrada {
@@ -16,6 +18,10 @@ interface Entrada {
   plataforma: string;
   obs: string;
 }
+interface CalendarioDados {
+  entradas: Entrada[];
+}
+type Rascunho = Omit<Entrada, "id" | "data">;
 
 const STATUS_META: Record<Status, { label: string; cls: string }> = {
   publicado: { label: "Publicado", cls: "bg-success/30 text-success border-success/50" },
@@ -33,16 +39,24 @@ const MESES = [
 ];
 
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
+const rascunhoVazio = (): Rascunho => ({
+  titulo: "", status: "rascunho", plataforma: "Instagram", obs: "",
+});
 
-export const CalendarioEditorialForm = () => {
+interface EditorProps {
+  initial: Partial<CalendarioDados>;
+  update: (mudar: (atual: Partial<CalendarioDados>) => CalendarioDados) => Promise<CalendarioDados>;
+}
+
+const CalendarioEditor = ({ initial, update }: EditorProps) => {
   const today = new Date();
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [tab, setTab] = useState(TABS[0]);
-  const [entradas, setEntradas] = useState<Entrada[]>([]);
-  const [modalDate, setModalDate] = useState<string | null>(null);
-  const [draft, setDraft] = useState<Omit<Entrada, "id" | "data">>({
-    titulo: "", status: "rascunho", plataforma: "Instagram", obs: "",
-  });
+  const [entradas, setEntradas] = useState<Entrada[]>(initial.entradas ?? []);
+  // modal aberto: `id` presente = editando; ausente = nova entrada
+  const [modal, setModal] = useState<{ id?: string; data: string } | null>(null);
+  const [draft, setDraft] = useState<Rascunho>(rascunhoVazio());
+  const [saving, setSaving] = useState(false);
 
   const cells = useMemo(() => {
     const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
@@ -56,17 +70,49 @@ export const CalendarioEditorialForm = () => {
   }, [cursor]);
 
   const openNew = (date?: string) => {
-    setDraft({ titulo: "", status: "rascunho", plataforma: "Instagram", obs: "" });
-    setModalDate(date ?? fmt(today));
+    setDraft(rascunhoVazio());
+    setModal({ data: date ?? fmt(today) });
   };
 
-  const save = () => {
-    if (!modalDate || !draft.titulo.trim()) return;
-    setEntradas([
-      ...entradas,
-      { id: String(Date.now()), data: modalDate, ...draft },
-    ]);
-    setModalDate(null);
+  const openEdit = (e: Entrada) => {
+    const { id, data, ...resto } = e;
+    setDraft(resto);
+    setModal({ id, data });
+  };
+
+  /** Aplica a mudanca sobre a versao mais recente do banco e atualiza a tela. */
+  const aplicar = async (op: (lista: Entrada[]) => Entrada[]): Promise<boolean> => {
+    setSaving(true);
+    try {
+      const novo = await update((atual) => ({ entradas: op(atual.entradas ?? []) }));
+      setEntradas(novo.entradas);
+      return true;
+    } catch (err) {
+      console.error("Erro ao salvar calendario editorial:", err);
+      toast.error("Erro ao salvar. Tente novamente.");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const salvar = async () => {
+    if (!modal || !modal.data || !draft.titulo.trim()) return;
+    const { id, data } = modal;
+    const ok = await aplicar((lista) =>
+      id && lista.some((e) => e.id === id)
+        ? lista.map((e) => (e.id === id ? { ...e, ...draft, data } : e))
+        : [...lista, { id: id ?? novoId(), data, ...draft }]
+    );
+    if (ok) setModal(null);
+  };
+
+  const excluir = async () => {
+    if (!modal?.id) return;
+    if (!window.confirm("Excluir esta entrada?")) return;
+    const id = modal.id;
+    const ok = await aplicar((lista) => lista.filter((e) => e.id !== id));
+    if (ok) setModal(null);
   };
 
   const entriesFor = (d: Date) => entradas.filter((e) => e.data === fmt(d));
@@ -138,14 +184,21 @@ export const CalendarioEditorialForm = () => {
           <div className="grid grid-cols-7">
             {cells.map((d, i) => {
               const isToday = d && fmt(d) === fmt(today);
+              const doDia = d ? entriesFor(d) : [];
               return (
-                <button
+                <div
                   key={i}
-                  type="button"
-                  disabled={!d}
+                  role={d ? "button" : undefined}
+                  tabIndex={d ? 0 : -1}
                   onClick={() => d && openNew(fmt(d))}
+                  onKeyDown={(ev) => {
+                    if (d && (ev.key === "Enter" || ev.key === " ")) {
+                      ev.preventDefault();
+                      openNew(fmt(d));
+                    }
+                  }}
                   className={`min-h-[88px] p-1.5 text-left border-b border-r border-surface-3 transition-colors ${
-                    d ? "hover:bg-surface-2" : "bg-background"
+                    d ? "hover:bg-surface-2 cursor-pointer" : "bg-background"
                   }`}
                 >
                   {d && (
@@ -158,18 +211,23 @@ export const CalendarioEditorialForm = () => {
                         {d.getDate()}
                       </div>
                       <div className="space-y-0.5">
-                        {entriesFor(d).slice(0, 3).map((e) => (
-                          <div
+                        {doDia.slice(0, 3).map((e) => (
+                          <button
+                            type="button"
                             key={e.id}
-                            className={`text-[10px] px-1.5 py-0.5 rounded border truncate ${STATUS_META[e.status].cls}`}
+                            onClick={(ev) => { ev.stopPropagation(); openEdit(e); }}
+                            className={`block w-full text-left text-[10px] px-1.5 py-0.5 rounded border truncate ${STATUS_META[e.status].cls}`}
                           >
                             {e.titulo}
-                          </div>
+                          </button>
                         ))}
+                        {doDia.length > 3 && (
+                          <div className="text-[10px] text-muted-foreground px-1">+{doDia.length - 3}</div>
+                        )}
                       </div>
                     </>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
@@ -195,17 +253,27 @@ export const CalendarioEditorialForm = () => {
                       {STATUS_META[st].label} ({items.length})
                     </div>
                     {items.map((e) => (
-                      <div key={e.id} className="px-3 py-2 flex justify-between text-sm border-t border-surface-3">
+                      <button
+                        type="button"
+                        key={e.id}
+                        onClick={() => openEdit(e)}
+                        className="w-full px-3 py-2 flex justify-between text-sm border-t border-surface-3 text-left hover:bg-surface-3/40"
+                      >
                         <span className="text-foreground">{e.titulo}</span>
                         <span className="text-muted-foreground text-xs">{e.data} · {e.plataforma}</span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 );
               });
             }
             return list.map((e) => (
-              <div key={e.id} className="px-3 py-2 flex justify-between items-center text-sm border-b border-surface-3 last:border-0">
+              <button
+                type="button"
+                key={e.id}
+                onClick={() => openEdit(e)}
+                className="w-full px-3 py-2 flex justify-between items-center text-sm border-b border-surface-3 last:border-0 text-left hover:bg-surface-3/40"
+              >
                 <div className="flex items-center gap-2">
                   <span className={`text-[10px] px-1.5 py-0.5 rounded border ${STATUS_META[e.status].cls}`}>
                     {STATUS_META[e.status].label}
@@ -213,18 +281,26 @@ export const CalendarioEditorialForm = () => {
                   <span className="text-foreground">{e.titulo}</span>
                 </div>
                 <span className="text-muted-foreground text-xs">{e.data} · {e.plataforma}</span>
-              </div>
+              </button>
             ));
           })()}
         </div>
       )}
 
-      <Dialog open={!!modalDate} onOpenChange={(o) => !o && setModalDate(null)}>
+      <Dialog open={!!modal} onOpenChange={(o) => !o && !saving && setModal(null)}>
         <DialogContent className="bg-surface-1 border-surface-3 text-foreground max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Nova entrada · {modalDate}</DialogTitle>
+            <DialogTitle className="text-foreground">
+              {modal?.id ? "Editar entrada" : "Nova entrada"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <Input
+              type="date"
+              value={modal?.data ?? ""}
+              onChange={(e) => modal && setModal({ ...modal, data: e.target.value })}
+              className={inputCls}
+            />
             <Input
               placeholder="Título"
               value={draft.titulo}
@@ -251,9 +327,22 @@ export const CalendarioEditorialForm = () => {
               onChange={(e) => setDraft({ ...draft, obs: e.target.value })}
               className={inputCls}
             />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setModalDate(null)}>Cancelar</Button>
-              <Button type="button" className="bg-primary hover:bg-primary/90" onClick={save}>Salvar</Button>
+            <div className="flex items-center gap-2">
+              {modal?.id && (
+                <Button
+                  type="button" variant="ghost" disabled={saving}
+                  className="text-destructive hover:text-destructive mr-auto"
+                  onClick={excluir}
+                >
+                  Excluir
+                </Button>
+              )}
+              <Button type="button" variant="ghost" disabled={saving} className="ml-auto" onClick={() => setModal(null)}>
+                Cancelar
+              </Button>
+              <Button type="button" disabled={saving} className="bg-primary hover:bg-primary/90" onClick={salvar}>
+                {saving ? "Salvando..." : "Salvar"}
+              </Button>
             </div>
           </div>
         </DialogContent>
@@ -261,3 +350,9 @@ export const CalendarioEditorialForm = () => {
     </div>
   );
 };
+
+export const CalendarioEditorialForm = ({ clientId }: { clientId?: string }) => (
+  <SecaoLoader<CalendarioDados> clientId={clientId} secao="calendario" rotulo="o calendário editorial">
+    {({ initial, update }) => <CalendarioEditor initial={initial} update={update} />}
+  </SecaoLoader>
+);

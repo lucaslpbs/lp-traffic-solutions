@@ -1,7 +1,7 @@
-import { Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { AutoTextarea, SaveButton } from "./forms/shared";
-import { useClienteSecao, useSecaoEditor } from "./forms/useClienteSecao";
+import { SecaoLoader } from "./forms/SecaoLoader";
+import { useSecaoEditor } from "./forms/useClienteSecao";
 
 const SECAO = "persona";
 
@@ -120,19 +120,8 @@ interface PersonaFormProps {
   readOnly?: boolean;
 }
 
-export const PersonaForm = ({ clientId, readOnly = false }: PersonaFormProps) => {
-  const { data, isLoading, isError, save } = useClienteSecao<PersonaDados>(clientId, SECAO);
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-  if (isError) {
-    return <p className="text-sm text-destructive">Erro ao carregar a persona. Recarregue a página.</p>;
-  }
-
-  return <PersonaEditor key={clientId} initial={data ?? {}} onSave={save} readOnly={readOnly} />;
-};
+export const PersonaForm = ({ clientId, readOnly = false }: PersonaFormProps) => (
+  <SecaoLoader<PersonaDados> clientId={clientId} secao={SECAO} rotulo="a persona">
+    {({ initial, save }) => <PersonaEditor initial={initial} onSave={save} readOnly={readOnly} />}
+  </SecaoLoader>
+);

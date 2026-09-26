@@ -1,11 +1,12 @@
-import { useState } from "react";
 import {
   Rss, Mail, Facebook, Instagram, Linkedin, Newspaper,
   Image as Pin, Send, Music2, MessageCircle, Youtube,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { FormShell, SaveButton, inputCls, useSaved } from "./shared";
+import { FormShell, SaveButton, inputCls } from "./shared";
+import { SecaoLoader } from "./SecaoLoader";
+import { useSecaoEditor } from "./useClienteSecao";
 
 const CANAIS = [
   { id: "blog", nome: "Blog", Icon: Rss },
@@ -26,18 +27,30 @@ interface Estado {
   obs: string;
 }
 
-export const CanaisForm = () => {
-  const { saved, onSubmit } = useSaved();
-  const [state, setState] = useState<Record<string, Estado>>(
-    Object.fromEntries(CANAIS.map((c) => [c.id, { ativo: false, obs: "" }]))
+type CanaisDados = Record<string, Estado>;
+
+/** Todos os canais, com o que foi salvo por cima do padrao (desligado, sem obs). */
+const normalizar = (salvo: Partial<CanaisDados>): CanaisDados =>
+  Object.fromEntries(
+    CANAIS.map((c) => [c.id, { ativo: false, obs: "", ...(salvo[c.id] ?? {}) }])
   );
 
+const CanaisEditor = ({
+  initial,
+  onSave,
+}: {
+  initial: Partial<CanaisDados>;
+  onSave: (dados: CanaisDados) => Promise<void>;
+}) => {
+  const { values: state, setValues: setState, dirty, saving, saved, onSubmit } =
+    useSecaoEditor<CanaisDados>(normalizar(initial), onSave);
+
   const upd = (id: string, patch: Partial<Estado>) =>
-    setState({ ...state, [id]: { ...state[id], ...patch } });
+    setState((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
 
   return (
     <FormShell onSubmit={onSubmit}>
-      <SaveButton saved={saved} />
+      <SaveButton saved={saved} saving={saving} dirty={dirty} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {CANAIS.map(({ id, nome, Icon }) => {
           const s = state[id];
@@ -81,3 +94,9 @@ export const CanaisForm = () => {
     </FormShell>
   );
 };
+
+export const CanaisForm = ({ clientId }: { clientId?: string }) => (
+  <SecaoLoader<CanaisDados> clientId={clientId} secao="canais" rotulo="os canais de comunicação">
+    {({ initial, save }) => <CanaisEditor initial={initial} onSave={save} />}
+  </SecaoLoader>
+);

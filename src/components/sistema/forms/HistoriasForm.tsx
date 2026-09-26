@@ -1,8 +1,9 @@
-import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FormShell, SaveButton, inputCls, useSaved } from "./shared";
+import { FormShell, SaveButton, inputCls } from "./shared";
+import { SecaoLoader } from "./SecaoLoader";
+import { useSecaoEditor } from "./useClienteSecao";
 
 interface Historia {
   tema: string;
@@ -10,23 +11,43 @@ interface Historia {
   tags: string;
 }
 
-export const HistoriasForm = () => {
-  const { saved, onSubmit } = useSaved();
-  const [rows, setRows] = useState<Historia[]>([
-    { tema: "", ano: "", tags: "" },
-  ]);
+interface HistoriasDados {
+  rows: Historia[];
+}
 
-  const update = (i: number, k: keyof Historia, v: string) => {
-    const next = [...rows];
-    next[i] = { ...next[i], [k]: v };
-    setRows(next);
-  };
-  const remove = (i: number) => setRows(rows.filter((_, idx) => idx !== i));
-  const add = () => setRows([...rows, { tema: "", ano: "", tags: "" }]);
+const linhaVazia = (): Historia => ({ tema: "", ano: "", tags: "" });
+
+const HistoriasEditor = ({
+  initial,
+  onSave,
+}: {
+  initial: Partial<HistoriasDados>;
+  onSave: (dados: HistoriasDados) => Promise<void>;
+}) => {
+  const {
+    values,
+    setValues,
+    dirty,
+    saving,
+    saved,
+    onSubmit,
+  } = useSecaoEditor<HistoriasDados>(
+    { rows: initial.rows?.length ? initial.rows : [linhaVazia()] },
+    onSave
+  );
+  const rows = values.rows;
+
+  const update = (i: number, k: keyof Historia, v: string) =>
+    setValues((prev) => ({
+      rows: prev.rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)),
+    }));
+  const remove = (i: number) =>
+    setValues((prev) => ({ rows: prev.rows.filter((_, idx) => idx !== i) }));
+  const add = () => setValues((prev) => ({ rows: [...prev.rows, linhaVazia()] }));
 
   return (
     <FormShell onSubmit={onSubmit}>
-      <SaveButton saved={saved} />
+      <SaveButton saved={saved} saving={saving} dirty={dirty} />
       <div className="overflow-hidden rounded-lg border border-surface-3">
         <table className="w-full text-sm">
           <thead>
@@ -99,3 +120,9 @@ export const HistoriasForm = () => {
     </FormShell>
   );
 };
+
+export const HistoriasForm = ({ clientId }: { clientId?: string }) => (
+  <SecaoLoader<HistoriasDados> clientId={clientId} secao="historias" rotulo="o diretório de histórias">
+    {({ initial, save }) => <HistoriasEditor initial={initial} onSave={save} />}
+  </SecaoLoader>
+);

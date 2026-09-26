@@ -33,7 +33,7 @@ export function useClienteSecao<T extends object>(clientId: string | undefined, 
     },
   });
 
-  const save = async (dados: T) => {
+  const gravar = async (dados: T) => {
     if (!clientId) throw new Error("Cliente nao informado");
     const { error } = await secoes().upsert(
       {
@@ -49,7 +49,28 @@ export function useClienteSecao<T extends object>(clientId: string | undefined, 
     queryClient.setQueryData(queryKey, dados);
   };
 
-  return { data: query.data, isLoading: query.isLoading, isError: query.isError, save };
+  /** Substitui o documento inteiro (forms com botao Salvar). */
+  const save = gravar;
+
+  /**
+   * Para listas editadas por varias pessoas (calendario, diario, relatorios):
+   * le a versao mais recente do banco, aplica so a mudanca e grava, em vez de
+   * sobrescrever com a copia que ficou aberta na tela.
+   */
+  const update = async (mudar: (atual: Partial<T>) => T): Promise<T> => {
+    if (!clientId) throw new Error("Cliente nao informado");
+    const { data, error } = await secoes()
+      .select("dados")
+      .eq("client_id", clientId)
+      .eq("secao", secao)
+      .maybeSingle();
+    if (error) throw error;
+    const novo = mudar((data?.dados ?? {}) as Partial<T>);
+    await gravar(novo);
+    return novo;
+  };
+
+  return { data: query.data, isLoading: query.isLoading, isError: query.isError, save, update };
 }
 
 /** Estado local de um form de secao: valores, "sujo?", e o submit que grava de verdade. */

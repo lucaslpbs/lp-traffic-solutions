@@ -20,12 +20,12 @@ import { FluxosPage } from "@/components/sistema/FluxosPage";
 import { OtimizacaoForm } from "@/components/sistema/forms/OtimizacaoForm";
 import { PersonaForm } from "@/components/sistema/PersonaForm";
 import { ICPForm } from "@/components/sistema/forms/ICPForm";
+import { EscopoForm } from "@/components/sistema/forms/EscopoForm";
+import { BibliotecaForm } from "@/components/sistema/forms/BibliotecaForm";
 import { CriativosGallery } from "@/components/sistema/CriativosGallery";
 import { MinhaPaginaTab } from "@/components/dashboard/MinhaPaginaTab";
 import type { LinkItem } from "@/components/linktree/LinkPageEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 type Tab = "clientes" | "demandas" | "checklist" | "metas" | "fluxos";
 
@@ -48,49 +48,6 @@ const titles: Record<Tab, string> = {
 // ── Client read-only view components ──
 
 type SectionId = "persona" | "icp" | "escopo" | "biblioteca" | "otimizacao" | "criativos" | "pagina-links" | null;
-
-const inputCls = "bg-surface-2 border-surface-3 text-foreground rounded-md cursor-default";
-
-const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <h4 className="text-sm font-semibold text-primary uppercase tracking-wide border-b border-surface-3 pb-2">
-    {children}
-  </h4>
-);
-
-const ReadOnlyBulletList = ({ items }: { items: string[] }) => (
-  <div className="space-y-2">
-    {items.map((item, i) => (
-      <div key={i} className="flex items-center gap-2">
-        <span className="text-primary text-lg leading-none select-none">•</span>
-        <Input value={item} className={`${inputCls} flex-1`} disabled />
-      </div>
-    ))}
-  </div>
-);
-
-const EscopoReadOnly = () => (
-  <div className="space-y-6">
-    <section className="space-y-3">
-      <SectionTitle>Links importantes</SectionTitle>
-      <ReadOnlyBulletList items={["", "", ""]} />
-    </section>
-    <section className="space-y-3">
-      <SectionTitle>Combinados com o cliente</SectionTitle>
-      <ReadOnlyBulletList items={[""]} />
-    </section>
-    <section className="space-y-3">
-      <SectionTitle>Rotinas definidas</SectionTitle>
-      <ReadOnlyBulletList items={[""]} />
-    </section>
-  </div>
-);
-
-const BibliotecaReadOnly = () => (
-  <div className="space-y-3">
-    <SectionTitle>Referencias e materiais de estudo do cliente</SectionTitle>
-    <Textarea className={`${inputCls} min-h-[400px]`} disabled placeholder="—" />
-  </div>
-);
 
 const clientSections = [
   { id: "persona" as const, label: "Persona", icon: FileText, description: "Visualizar informações" },
@@ -148,8 +105,8 @@ function ClienteSistemaView() {
     switch (activeSection) {
       case "persona": return <PersonaForm clientId={clienteVinculadoId || undefined} readOnly />;
       case "icp": return <ICPForm clientId={clienteVinculadoId || undefined} readOnly />;
-      case "escopo": return <EscopoReadOnly />;
-      case "biblioteca": return <BibliotecaReadOnly />;
+      case "escopo": return <EscopoForm clientId={clienteVinculadoId || undefined} readOnly />;
+      case "biblioteca": return <BibliotecaForm clientId={clienteVinculadoId || undefined} readOnly />;
       case "otimizacao": return <OtimizacaoForm clientId={clienteVinculadoId || undefined} readOnly />;
       case "criativos": return <CriativosGallery clientId={clienteVinculadoId || undefined} />;
       case "pagina-links":

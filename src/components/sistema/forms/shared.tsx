@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useRef, ReactNode } from "react";
+import { useLayoutEffect, useRef, ReactNode } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,19 @@ import { cn } from "@/lib/utils";
 
 export const inputCls =
   "bg-surface-2 border-surface-3 text-foreground rounded-md placeholder:text-muted-foreground/80";
+
+/** Garante ao menos `min` linhas (vazias) numa lista de itens salva. */
+export const completar = (itens: string[] | undefined, min: number): string[] => {
+  const lista = [...(itens ?? [])];
+  while (lista.length < min) lista.push("");
+  return lista;
+};
+
+/** Id para itens de lista (crypto.randomUUID so existe em contexto seguro). */
+export const novoId = (): string =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 /** Textarea que cresce conforme o conteudo (campos curtos parecem um input). */
 export const AutoTextarea = ({
@@ -77,16 +90,6 @@ export const SaveButton = ({
   </div>
 );
 
-export function useSaved() {
-  const [saved, setSaved] = useState(false);
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
-  };
-  return { saved, onSubmit };
-}
-
 interface BulletListProps {
   items: string[];
   setItems: (v: string[]) => void;
@@ -114,7 +117,18 @@ export const BulletList = ({
         {preenchidos.map((it, i) => (
           <li key={i} className="flex items-start gap-2 text-sm text-foreground">
             <span className="text-primary text-lg leading-none select-none">•</span>
-            <span className="whitespace-pre-wrap break-words">{it}</span>
+            {asLink && /^https?:\/\//.test(it) ? (
+              <a
+                href={it}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline break-all"
+              >
+                {it}
+              </a>
+            ) : (
+              <span className="whitespace-pre-wrap break-words">{it}</span>
+            )}
           </li>
         ))}
       </ul>
